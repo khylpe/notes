@@ -5,10 +5,9 @@
 
 <script lang="ts" setup>
 import { h, ref, onMounted, onUnmounted } from 'vue';
-import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined } from '@ant-design/icons-vue';
+import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
 
-// Reactive variable for menu mode
 const menuMode = ref('inline');
 const isCollapsed = ref(false);
 const inLineIndentValue = ref(24);

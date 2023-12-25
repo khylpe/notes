@@ -46,7 +46,7 @@
                             <!-- Tooltip value -->
                             <template #title>Reset search settings</template>
 
-                     <CloseCircleOutlined class="flex-column ml2"
+                     <UndoOutlined class="flex-column ml2"
                             style="font-size: 24px; display: flex; color: #7a7878" />
                             </a-tooltip>
               </div>
@@ -83,7 +83,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { UserOutlined, CloseCircleOutlined } from '@ant-design/icons-vue';
+import { UserOutlined, UndoOutlined } from '@ant-design/icons-vue';
 import dayjs, { Dayjs } from 'dayjs';
 
 const dataSource = [

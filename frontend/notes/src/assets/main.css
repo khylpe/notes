@@ -32,8 +32,12 @@ main {
        width: 100%;
 }
 
-
 .flex-child {
        margin-top: 10px;
        /* This should be the same value as the container's negative margin-top */
 }
+
+.rm-header-height {
+       margin-top: -80px;
+}
+

@@ -1,31 +1,32 @@
 
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import { Divider } from 'ant-design-vue';
+import { RouterView } from 'vue-router'
 import SideBar from '@/components/SideBar.vue';
 import SearchBar from '@/components/SearchBar.vue';
+import LoginForm from '@/components/LoginForm.vue';
+import { onAuthStateChanged } from 'firebase/auth';
+import { ref } from 'vue';
+import auth from '@/services/FirebaseConfig';
+import Header from '@/components/Header.vue';
+
+const isAuthenticated = ref(false);
+
+onAuthStateChanged(auth, (user) => {
+       isAuthenticated.value = !!user;
+});
 </script>
-
 <template>
-       <header class="flex flex-column pl1 pt1">
-              <div class="flex flex-row items-center">
-                     <RouterLink to="/">
-                            <img alt="Vue logo" class="logo" src="@/assets/logo_black.svg" width="75" height="auto" />
-                     </RouterLink>
-                     <span class="ml3 h1">Notes by Arthur CRAHE</span>
-              </div>
-
-              <div class="mx1">
-                     <Divider class="my1" />
-              </div>
-       </header>
-
-       <main class="flex flex-row">
+       <Header></Header>
+       <main class="flex flex-row" v-if="isAuthenticated">
               <SideBar />
-
               <div class="content-page">
                      <SearchBar />
                      <RouterView />
+              </div>
+       </main>
+       <main v-else>
+              <div class="col col-12 flex flex-row justify-center items-center h-100 rm-header-height">
+                     <LoginForm />
               </div>
        </main>
 </template> 
