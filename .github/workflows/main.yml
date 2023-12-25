@@ -1,0 +1,29 @@
+name: SSH Deploy Action
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Run the job on the latest Ubuntu runner
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2  # Check out the repository code
+
+      - name: Setting up SSH keys
+        uses: webfactory/ssh-agent@v0.5.2  # Set up SSH agent with your private key
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # Use SSH private key stored in GitHub secrets
+
+      - name: Executing remote SSH commands
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 6336 debian@51.77.214.64 << EOF
+            cd /var/www/html/notes
+            sudo git pull
+            cd /var/www/html/notes/frontend/notes
+            sudo npm run build
+            sudo pm2 restart "Notes client"
+          EOF
