@@ -22,7 +22,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -p 6336 debian@51.77.214.64 << EOF
             cd /var/www/html/notes
-            sudo -u debian git pull
+            sudo -E git pull
             cd /var/www/html/notes/frontend/notes
             sudo npm run build
             sudo pm2 restart "Notes client"
