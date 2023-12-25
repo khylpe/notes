@@ -22,6 +22,7 @@
                                    </template>
                             </a-input>
                      </a-form-item>
+
                      <a-form-item name="password" :rules="[{ required: true, message: 'Please input your password!' }]">
                             <a-input-password v-model:value="formState.password" size="large" placeholder="Password">
                                    <template #prefix>
@@ -29,10 +30,10 @@
                                    </template>
                             </a-input-password>
                      </a-form-item>
+
                      <a-form-item class="flex justify-center">
                             <a-switch v-model:checked="state.iHaveAnAccount" checked-children="I have an account"
                                    un-checked-children="I don't have an account" />
-
                      </a-form-item>
 
                      <a-form-item class="flex justify-center">
@@ -42,6 +43,7 @@
                             </a-button>
                      </a-form-item>
               </a-form>
+
               <a-divider>Use a provider</a-divider>
 
               <div class="flex flex-column" style="width: 100%;">
@@ -58,7 +60,6 @@
                                    <span>Log in or Sign up with GitHub</span>
                             </div>
                      </a-button>
-
               </div>
        </div>
 </template>
@@ -66,14 +67,13 @@
 <script setup lang="ts">
 import { reactive, computed } from 'vue';
 import { UserOutlined, LockOutlined, GoogleOutlined, GithubOutlined, MailOutlined } from '@ant-design/icons-vue';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
 import auth from "@/services/FirebaseConfig"; // Adjust the path as necessary
 import { message } from 'ant-design-vue';
 
 const state = reactive({
        iHaveAnAccount: true,
 });
-
 interface FormState {
        email: string;
        username: string;
@@ -83,13 +83,11 @@ interface FirebaseAuthError {
        code: string;
        message: string;
 }
-
 const formState = reactive<FormState>({
        email: '',
        username: '',
        password: '',
 });
-
 const onFinish = async () => {
        try {
               if (state.iHaveAnAccount) {
@@ -109,7 +107,6 @@ const onFinishFailed = (errorInfo: any) => {
        console.log('Failed:', errorInfo);
        message.error(`Please fill in all the fields. Error: ${errorInfo}`);
 };
-
 const login = async () => {
        const userCredential = await signInWithEmailAndPassword(auth, formState.email, formState.password);
        // Return the user credential or throw an error
@@ -118,10 +115,19 @@ const login = async () => {
 const signUp = async () => {
        const userCredential = await createUserWithEmailAndPassword(auth, formState.email, formState.password);
        await updateProfile(userCredential.user, { displayName: formState.username });
+
+       // Send verification email
+       await sendEmailVerification(userCredential.user)
+              .then(() => {
+                     console.log("Verification email sent.");
+              })
+              .catch((error) => {
+                     console.error("Error sending verification email:", error);
+              });
+
        // Return the user credential or throw an error
        return userCredential;
 };
-
 const handleAuthError = (error: FirebaseAuthError): string => {
        switch (error.code) {
               case 'auth/invalid-email':
@@ -144,46 +150,30 @@ const handleAuthError = (error: FirebaseAuthError): string => {
                      return `An unexpected error occurred. Please try again. Error code : ${error.code}`;
        }
 };
-
 const isDisableSubmit = computed(() => {
        return !(formState.email && formState.password);
 });
-
 const signInWithGoogle = async () => {
        const provider = new GoogleAuthProvider();
        try {
               const result = await signInWithPopup(auth, provider);
-              // This gives you a Google Access Token. You can use it to access Google APIs.
               const credential = GoogleAuthProvider.credentialFromResult(result);
               if (credential === null) {
                      throw new Error('Credential is null');
               }
-              const token = credential.accessToken;
-              // The signed-in user info.
-              const user = result.user;
-              // Handle user sign-in.
        } catch (error) {
-              // Handle errors here.
        }
 };
-
 const signInWithGithub = async () => {
        const provider = new GithubAuthProvider();
        try {
               const result = await signInWithPopup(auth, provider);
-              // This gives you a GitHub Access Token. You can use it to access GitHub APIs.
               const credential = GithubAuthProvider.credentialFromResult(result);
               if (credential === null) {
                      console.log('Credential is null');
                      throw new Error('Credential is null');
               }
-              const token = credential.accessToken;
-              // The signed-in user info.
-              const user = result.user;
-              // Handle user sign-in.
        } catch (error) {
-              console.log('Error:', error);
-              // Handle errors here.
        }
 };
 </script>

@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
-import { Divider, Avatar, Popover } from 'ant-design-vue';
+import { RouterLink } from 'vue-router';
+import { Divider } from 'ant-design-vue';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { ref } from 'vue';
 import auth from '@/services/FirebaseConfig';
 import { UserOutlined } from '@ant-design/icons-vue';
 
 const isAuthenticated = ref(false);
-const userProfilePicture = ref<string>(''); // Store user's profile picture URL
-const username = ref<string>(''); // Store user's name
+const userProfilePicture = ref<string>('');
+const username = ref<string>('');
 
 onAuthStateChanged(auth, (user) => {
        isAuthenticated.value = !!user;
        userProfilePicture.value = user && user.photoURL ? user.photoURL : '';
-       username.value = user ? user.displayName || 'Anonymous' : ''; // Update the user's name
+       username.value = user ? user.displayName || 'Anonymous' : '';
 });
 
-// Logout function
 const logout = async () => {
        try {
               await signOut(auth);
@@ -27,7 +26,6 @@ const logout = async () => {
        }
 };
 </script>
-
 <template>
        <header class="flex flex-column pl1 pt1">
               <div class="flex flex-row items-center justify-between">
@@ -51,11 +49,8 @@ const logout = async () => {
                             </a-avatar>
                      </a-popover>
               </div>
-
               <div class="mx1">
                      <Divider class="my1" />
               </div>
        </header>
 </template>
-   
-     

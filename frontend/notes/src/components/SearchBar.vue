@@ -46,11 +46,10 @@
                             <!-- Tooltip value -->
                             <template #title>Reset search settings</template>
 
-                     <UndoOutlined class="flex-column ml2"
-                            style="font-size: 24px; display: flex; color: #7a7878" />
-                            </a-tooltip>
+                            <!-- Element to hover for tooltip -->
+                            <UndoOutlined class="flex-column ml2" style="font-size: 24px; display: flex; color: #7a7878" />
+                     </a-tooltip>
               </div>
-
 
               <!-- Div containing settings such as Folder, Tags, date -->
               <div style="width: 600px; margin-left: auto; margin-right: auto; margin-top: -10px;"
@@ -76,7 +75,6 @@
                                           note was
                                           created.</span></a-range-picker>
                      </a-space>
-
               </div>
        </div>
 </template>
@@ -85,6 +83,12 @@
 import { ref } from 'vue';
 import { UserOutlined, UndoOutlined } from '@ant-design/icons-vue';
 import dayjs, { Dayjs } from 'dayjs';
+
+type RangeValue = [Dayjs, Dayjs];
+
+const searchValue = ref('');
+const tagValue = ref([]);
+const folderValue = ref([]);
 
 const dataSource = [
        {
@@ -126,19 +130,17 @@ const dataSource = [
               value: 'all',
        },
 ];
-const searchValue = ref('');
-
-const handleTagChange = (value: string) => {
-       console.log(`selected ${value}`);
-};
-
-const handleFolderChange = (value: string) => {
-       console.log(`selected ${value}`);
-};
-
-const tagValue = ref([]);
-const folderValue = ref([]);
-
+const presets = ref([
+       { label: 'Yesterday', value: dayjs().add(-1, 'd') },
+       { label: 'Last Week', value: dayjs().add(-7, 'd') },
+       { label: 'Last Month', value: dayjs().add(-1, 'month') },
+]);
+const rangePresets = ref([
+       { label: 'Last 7 Days', value: [dayjs().add(-7, 'd'), dayjs()] },
+       { label: 'Last 14 Days', value: [dayjs().add(-14, 'd'), dayjs()] },
+       { label: 'Last 30 Days', value: [dayjs().add(-30, 'd'), dayjs()] },
+       { label: 'Last 90 Days', value: [dayjs().add(-90, 'd'), dayjs()] },
+]);
 const tagOptions = [
        { value: 'shopping' },
        { value: 'music' },
@@ -151,14 +153,21 @@ const tagOptions = [
        { value: 'shoRTHpping' },
        { value: 'muRTHsic' }
 ];
-
 const folderOptions = [
        { value: 'My notes' },
        { value: 'Archived' },
        { value: 'Deleted' },
 ];
-
-type RangeValue = [Dayjs, Dayjs];
+const disabledDate = (current: Dayjs) => {
+       // Can not select days after today
+       return current > dayjs().endOf('day');
+};
+const handleTagChange = (value: string) => {
+       console.log(`selected ${value}`);
+};
+const handleFolderChange = (value: string) => {
+       console.log(`selected ${value}`);
+};
 const onChange = (date: Dayjs) => {
        if (date) {
               console.log('Date: ', date);
@@ -175,25 +184,7 @@ const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
        }
 };
 
-const presets = ref([
-       { label: 'Yesterday', value: dayjs().add(-1, 'd') },
-       { label: 'Last Week', value: dayjs().add(-7, 'd') },
-       { label: 'Last Month', value: dayjs().add(-1, 'month') },
-]);
-
-const rangePresets = ref([
-       { label: 'Last 7 Days', value: [dayjs().add(-7, 'd'), dayjs()] },
-       { label: 'Last 14 Days', value: [dayjs().add(-14, 'd'), dayjs()] },
-       { label: 'Last 30 Days', value: [dayjs().add(-30, 'd'), dayjs()] },
-       { label: 'Last 90 Days', value: [dayjs().add(-90, 'd'), dayjs()] },
-]);
-
-const disabledDate = (current: Dayjs) => {
-       // Can not select days before today and today
-       return current > dayjs().endOf('day');
-};
 </script>
-
 <style scoped>
 .certain-category-search-dropdown .ant-select-dropdown-menu-item-group-title {
        color: #666;
