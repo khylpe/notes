@@ -1,4 +1,4 @@
-// NoteType.ts
+// UserType.ts
 
 export interface UserType {
        id: string;
