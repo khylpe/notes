@@ -1,17 +1,20 @@
 <template>
-       <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="col col-2"
-              v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
+       <div class="col col-2">
+              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-100 fixed col col-2"
+                     v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
+       </div>
 </template>
 
 <script lang="ts" setup>
 import { h, ref, onMounted, onUnmounted } from 'vue';
 import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
+import router from "@/router";
 
 const menuMode = ref('inline');
 const isCollapsed = ref(false);
 const inLineIndentValue = ref(24);
-// Function to update menu mode based on viewport width
+
 function updateMenuMode() {
        const width = window.innerWidth;
        menuMode.value = width < 768 ? 'vertical' : 'inline'; // Change 768 to your desired breakpoint
@@ -28,16 +31,13 @@ function updateMenuMode() {
        }
        // 1150
 }
-
 onMounted(() => {
        window.addEventListener('resize', updateMenuMode);
        updateMenuMode(); // Initial check
 });
-
 onUnmounted(() => {
        window.removeEventListener('resize', updateMenuMode);
 });
-
 const current = ref<string[]>();
 const items = ref<MenuProps['items']>([
        {
@@ -45,12 +45,17 @@ const items = ref<MenuProps['items']>([
               icon: () => h(PushpinOutlined),
               label: 'My pinned notes',
               title: 'My pinned notes',
+              onClick: () => {
+              },
        },
        {
               key: 'My notes',
               icon: () => h(UnorderedListOutlined),
               label: 'My notes',
               title: 'My notes',
+              onClick: () => {
+                     router.push('/notes');
+              },
        },
        {
               key: 'Folders',
@@ -95,7 +100,6 @@ const items = ref<MenuProps['items']>([
               ],
        },
 ]);
-
 function handleMenuClick(e: any) {
        current.value = [e.key];
 }

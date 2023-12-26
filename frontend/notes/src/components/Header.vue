@@ -5,6 +5,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { ref } from 'vue';
 import auth from '@/services/FirebaseConfig';
 import { UserOutlined } from '@ant-design/icons-vue';
+import router from '@/router';
 
 const isAuthenticated = ref(false);
 const userProfilePicture = ref<string>('');
@@ -15,12 +16,11 @@ onAuthStateChanged(auth, (user) => {
        userProfilePicture.value = user && user.photoURL ? user.photoURL : '';
        username.value = user ? user.displayName || 'Anonymous' : '';
 });
-
 const logout = async () => {
        try {
               await signOut(auth);
               console.log("Logged out successfully");
-              // Additional logout handling (e.g., redirecting to a login page)
+              router.push('/login');
        } catch (error) {
               console.error("Logout failed", error);
        }
@@ -39,8 +39,10 @@ const logout = async () => {
                             <template #content>
                                    <div class="flex flex-column">
                                           <span>{{ username }}</span>
-                                          <a-button class="mt1">Profil</a-button>
-                                          <a-button danger @click="logout" class="mt1">Logout</a-button>
+                                          <RouterLink to="/profil">
+                                                 <a-button class="mt1" style="width: 100%;">Profil</a-button>
+                                          </RouterLink>
+                                          <a-button danger @click="logout" class="mt1" style="width: 100%;">Logout</a-button>
                                    </div>
                             </template>
                             <a-avatar :size="36" class="mr2" v-if="userProfilePicture" :src="userProfilePicture" />

@@ -28,7 +28,7 @@ main {
        height: 100%;
 }
 
-.content-page {
+.content-page, .w-100 {
        width: 100%;
 }
 
@@ -41,3 +41,6 @@ main {
        margin-top: -80px;
 }
 
+.w-100 {
+       width: 100%;
+}

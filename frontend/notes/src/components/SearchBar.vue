@@ -1,9 +1,8 @@
 <template>
        <div class="certain-category-search-wrapper flex flex-column"
-              style="width: 600px; margin-left: auto; margin-right: auto;">
-
-              <!-- Tooltip element -->
-              <div class="flex flex-row items-center">
+              style="margin-left: auto; margin-right: auto;">
+              <div class="flex flex-row items-center w-100">
+                     <!-- Tooltip element -->
                      <a-tooltip>
                             <!-- Tooltip value -->
                             <template #title>By default, it will search in all notes</template>
@@ -11,7 +10,7 @@
                             <!-- Element to hover for the tooltip -->
                             <a-auto-complete v-model:value="searchValue" class="certain-category-search"
                                    popup-class-name="certain-category-search-dropdown" :dropdown-match-select-width="600"
-                                   style="width: 600px;" :options="dataSource">
+                                   :options="dataSource">
                                    <template #option="item">
                                           <template v-if="item.options">
                                                  <span>
@@ -52,23 +51,22 @@
               </div>
 
               <!-- Div containing settings such as Folder, Tags, date -->
-              <div style="width: 600px; margin-left: auto; margin-right: auto; margin-top: -10px;"
-                     class="flex justify-around flex-wrap pt1">
-
+              <div style="max-width: 600px; margin-left: auto; margin-right: auto; margin-top: -10px;"
+                     class="flex justify-around flex-wrap pt1 settings">
                      <!-- Select folder to search in -->
                      <a-select v-model:value="folderValue" mode="multiple" style="width: fit-content; min-width: 120px;"
                             :options="folderOptions" size="large" :dropdown-match-select-width="200" :max-tag-count="3"
-                            placeholder="Folder" @change="handleFolderChange" class="flex-child">
+                            placeholder="Folder" @change="handleFolderChange" class="setting flex-child">
                      </a-select>
 
                      <!-- Filter by tags -->
                      <a-select v-model:value="tagValue" mode="multiple" style="width: fit-content ; min-width: 120px;"
                             :options="tagOptions" size="large" :dropdown-match-select-width="200" :max-tag-count="3"
-                            placeholder="Tags" @change="handleTagChange" class="flex-child">
+                            placeholder="Tags" @change="handleTagChange" class="setting flex-child">
                      </a-select>
 
                      <!-- Filter by creation date -->
-                     <a-space direction="vertical" :size="12" class="flex-child">
+                     <a-space direction="vertical" :size="12" class="setting flex-child">
                             <a-range-picker :presets="rangePresets" format="DD/MM/YYYY" @change="onRangeChange" size="large"
                                    :disabled-date="disabledDate" #renderExtraFooter><span class="flex justify-center">Select a
                                           start and end date for when the
@@ -186,6 +184,35 @@ const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
 
 </script>
 <style scoped>
+@media (max-width: 1000px) {
+       .settings{
+              flex-direction: column;
+              width: 100%;
+       }
+
+       .setting {
+              width: 100%;
+       }
+
+       .certain-category-search {
+              width: 100%;
+              /* Full width for the search bar on small screens */
+       }
+
+       .a-select,
+       .a-space {
+              width: 100%;
+       }
+}
+
+/* For larger screens, you can set a specific width if necessary */
+@media (min-width: 1001px) {
+       .certain-category-search {
+              width: 600px;
+              /* Adjust as needed for larger screens */
+       }
+}
+
 .certain-category-search-dropdown .ant-select-dropdown-menu-item-group-title {
        color: #666;
        font-weight: bold;
@@ -206,5 +233,4 @@ const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
 
 .certain-category-search-dropdown .ant-select-dropdown-menu {
        max-height: 300px;
-}
-</style>
+}</style>
