@@ -22,7 +22,7 @@ import type { MenuProps } from 'ant-design-vue';
 import { Modal } from 'ant-design-vue';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import type { TagType } from '@/types/TagType';
+import type { TagType } from '@/types/Tag';
 import router from "@/router";
 
 const menuMode = ref('inline');
