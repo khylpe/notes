@@ -8,8 +8,8 @@
                             @finishFailed="onFinishFailed">
                             <a-form-item name="username"
                                    :rules="[{ required: !state.iHaveAnAccount, message: 'Please input your username!' }]">
-                                   <a-input v-model:value="formState.username" size="large" :disabled="state.iHaveAnAccount"
-                                          placeholder="Username">
+                                   <a-input v-model:value="formState.username" size="large"
+                                          :disabled="state.submitting || state.iHaveAnAccount" placeholder="Username">
                                           <template #prefix>
                                                  <UserOutlined class="site-form-item-icon" />
                                           </template>
@@ -17,7 +17,7 @@
                             </a-form-item>
 
                             <a-form-item name="email" :rules="[{ required: true, message: 'Please input your email!' }]">
-                                   <a-input v-model:value="formState.email" size="large" placeholder="Mail">
+                                   <a-input v-model:value="formState.email" size="large" :disabled="state.submitting" placeholder="Mail">
                                           <template #prefix>
                                                  <MailOutlined class="site-form-item-icon" />
                                           </template>
@@ -25,7 +25,7 @@
                             </a-form-item>
 
                             <a-form-item name="password" :rules="[{ required: true, message: 'Please input your password!' }]">
-                                   <a-input-password v-model:value="formState.password" size="large" placeholder="Password">
+                                   <a-input-password v-model:value="formState.password" size="large" :disabled="state.submitting" placeholder="Password">
                                           <template #prefix>
                                                  <LockOutlined class="site-form-item-icon" />
                                           </template>
@@ -38,7 +38,7 @@
                             </a-form-item>
 
                             <a-form-item class="flex justify-center">
-                                   <a-button :disabled="isDisableSubmit" type="primary" html-type="submit"
+                                   <a-button :disabled="isDisableSubmit" :loading="state.submitting" type="primary" html-type="submit"
                                           class="login-form-button">
                                           <span v-if="state.iHaveAnAccount">Log in</span>
                                           <span v-else>Sign up</span>
@@ -78,6 +78,8 @@ import { useNotesStore } from '@/stores/notesStore';
 
 const state = reactive({
        iHaveAnAccount: true,
+       submitting: false, // Add this property
+
 });
 interface FormState {
        email: string;
@@ -94,6 +96,7 @@ const formState = reactive<FormState>({
        password: '',
 });
 const onFinish = async () => {
+       state.submitting = true; // Start the submission process
        try {
               if (state.iHaveAnAccount) {
                      await login();
@@ -109,6 +112,9 @@ const onFinish = async () => {
               console.error('Authentication failed:', error);
               const errorMessage = handleAuthError(error);
               message.error(errorMessage);
+       }
+       finally {
+              state.submitting = false; // End the submission process
        }
 };
 const onFinishFailed = (errorInfo: any) => {
@@ -158,9 +164,6 @@ const handleAuthError = (error: FirebaseAuthError): string => {
                      return `An unexpected error occurred. Please try again. Error code : ${error.code}`;
        }
 };
-const isDisableSubmit = computed(() => {
-       return !(formState.email && formState.password);
-});
 const signInWithGoogle = async () => {
        const provider = new GoogleAuthProvider();
        try {
@@ -190,4 +193,7 @@ const signInWithGithub = async () => {
        } catch (error) {
        }
 };
+const isDisableSubmit = computed(() => {
+       return !(formState.email && formState.password) || state.submitting;
+});
 </script>
