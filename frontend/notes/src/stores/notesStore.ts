@@ -78,6 +78,23 @@ export const useNotesStore = defineStore('notes', {
                             await setDoc(noteRef, note);
                      }
               },
+              async addNoteToFirestore(newNote: Omit<NoteType, 'id'>) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+
+                     if (!user) return;
+
+                     const db = getFirestore();
+                     const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
+
+                     // Add the note to Firestore, which returns a reference to the new document
+                     const docRef = await addDoc(notesCollectionRef, newNote);
+
+                     // Update the new document with its generated id and add it to the store
+                     const fullNote: NoteType = { ...newNote, id: docRef.id };
+                     await setDoc(docRef, fullNote);
+                     this.notes.push(fullNote);
+              },
        },
 },
 );

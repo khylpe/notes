@@ -1,7 +1,7 @@
 <template>
        <a-card hoverable style="width: 300px">
               <template #cover>
-                     <img alt="example" src="@/assets/newNoteBanner.png" />
+                     <!-- <img alt="example" src="@/assets/newNoteBanner.png" /> -->
               </template>
               <template #actions>
                      <a-tooltip v-if="noteModified">
@@ -9,14 +9,14 @@
                             <check-outlined @click="checkAndUpdateNote" key="save" />
                      </a-tooltip>
               </template>
-              <a-card-meta style="min-height: 200px;">
+              <a-card-meta>
                      <template #title>
                             <a-input placeholder="Your title" :bordered="false" size="large" v-model:value="editableNote.title"
-                                   :maxlength="20" />
+                                   @pressEnter="checkAndUpdateNote" :maxlength="20" />
                      </template>
                      <template #description>
                             <a-textarea placeholder="Content of your note ! :)" :bordered="false" :rows="8"
-                                   v-model:value="editableNote.content" />
+                                   @pressEnter="checkAndUpdateNote" v-model:value="editableNote.content" />
                      </template>
               </a-card-meta>
        </a-card>

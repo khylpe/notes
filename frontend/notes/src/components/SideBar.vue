@@ -4,7 +4,10 @@
                      v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
        </div>
        <a-modal v-model:open="isModalVisible" title="Create New Tag" @ok="handleOk" @cancel="handleCancel">
-              <a-input placeholder="Enter tag name" v-model:value="newTagName" />
+              <div class="flex flex-row">
+                     <a-input placeholder="Enter tag name" v-model:value="newTagName" />
+                     <a-input type="color" class="ml2" style="width: 50px;" v-model:value="newTagColor" /> <!-- Color input -->
+              </div>
               <template #footer>
                      <a-button key="back" @click="handleCancel">Cancel</a-button>
                      <a-button key="submit" type="primary" @click="handleOk" :loading="isAddingTag">Add</a-button>
@@ -19,7 +22,7 @@ import type { MenuProps } from 'ant-design-vue';
 import { Modal } from 'ant-design-vue';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import type { TagType } from '@/types/Tag';
+import type { TagType } from '@/types/TagType';
 import router from "@/router";
 
 const menuMode = ref('inline');
@@ -30,6 +33,7 @@ const newTagName = ref('');
 const current = ref<string[]>();
 const items = ref<MenuProps['items']>([]);
 const isAddingTag = ref(false);
+const newTagColor = ref('#000000'); // Default color
 
 interface FetchedTag {
        label: string;
@@ -47,7 +51,7 @@ async function handleOk() {
               const newTag: TagType = {
                      id: tagId,
                      name: newTagName.value,
-                     color: '#000000', // Default color, change as needed
+                     color: newTagColor.value, // Use the selected color
                      createdDate: new Date(),
                      numberOfNotes: 0,
               };
@@ -64,7 +68,9 @@ async function handleOk() {
        isAddingTag.value = false;  // Stop loading
        isModalVisible.value = false;
        newTagName.value = '';
+       newTagColor.value = '#000000'; // Reset the color
 }
+
 function showModal() {
        isModalVisible.value = true;
        newTagName.value = '';  // Reset the input field when modal is shown
@@ -105,9 +111,10 @@ const fetchTags = async () => {
                      label: doc.data().name,
                      key: doc.id,
                      style: {
-                            color: doc.data().color,
+                            color: doc.data().color, // Apply the tag color
                      }
               }));
+
 
               updateMenuItems(fetchedTags);
        }
