@@ -5,7 +5,6 @@
        </div>
        <a-modal v-model:open="isModalVisible" title="Create New Tag" @ok="handleOk" @cancel="handleCancel">
               <a-input placeholder="Enter tag name" v-model:value="newTagName" />
-
               <template #footer>
                      <a-button key="back" @click="handleCancel">Cancel</a-button>
                      <a-button key="submit" type="primary" @click="handleOk" :loading="isAddingTag">Add</a-button>
@@ -20,7 +19,7 @@ import type { MenuProps } from 'ant-design-vue';
 import { Modal } from 'ant-design-vue';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import type { TagType } from '@/types/TagType';
+import type { TagType } from '@/types/Tag';
 import router from "@/router";
 
 const menuMode = ref('inline');
@@ -66,7 +65,6 @@ async function handleOk() {
        isModalVisible.value = false;
        newTagName.value = '';
 }
-
 function showModal() {
        isModalVisible.value = true;
        newTagName.value = '';  // Reset the input field when modal is shown
@@ -106,6 +104,9 @@ const fetchTags = async () => {
               const fetchedTags = querySnapshot.docs.map(doc => ({
                      label: doc.data().name,
                      key: doc.id,
+                     style: {
+                            color: doc.data().color,
+                     }
               }));
 
               updateMenuItems(fetchedTags);
