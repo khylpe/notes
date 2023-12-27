@@ -12,16 +12,18 @@
               </template>
               <a-card-meta style="min-height: 200px;">
                      <template #title>
-                            <a-input v-model:value="formState.title" placeholder="Your title" :bordered="false" size="large"
-                                   :maxlength="20" @pressEnter="addNewNote" />
+                            <a-input spellcheck="false" v-model:value="formState.title" placeholder="Your title"
+                                   :bordered="false" size="large" :maxlength="20" @pressEnter="addNewNote" />
                      </template>
                      <template #description>
-                            <a-textarea v-model:value="formState.description" placeholder="Content of your note ! :)"
-                                   :bordered="false" :autoSize="{ minRows: 2, maxRows: 10 }" @pressEnter="addNewNote" />
+                            <a-textarea spellcheck="false" v-model:value="formState.description"
+                                   placeholder="Content of your note ! :)" :bordered="false"
+                                   :autoSize="{ minRows: 2, maxRows: 10 }" @pressEnter="addNewNote" />
                      </template>
               </a-card-meta>
               <div class="flex w-100 justify-center mt3">
-                     <a-select :allowClear=true v-model:value="selectedTag" placeholder="Select tag" style="width: 150px" :options="tagOptions">
+                     <a-select :allowClear=true v-model:value="selectedTag" placeholder="Select tag" style="width: 150px"
+                            :options="tagOptions">
                             <template #suffixIcon><tags-outlined /></template>
                      </a-select>
               </div>
@@ -34,10 +36,8 @@ import { CheckOutlined, TagsOutlined, PlusOutlined } from '@ant-design/icons-vue
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
 import type { NoteType } from '@/types/Note';
-import { getAuth } from 'firebase/auth';
+import { message } from 'ant-design-vue';
 
-const auth = getAuth();
-const userId = auth.currentUser?.uid || '';
 const initialFormState = { title: '', description: '' };
 const formState = reactive<FormState>({ ...initialFormState });
 const noteModified = ref(false);
@@ -75,15 +75,30 @@ const addNewNote = async () => {
                      title: formState.title,
                      content: formState.description,
                      createdDate: new Date(),
-                     tagId: selectedTag.value || null // Use selected tag ID or null if none is selected
+                     tagId: selectedTag.value || null, // Use selected tag ID or null if none is selected
+                     folderId: null // Set folderId as null by default
               };
 
-              await notesStore.addNoteToFirestore(newNote);
+              try {
+                     await notesStore.addNoteToFirestore(newNote);
+                     Object.assign(formState, initialFormState);
+                     message.success('Note added successfully');
+              } catch (error) {
+                     if (error instanceof Error) {
+                            message.error(error.message);
+                     } else {
+                            // Handle non-Error objects
+                            message.error('An unknown error occurred.');
+                     }
+              }
 
               // Reset the form state and noteModified flag after adding the note
-              Object.assign(formState, initialFormState);
               noteModified.value = false;
               selectedTag.value = null; // Reset the selected tag to null
+       } else if (!formState.title.trim()) {
+              message.warning('Please enter a title');
+       } else if (!formState.description.trim()) {
+              message.warning('Please enter a description');
        }
 };
 </script>

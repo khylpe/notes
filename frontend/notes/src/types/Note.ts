@@ -6,5 +6,5 @@ export interface NoteType {
        content: string;  // Content of the note
        createdDate: Date;    // Date when the note was created
        tagId: string | null;      // Tag of the note
-       // Add any other fields that are relevant for your notes
+       folderId: string | null;   // Folder of the note
 }

@@ -4,14 +4,10 @@
 
        <!-- Child component will be rendered here -->
        <main class="flex flex-row content-page ">
-                     <SideBar />
-                     <div class="flex flex-column w-100 mt3">
-                            <div class="flex justify-center">
-                                   <SearchBar />
-                            </div>
-                            <div class="mt4"></div>
-                            <router-view></router-view>
-                     </div>
+              <SideBar />
+              <div class="flex flex-column w-100 mt3">
+                     <router-view></router-view>
+              </div>
        </main>
 </template>
 

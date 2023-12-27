@@ -1,5 +1,9 @@
 <template>
-       <div class="flex flex-wrap justify-center">
+       <div class="flex justify-center">
+              <SearchBar />
+       </div>
+
+       <div class="flex flex-wrap justify-center mt4">
               <div class="notes-list flex flex-row items-start justify-center flex-wrap">
                      <div class="note">
                             <NewNote />
@@ -17,19 +21,13 @@ import NewNote from '@/components/NewNote.vue';
 import Note from '@/components/Note.vue';
 import { useNotesStore } from '@/stores/notesStore';
 import type { NoteType } from '@/types/Note';
+import SearchBar from '@/components/SearchBar.vue';
 
 const notesStore = useNotesStore();
 notesStore.fetchAndStoreNotes();
 
-// Explicitly set the type of 'notes' computed property
-const notes = computed<NoteType[]>(() => notesStore.notes);
+// Filter notes that don't have a folder assigned (folderId is null)
+const notes = computed<NoteType[]>(() => {
+       return notesStore.notes.filter(note => note.folderId === null);
+});
 </script>
-
-<style scoped>
-
-.note {
-       padding: 10px;
-       margin: 10px;
-       min-width: calc(25% - 20px);
-}
-</style>

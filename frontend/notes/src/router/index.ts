@@ -8,6 +8,8 @@ import LoginForm from './../views/Login.vue';
 // import Home from './../views/Home.vue';
 import VerifyEmail from './../views/VerifyEmail.vue'; // Import a view for email verification
 import NotFound from './../views/NotFound.vue';
+import NotesByTag from './../views/NotesByTag.vue';
+import NotesByFolder from './../views/NotesByFolder.vue';
 
 const checkSignUpMethod = (user: User | null) => {
        if (user && user.providerData.length > 0) {
@@ -62,7 +64,17 @@ const router = createRouter({
                                    path: 'notes',
                                    name: 'notes',
                                    component: MyNotes
-                            }
+                            },
+                            {
+                                   path: 'notes/tag/:tagName', // Dynamic route for tag name
+                                   name: 'notesByTag',
+                                   component: NotesByTag, // The component to display notes filtered by tag
+                            },
+                            {
+                                   path: 'notes/folder/:tagName', // Dynamic route for tag name
+                                   name: 'notesByFolder',
+                                   component: NotesByFolder, // The component to display notes filtered by tag
+                            },
                      ]
               },
               { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },

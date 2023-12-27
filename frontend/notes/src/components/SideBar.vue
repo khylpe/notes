@@ -59,13 +59,22 @@ async function handleOk() {
               numberOfNotes: 0,
        };
 
-       await tagsStore.addTag(newTag); // Use the store action to add the tag
+       try {
+              await tagsStore.addTag(newTag); // Use the store action to add the tag
+              message.success('Tag added successfully');
+       } catch (error) {
+              if (error instanceof Error) {
+                     message.error(error.message);
+              } else {
+                     // Handle non-Error objects
+                     message.error('An unknown error occurred.');
+              }
+       }
 
        isAddingTag.value = false;  // Stop loading
        isModalVisible.value = false;
        newTagName.value = '';
        newTagColor.value = '#000000'; // Reset the color
-       await tagsStore.fetchTags(); // Fetch tags again after adding a new one
 }
 function showModal() {
        isModalVisible.value = true;
@@ -97,15 +106,15 @@ function handleMenuClick(e: any) {
 }
 const updateMenuItems = (fetchedTags: FetchedTag[]) => {
        items.value = [
-              {
-                     // style: { marginTop: '50px' },
-                     key: 'My pinned notes',
-                     icon: () => h(PushpinOutlined),
-                     label: 'My pinned notes',
-                     title: 'My pinned notes',
-                     onClick: () => {
-                     },
-              },
+              // {
+              //        // style: { marginTop: '50px' },
+              //        key: 'My pinned notes',
+              //        icon: () => h(PushpinOutlined),
+              //        label: 'My pinned notes',
+              //        title: 'My pinned notes',
+              //        onClick: () => {
+              //        },
+              // },
               {
                      key: 'My notes',
                      icon: () => h(UnorderedListOutlined),
@@ -125,11 +134,17 @@ const updateMenuItems = (fetchedTags: FetchedTag[]) => {
                             {
                                    label: 'Archives',
                                    key: 'Archives',
+                                   onClick: () => {
+                                          router.push('/notes/folder/archive');
+                                   },
                             },
                             { type: 'divider' },
                             {
                                    label: 'Deleted',
                                    key: 'Deleted',
+                                   onClick: () => {
+                                          router.push('/notes/folder/deleted');
+                                   },
                             },
                      ],
               },
@@ -154,7 +169,17 @@ const updateMenuItems = (fetchedTags: FetchedTag[]) => {
 onMounted(() => {
        window.addEventListener('resize', updateMenuMode);
        updateMenuMode(); // Initial check
-       tagsStore.fetchTags(); // Fetch tags using the store
+
+       try {
+              tagsStore.fetchTags(); // Fetch tags using the store
+       } catch (error) {
+              if (error instanceof Error) {
+                     message.error(error.message);
+              } else {
+                     // Handle non-Error objects
+                     message.error('An unknown error occurred.');
+              }
+       }
 });
 onUnmounted(() => {
        window.removeEventListener('resize', updateMenuMode);
@@ -163,7 +188,10 @@ watch(() => tagsStore.tags, (newTags) => {
        const fetchedTags = newTags.map(tag => ({
               label: tag.name,
               key: tag.id,
-              style: { color: tag.color }
+              style: { color: tag.color },
+              onclick: () => {
+                     router.push(`/notes/tag/${tag.name}`);
+              },
        }));
        updateMenuItems(fetchedTags);
 }, { deep: true });

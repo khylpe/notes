@@ -13,8 +13,7 @@ export const useNotesStore = defineStore('notes', {
               async fetchAndStoreNotes() {
                      const auth = getAuth();
                      const user = auth.currentUser;
-
-                     if (!user) return; // No user logged in
+                     if (!user) return;
 
                      const db = getFirestore();
                      const userRef = doc(db, `users/${user.uid}`);
@@ -23,20 +22,89 @@ export const useNotesStore = defineStore('notes', {
                      if (!userDoc.exists()) {
                             await setDoc(userRef, { username: user.displayName || 'Anonymous', id: user.uid });
                      }
-                     
+
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
                      let querySnapshot = await getDocs(notesCollectionRef);
 
                      this.notes = querySnapshot.docs.map(doc => {
                             const noteData = doc.data() as Partial<NoteType>;
-
-                            // Check if `createdDate` is a Firestore Timestamp and convert it to a JavaScript Date
                             if (noteData.createdDate && noteData.createdDate instanceof Timestamp) {
                                    return { id: doc.id, ...noteData, createdDate: noteData.createdDate.toDate() } as NoteType;
                             }
                             return { id: doc.id, ...noteData } as NoteType;
                      });
               },
+              async moveToDeletedFolder(noteId: string) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return;
+
+                     const db = getFirestore();
+                     const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
+                     const noteDoc = await getDoc(noteRef);
+
+                     if (noteDoc.exists()) {
+                            // Update the note's folderId to 'Deleted'
+                            const updatedNote = { ...noteDoc.data(), folderId: 'deleted' } as NoteType;
+                            await setDoc(noteRef, updatedNote);
+
+                            // Update the note in the local store
+                            const noteIndex = this.notes.findIndex(n => n.id === noteId);
+                            if (noteIndex !== -1) {
+                                   this.notes[noteIndex] = updatedNote;
+                            }
+                     } else {
+                            console.error("Note not found:", noteId);
+                     }
+              },
+              async moveToArchiveFolder(noteId: string) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return;
+
+                     const db = getFirestore();
+                     const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
+                     const noteDoc = await getDoc(noteRef);
+
+                     if (noteDoc.exists()) {
+                            // Update the note's folderId to 'archive'
+                            const updatedNote = { ...noteDoc.data(), folderId: 'archive' } as NoteType;
+                            await setDoc(noteRef, updatedNote);
+
+                            // Update the note in the local store
+                            const noteIndex = this.notes.findIndex(n => n.id === noteId);
+                            if (noteIndex !== -1) {
+                                   this.notes[noteIndex] = updatedNote;
+                            }
+                     } else {
+                            console.error("Note not found:", noteId);
+                     }
+              },
+
+              async moveToMyNotes(noteId: string) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return;
+
+                     const db = getFirestore();
+                     const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
+                     const noteDoc = await getDoc(noteRef);
+
+                     if (noteDoc.exists()) {
+                            // Update the note's folderId to 'archive'
+                            const updatedNote = { ...noteDoc.data(), folderId: null } as NoteType;
+                            await setDoc(noteRef, updatedNote);
+
+                            // Update the note in the local store
+                            const noteIndex = this.notes.findIndex(n => n.id === noteId);
+                            if (noteIndex !== -1) {
+                                   this.notes[noteIndex] = updatedNote;
+                            }
+                     } else {
+                            console.error("Note not found:", noteId);
+                     }
+              },
+
               async updateStoreAndFirestore(note: NoteType) {
                      const auth = getAuth();
                      const user = auth.currentUser;
@@ -56,19 +124,17 @@ export const useNotesStore = defineStore('notes', {
               async addNoteToFirestore(newNote: Omit<NoteType, 'id'>) {
                      const auth = getAuth();
                      const user = auth.currentUser;
-
                      if (!user) return;
 
                      const db = getFirestore();
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
 
-                     // Add the note to Firestore, which returns a reference to the new document
-                     const docRef = await addDoc(notesCollectionRef, newNote);
+                     const fullNewNote: NoteType = { ...newNote, id: '', folderId: null }; // Setting folderId to null by default
+                     const docRef = await addDoc(notesCollectionRef, fullNewNote);
 
-                     // Update the new document with its generated id and add it to the store
-                     const fullNote: NoteType = { ...newNote, id: docRef.id };
-                     await setDoc(docRef, fullNote);
-                     this.notes.push(fullNote);
+                     fullNewNote.id = docRef.id; // Assigning the generated id
+                     await setDoc(docRef, fullNewNote);
+                     this.notes.push(fullNewNote);
               },
               async deleteNote(noteId: string) {
                      const auth = getAuth();
@@ -80,11 +146,9 @@ export const useNotesStore = defineStore('notes', {
 
                      try {
                             await deleteDoc(noteRef);
-                            // Remove the note from the local state
                             this.notes = this.notes.filter(note => note.id !== noteId);
                      } catch (error) {
                             console.error('Error deleting note:', error);
-                            // Handle error (e.g., show a message to the user)
                      }
               },
        },

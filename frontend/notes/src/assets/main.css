@@ -28,13 +28,14 @@ main {
        height: 100%;
 }
 
-.content-page, .w-100 {
+.content-page,
+.w-100 {
        width: 100%;
 }
 
 .flex-child {
        margin-top: 10px;
-       /* This should be the same value as the container's negative margin-top */
+       /* This should be the same value as the container's negative m argin-top */
 }
 
 .rm-header-height {
@@ -43,4 +44,10 @@ main {
 
 .w-100 {
        width: 100%;
+}
+
+.note {
+       padding: 10px;
+       margin: 10px;
+       min-width: calc(25% - 20px);
 }

@@ -39,7 +39,6 @@
                                    <a-input-search placeholder="Input Here" size="large"></a-input-search>
                             </a-auto-complete>
                      </a-tooltip>
-
                      <a-tooltip>
                             <!-- Tooltip value -->
                             <template #title>Reset search settings</template>
@@ -48,7 +47,6 @@
                             <UndoOutlined class="flex-column ml2" style="font-size: 24px; display: flex; color: #7a7878" />
                      </a-tooltip>
               </div>
-
               <!-- Div containing settings such as Folder, Tags, date -->
               <div style="max-width: 600px; margin-top: -10px;"
                      class="flex justify-around flex-wrap pt1 settings">
@@ -180,7 +178,6 @@ const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
               console.log('Clear');
        }
 };
-
 </script>
 <style scoped>
 @media (max-width: 1000px) {
