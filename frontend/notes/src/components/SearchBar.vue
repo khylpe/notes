@@ -1,6 +1,5 @@
 <template>
-       <div class="certain-category-search-wrapper flex flex-column"
-              style="margin-left: auto; margin-right: auto;">
+       <div class="certain-category-search-wrapper flex flex-column" style="margin-left: auto; margin-right: auto;">
               <div class="flex flex-row items-center w-100">
                      <!-- Tooltip element -->
                      <a-tooltip>
@@ -51,7 +50,7 @@
               </div>
 
               <!-- Div containing settings such as Folder, Tags, date -->
-              <div style="max-width: 600px; margin-left: auto; margin-right: auto; margin-top: -10px;"
+              <div style="max-width: 600px; margin-top: -10px;"
                      class="flex justify-around flex-wrap pt1 settings">
                      <!-- Select folder to search in -->
                      <a-select v-model:value="folderValue" mode="multiple" style="width: fit-content; min-width: 120px;"
@@ -185,7 +184,7 @@ const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
 </script>
 <style scoped>
 @media (max-width: 1000px) {
-       .settings{
+       .settings {
               flex-direction: column;
               width: 100%;
        }
@@ -233,4 +232,5 @@ const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
 
 .certain-category-search-dropdown .ant-select-dropdown-menu {
        max-height: 300px;
-}</style>
+}
+</style>
