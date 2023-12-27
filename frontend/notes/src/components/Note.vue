@@ -22,13 +22,13 @@
                      </a-popconfirm>
               </template>
               <template #title>
-                     <a-input placeholder="Your title" :bordered="false" size="large" v-model:value="editableNote.title"
+                     <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large" v-model:value="editableNote.title"
                             @pressEnter="checkAndUpdateNote" :maxlength="20" />
               </template>
               <template v-if="key === 'Note'">
                      <a-card-meta style="min-height: 200px;">
                             <template #description>
-                                   <a-textarea :autoSize="{ minRows: 2, maxRows: 10 }" placeholder="Content of your note ! :)"
+                                   <a-textarea spellcheck="false" :autoSize="{ minRows: 2, maxRows: 10 }" placeholder="Content of your note ! :)"
                                           :bordered="false" :rows="8" @pressEnter="checkAndUpdateNote"
                                           v-model:value="editableNote.content" />
                             </template>
@@ -47,7 +47,13 @@
                             </template>
                      </a-card-meta>
               </template>
-              <template #extra>Date</template>
+              <template #extra>
+                     <a-tooltip>
+                            <template #title>Creation date</template>
+                            {{ formattedDate }}
+                     </a-tooltip>
+
+                     </template>
        </a-card>
 </template>
 <script lang="ts" setup>
@@ -57,6 +63,7 @@ import type { NoteType } from '@/types/Note';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
 import { isEqual } from 'lodash';
+import { Timestamp } from 'firebase/firestore';
 
 const props = defineProps<{ note: NoteType }>();
 const notesStore = useNotesStore();
@@ -104,6 +111,20 @@ const deleteNote = () => {
               console.error("No note ID available for deletion.");
        }
 }
+const formattedDate = computed(() => {
+       if (!editableNote.value.createdDate) return '';
+
+       let date: Date;
+       if (editableNote.value.createdDate instanceof Timestamp) {
+              date = editableNote.value.createdDate.toDate(); // Type assertion here
+       } else {
+              date = new Date(editableNote.value.createdDate);
+       }
+
+       return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+});
+
+
 
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
