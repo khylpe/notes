@@ -53,23 +53,5 @@ export const useTagsStore = defineStore('tags', {
                             console.error('Error deleting tag:', error);
                      }
               },
-              async updateNoteTag(noteId: string, tagId: string | null) {
-                     const auth = getAuth();
-                     const user = auth.currentUser;
-                     if (!user) return; // No user logged in
-         
-                     const db = getFirestore();
-                     const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
-                     const noteDoc = await getDoc(noteRef);
-         
-                     if (!noteDoc.exists()) return; // Ensure the note exists
-         
-                     // Update the note's tagId in Firestore
-                     const updatedNoteData = { ...noteDoc.data(), tagId: tagId } as NoteType;
-                     await setDoc(noteRef, updatedNoteData);
-         
-                     // Additional logic to update the note in your application state if needed
-                     // This part depends on how your state management is set up
-                 },
        },
 });

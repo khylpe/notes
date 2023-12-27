@@ -39,9 +39,9 @@
                      <!-- Settings content here -->
                      <a-card-meta style="min-height: 200px;">
                             <template #description>
-
-                                   <div><a-select v-model:value="selectedTag" placeholder="Select tag" style="width: 150px"
-                                                 :options="tagOptions">
+                                   <div class="flex justify-center">
+                                          <a-select :allowClear=true v-model:value="selectedTag" placeholder="Select tag"
+                                                 style="width: 150px" :options="tagOptions">
                                                  <template #suffixIcon><tags-outlined /></template>
                                           </a-select></div>
                             </template>
@@ -52,7 +52,6 @@
                             <template #title>Creation date</template>
                             {{ formattedDate }}
                      </a-tooltip>
-
               </template>
        </a-card>
 </template>
@@ -91,10 +90,7 @@ const onTabChange = (value: string) => {
 const checkAndUpdateNote = async () => {
        const storeNote = notesStore.notes.find(n => n.id === editableNote.value.id);
        if (storeNote && !isEqual(storeNote, editableNote.value)) {
-              if (editableNote.value.tagId !== selectedTag.value) {
-                     await tagsStore.updateNoteTag(editableNote.value.id, selectedTag.value || '');
-                     editableNote.value.tagId = selectedTag.value || '';
-              }
+              console.log("before error")
               notesStore.updateStoreAndFirestore(editableNote.value);
               noteModified.value = false;
        }
@@ -131,8 +127,7 @@ watch(editableNote, () => {
 }, { deep: true });
 watch(selectedTag, (newTagId) => {
        if (newTagId !== editableNote.value.tagId && editableNote.value.id) {
-              // Update the note's tagId locally
-              editableNote.value.tagId = newTagId;
+              editableNote.value.tagId = newTagId || null;
        }
 });
 </script>
