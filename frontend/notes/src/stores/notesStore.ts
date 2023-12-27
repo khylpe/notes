@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import type { NoteType } from '@/types/Note';
 import { Timestamp } from 'firebase/firestore';
@@ -100,6 +100,23 @@ export const useNotesStore = defineStore('notes', {
                      await setDoc(docRef, fullNote);
                      this.notes.push(fullNote);
               },
+              async deleteNote(noteId: string) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return;
+         
+                     const db = getFirestore();
+                     const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
+                     
+                     try {
+                         await deleteDoc(noteRef);
+                         // Remove the note from the local state
+                         this.notes = this.notes.filter(note => note.id !== noteId);
+                     } catch (error) {
+                         console.error('Error deleting note:', error);
+                         // Handle error (e.g., show a message to the user)
+                     }
+                 },
        },
 },
 );

@@ -22,12 +22,12 @@
               </a-card-meta>
               <div class="flex w-100 justify-center mt3">
                      <a-select v-model:value="selectedTag" placeholder="Select tag" style="width: 150px" :options="tagOptions">
-                            <template #suffixIcon><tags-outlined class="ant-select-suffix" /></template>
+                            <template #suffixIcon><tags-outlined /></template>
                      </a-select>
               </div>
        </a-card>
 </template>
-     
+
 <script lang="ts" setup>
 import { reactive, ref, watch, onMounted, computed } from 'vue';
 import { CheckOutlined, TagsOutlined, PlusOutlined } from '@ant-design/icons-vue';
@@ -93,11 +93,3 @@ const addNewNote = async () => {
        }
 };
 </script>
-<style scoped>
-.card {
-       transition: box-shadow 0.3s;
-}
-.card:hover {
-       box-shadow: var(--dynamic-shadow);
-}
-</style>
