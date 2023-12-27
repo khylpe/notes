@@ -24,15 +24,16 @@ export const useNotesStore = defineStore('notes', {
                             await setDoc(userRef, { username: user.displayName || 'Anonymous', id: user.uid });
                      }
 
+                     const defaultTagDocRef = doc(db, `users/${user.uid}/tags/${user.uid}`);
+                     const defaultTagDoc = await getDoc(defaultTagDocRef);
+
+                     if (!defaultTagDoc.exists()) {
+                            // Create a default tag if the specific default tag is not found
+                            await this.createDefaultTag(user.uid);
+                     }
+
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
                      let querySnapshot = await getDocs(notesCollectionRef);
-
-                     if (querySnapshot.empty) {
-                            // Create a default note if no notes are found
-                            await this.createDefaultNote(user.uid);
-                            // Fetch the notes again
-                            querySnapshot = await getDocs(notesCollectionRef);
-                     }
 
                      this.notes = querySnapshot.docs.map(doc => {
                             const noteData = doc.data() as Partial<NoteType>;
@@ -44,22 +45,26 @@ export const useNotesStore = defineStore('notes', {
                             return { id: doc.id, ...noteData } as NoteType;
                      });
               },
-              async createDefaultNote(userId: string) {
+              async createDefaultTag(userId: string) {
                      const db = getFirestore();
-                     const notesCollectionRef = collection(db, `users/${userId}/notes`);
+                     const auth = getAuth();
+                     const user = auth.currentUser;
 
-                     // Create the default note without the id
-                     const defaultNote: Omit<NoteType, 'id'> = {
-                            title: 'My First Note',
-                            content: 'This is a default note.',
+                     if (!user || !user.displayName) return; // Ensure the user and username are available
+
+                     const tagId = userId; // Use userId as the document ID
+                     const tagRef = doc(db, `users/${userId}/tags/${tagId}`); // Document path with userId as the ID
+
+                     const defaultTagName = `${user.displayName}'s notes`; // Format the tag name with the user's display name
+
+                     const defaultTag = {
+                            id: tagId, // Include the tagId in the document data
+                            name: defaultTagName, // Use the formatted tag name
+                            color: '#000000', // Default color
                             createdDate: new Date(),
+                            numberOfNotes: 0,
                      };
-
-                     // Add the note to Firestore, which returns a reference to the new document
-                     const docRef = await addDoc(notesCollectionRef, defaultNote);
-
-                     // Update the new document with its generated id
-                     await setDoc(docRef, { ...defaultNote, id: docRef.id });
+                     await setDoc(tagRef, defaultTag);
               },
               async updateStoreAndFirestore(note: NoteType) {
                      const auth = getAuth();

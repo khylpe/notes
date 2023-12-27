@@ -1,5 +1,5 @@
 <template>
-       <div class="col col-2">
+       <div class="col col-2 mt3">
               <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-100 fixed col col-2"
                      v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
        </div>
@@ -16,13 +16,12 @@
 </template>
 
 <script lang="ts" setup>
-import { h, ref, onMounted, onUnmounted } from 'vue';
+import { h, ref, onMounted, onUnmounted, watch } from 'vue';
 import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
 import { Modal } from 'ant-design-vue';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import type { TagType } from '@/types/Tag';
+import { useTagsStore } from '@/stores/tagsStore'; // Import the tags store
 import router from "@/router";
 
 const menuMode = ref('inline');
@@ -30,47 +29,40 @@ const isCollapsed = ref(false);
 const inLineIndentValue = ref(24);
 const isModalVisible = ref(false);
 const newTagName = ref('');
+const newTagColor = ref('#000000'); // Default color
 const current = ref<string[]>();
 const items = ref<MenuProps['items']>([]);
 const isAddingTag = ref(false);
-const newTagColor = ref('#000000'); // Default color
+const tagsStore = useTagsStore(); // Use the tags store
 
 interface FetchedTag {
        label: string;
        key: string;
+       style: {
+              color: string;
+       };
 }
 async function handleOk() {
        isAddingTag.value = true;  // Start loading
 
-       const auth = getAuth();
-       const user = auth.currentUser;
-
-       if (user && newTagName.value.trim()) {
-              const db = getFirestore();
-              const tagId = Date.now().toString(); // Generate a unique ID for the tag
+       if (newTagName.value.trim()) {
               const newTag: TagType = {
-                     id: tagId,
+                     id: Date.now().toString(), // Generate a unique ID for the tag
                      name: newTagName.value,
                      color: newTagColor.value, // Use the selected color
                      createdDate: new Date(),
                      numberOfNotes: 0,
               };
 
-              try {
-                     await setDoc(doc(db, `users/${user.uid}/tags/${tagId}`), newTag);
-                     console.log('Tag added successfully');
-                     await fetchTags(); // Fetch tags again after adding a new one
-              } catch (error) {
-                     console.error('Error adding tag:', error);
-              }
+              await tagsStore.addTag(newTag); // Use the store action to add the tag
+
+              isAddingTag.value = false;  // Stop loading
+              isModalVisible.value = false;
+              newTagName.value = '';
+              newTagColor.value = '#000000'; // Reset the color
+              await tagsStore.fetchTags(); // Fetch tags again after adding a new one
        }
-
-       isAddingTag.value = false;  // Stop loading
-       isModalVisible.value = false;
-       newTagName.value = '';
-       newTagColor.value = '#000000'; // Reset the color
 }
-
 function showModal() {
        isModalVisible.value = true;
        newTagName.value = '';  // Reset the input field when modal is shown
@@ -78,6 +70,7 @@ function showModal() {
 function handleCancel() {
        isModalVisible.value = false;
        newTagName.value = '';
+       newTagColor.value = '#000000'; // Reset the color
 }
 function updateMenuMode() {
        const width = window.innerWidth;
@@ -98,31 +91,10 @@ function updateMenuMode() {
 function handleMenuClick(e: any) {
        current.value = [e.key];
 }
-const fetchTags = async () => {
-       const auth = getAuth();
-       const user = auth.currentUser;
-
-       if (user) {
-              const db = getFirestore();
-              const tagsQuery = query(collection(db, `users/${user.uid}/tags`));
-              const querySnapshot = await getDocs(tagsQuery);
-
-              const fetchedTags = querySnapshot.docs.map(doc => ({
-                     label: doc.data().name,
-                     key: doc.id,
-                     style: {
-                            color: doc.data().color, // Apply the tag color
-                     }
-              }));
-
-
-              updateMenuItems(fetchedTags);
-       }
-};
 const updateMenuItems = (fetchedTags: FetchedTag[]) => {
-       // Assuming 'items' originally contains only static entries
        items.value = [
               {
+                     // style: { marginTop: '50px' },
                      key: 'My pinned notes',
                      icon: () => h(PushpinOutlined),
                      label: 'My pinned notes',
@@ -178,9 +150,17 @@ const updateMenuItems = (fetchedTags: FetchedTag[]) => {
 onMounted(() => {
        window.addEventListener('resize', updateMenuMode);
        updateMenuMode(); // Initial check
-       fetchTags(); // Fetch tags when component is mounted
+       tagsStore.fetchTags(); // Fetch tags using the store
 });
 onUnmounted(() => {
        window.removeEventListener('resize', updateMenuMode);
 });
+watch(() => tagsStore.tags, (newTags) => {
+       const fetchedTags = newTags.map(tag => ({
+              label: tag.name,
+              key: tag.id,
+              style: { color: tag.color }
+       }));
+       updateMenuItems(fetchedTags);
+}, { deep: true });
 </script>

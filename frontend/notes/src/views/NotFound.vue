@@ -1,10 +1,22 @@
-<!-- NotFound.vue -->
 <template>
-       <div>
-              <h1>404 - Page Not Found</h1>
-              <p>The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
-              <!-- Add a link to navigate back to a known route, like Home -->
-              <router-link to="/">Go to Home</router-link>
+       <div class="flex justify-center items-center h-100 w-100">
+              <a-card hoverable style="width: 600px">
+                     <template #cover>
+                            <img alt="example" src="@/assets/404.webp" />
+                     </template>
+                     <template #actions>
+                            <home-outlined @click="returnHome" key="home" />
+                     </template>
+                     <a-card-meta title="Error 404" description="Page not foud">
+                     </a-card-meta>
+              </a-card>
        </div>
 </template>
-<script setup lang="ts"></script>     
+<script lang="ts" setup>
+import { HomeOutlined } from '@ant-design/icons-vue';
+import router from '@/router';
+
+const returnHome = () => {
+       router.push({ name: 'notes' });
+};
+</script>
