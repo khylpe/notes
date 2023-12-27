@@ -17,15 +17,21 @@
                             </a-form-item>
 
                             <a-form-item name="email" :rules="[{ required: true, message: 'Please input your email!' }]">
-                                   <a-input v-model:value="formState.email" size="large" :disabled="state.submitting" placeholder="Mail">
-                                          <template #prefix>
-                                                 <MailOutlined class="site-form-item-icon" />
-                                          </template>
-                                   </a-input>
+                                   <a-auto-complete v-model:value="formState.email" size="large" :disabled="state.submitting"
+                                           :options="emailOptions" @search="handleEmailSearch"
+                                          style="width: 100%;">
+                                          <a-input slot="input" :value="formState.email" placeholder="Mail" size="large">
+                                                 <template #prefix>
+                                                        <MailOutlined class="site-form-item-icon" />
+                                                 </template>
+                                          </a-input>
+                                   </a-auto-complete>
                             </a-form-item>
 
+
                             <a-form-item name="password" :rules="[{ required: true, message: 'Please input your password!' }]">
-                                   <a-input-password v-model:value="formState.password" size="large" :disabled="state.submitting" placeholder="Password">
+                                   <a-input-password v-model:value="formState.password" size="large"
+                                          :disabled="state.submitting" placeholder="Password">
                                           <template #prefix>
                                                  <LockOutlined class="site-form-item-icon" />
                                           </template>
@@ -38,8 +44,8 @@
                             </a-form-item>
 
                             <a-form-item class="flex justify-center">
-                                   <a-button :disabled="isDisableSubmit" :loading="state.submitting" type="primary" html-type="submit"
-                                          class="login-form-button">
+                                   <a-button :disabled="isDisableSubmit" :loading="state.submitting" type="primary"
+                                          html-type="submit" class="login-form-button">
                                           <span v-if="state.iHaveAnAccount">Log in</span>
                                           <span v-else>Sign up</span>
                                    </a-button>
@@ -68,13 +74,33 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { UserOutlined, LockOutlined, GoogleOutlined, GithubOutlined, MailOutlined } from '@ant-design/icons-vue';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
 import auth from "@/services/FirebaseConfig"; // Adjust the path as necessary
 import { message } from 'ant-design-vue';
 import router from "@/router"; // Adjust the path as necessary
 import { useNotesStore } from '@/stores/notesStore';
+
+const emailOptions = ref<{ value: string }[]>([]);
+
+const handleEmailSearch = (val: string) => {
+       const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'aol.com', 'icloud.com', 'mail.com', 'yandex.com', 'live.com', 'msn.com'];
+
+       // Split the input at '@'
+       const [namePart, domainPart] = val.includes('@') ? val.split('@') : [val, ''];
+
+       // Filter the domains based on the domain part of the input
+       const filteredDomains = domainPart
+              ? domains.filter(domain => domain.startsWith(domainPart))
+              : domains;
+
+       // Map the filtered domains to autocomplete options
+       emailOptions.value = filteredDomains.map(domain => ({ value: `${namePart}@${domain}` }));
+};
+
+
+
 
 const state = reactive({
        iHaveAnAccount: true,
