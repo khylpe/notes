@@ -23,15 +23,7 @@ export const useNotesStore = defineStore('notes', {
                      if (!userDoc.exists()) {
                             await setDoc(userRef, { username: user.displayName || 'Anonymous', id: user.uid });
                      }
-
-                     const defaultTagDocRef = doc(db, `users/${user.uid}/tags/${user.uid}`);
-                     const defaultTagDoc = await getDoc(defaultTagDocRef);
-
-                     if (!defaultTagDoc.exists()) {
-                            // Create a default tag if the specific default tag is not found
-                            await this.createDefaultTag(user.uid);
-                     }
-
+                     
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
                      let querySnapshot = await getDocs(notesCollectionRef);
 
@@ -45,31 +37,9 @@ export const useNotesStore = defineStore('notes', {
                             return { id: doc.id, ...noteData } as NoteType;
                      });
               },
-              async createDefaultTag(userId: string) {
-                     const db = getFirestore();
-                     const auth = getAuth();
-                     const user = auth.currentUser;
-
-                     if (!user || !user.displayName) return; // Ensure the user and username are available
-
-                     const tagId = userId; // Use userId as the document ID
-                     const tagRef = doc(db, `users/${userId}/tags/${tagId}`); // Document path with userId as the ID
-
-                     const defaultTagName = `${user.displayName}'s notes`; // Format the tag name with the user's display name
-
-                     const defaultTag = {
-                            id: tagId, // Include the tagId in the document data
-                            name: defaultTagName, // Use the formatted tag name
-                            color: '#000000', // Default color
-                            createdDate: new Date(),
-                            numberOfNotes: 0,
-                     };
-                     await setDoc(tagRef, defaultTag);
-              },
               async updateStoreAndFirestore(note: NoteType) {
                      const auth = getAuth();
                      const user = auth.currentUser;
-
                      if (!user) return; // No user logged in
 
                      // Find and update the note in the store if it's different
@@ -104,19 +74,19 @@ export const useNotesStore = defineStore('notes', {
                      const auth = getAuth();
                      const user = auth.currentUser;
                      if (!user) return;
-         
+
                      const db = getFirestore();
                      const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
-                     
+
                      try {
-                         await deleteDoc(noteRef);
-                         // Remove the note from the local state
-                         this.notes = this.notes.filter(note => note.id !== noteId);
+                            await deleteDoc(noteRef);
+                            // Remove the note from the local state
+                            this.notes = this.notes.filter(note => note.id !== noteId);
                      } catch (error) {
-                         console.error('Error deleting note:', error);
-                         // Handle error (e.g., show a message to the user)
+                            console.error('Error deleting note:', error);
+                            // Handle error (e.g., show a message to the user)
                      }
-                 },
+              },
        },
 },
 );

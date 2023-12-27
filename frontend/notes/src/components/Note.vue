@@ -22,15 +22,15 @@
                      </a-popconfirm>
               </template>
               <template #title>
-                     <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large" v-model:value="editableNote.title"
-                            @pressEnter="checkAndUpdateNote" :maxlength="20" />
+                     <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
+                            v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote" :maxlength="20" />
               </template>
               <template v-if="key === 'Note'">
                      <a-card-meta style="min-height: 200px;">
                             <template #description>
-                                   <a-textarea spellcheck="false" :autoSize="{ minRows: 2, maxRows: 10 }" placeholder="Content of your note ! :)"
-                                          :bordered="false" :rows="8" @pressEnter="checkAndUpdateNote"
-                                          v-model:value="editableNote.content" />
+                                   <a-textarea spellcheck="false" :autoSize="{ minRows: 2, maxRows: 10 }"
+                                          placeholder="Content of your note ! :)" :bordered="false" :rows="8"
+                                          @pressEnter="checkAndUpdateNote" v-model:value="editableNote.content" />
                             </template>
                      </a-card-meta>
               </template>
@@ -53,7 +53,7 @@
                             {{ formattedDate }}
                      </a-tooltip>
 
-                     </template>
+              </template>
        </a-card>
 </template>
 <script lang="ts" setup>
@@ -72,7 +72,7 @@ const editableNote = ref({ ...props.note });
 const noteModified = ref(false);
 const hover = ref(false);  // Define hover here
 const key = ref('Note');
-const selectedTag = ref(props.note.tagId || ''); // Initialize with the note's tag ID
+const selectedTag = ref<string | null>(props.note.tagId || null);
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
 const tabList = [
        {
@@ -91,10 +91,9 @@ const onTabChange = (value: string) => {
 const checkAndUpdateNote = async () => {
        const storeNote = notesStore.notes.find(n => n.id === editableNote.value.id);
        if (storeNote && !isEqual(storeNote, editableNote.value)) {
-              // Update the note's tagId if it has been changed
               if (editableNote.value.tagId !== selectedTag.value) {
-                     await tagsStore.updateNoteTag(editableNote.value.id, selectedTag.value);
-                     editableNote.value.tagId = selectedTag.value;
+                     await tagsStore.updateNoteTag(editableNote.value.id, selectedTag.value || '');
+                     editableNote.value.tagId = selectedTag.value || '';
               }
               notesStore.updateStoreAndFirestore(editableNote.value);
               noteModified.value = false;
@@ -123,19 +122,15 @@ const formattedDate = computed(() => {
 
        return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 });
-
-
-
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
-       selectedTag.value = newNote.tagId || ""; // Update when note changes
+       selectedTag.value = newNote.tagId || null;
 }, { deep: true });
 watch(editableNote, () => {
-       const storeNote = notesStore.notes.find(n => n.id === editableNote.value.id);
-       noteModified.value = !isEqual(storeNote, editableNote.value);
+       noteModified.value = !isEqual(notesStore.notes.find(n => n.id === editableNote.value.id), editableNote.value);
 }, { deep: true });
-watch(selectedTag, async (newTagId, oldTagId) => {
-       if (newTagId !== oldTagId && editableNote.value.id) {
+watch(selectedTag, (newTagId) => {
+       if (newTagId !== editableNote.value.tagId && editableNote.value.id) {
               // Update the note's tagId locally
               editableNote.value.tagId = newTagId;
        }

@@ -21,7 +21,7 @@
                      </template>
               </a-card-meta>
               <div class="flex w-100 justify-center mt3">
-                     <a-select v-model:value="selectedTag" placeholder="Select tag" style="width: 150px" :options="tagOptions">
+                     <a-select :allowClear=true v-model:value="selectedTag" placeholder="Select tag" style="width: 150px" :options="tagOptions">
                             <template #suffixIcon><tags-outlined /></template>
                      </a-select>
               </div>
@@ -43,23 +43,17 @@ const formState = reactive<FormState>({ ...initialFormState });
 const noteModified = ref(false);
 const tagsStore = useTagsStore();
 const hover = ref(false);
-const selectedTag = ref('');
+const selectedTag = ref<string | null>(null);
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
 const notesStore = useNotesStore();
 
 const cardStyle = computed(() => {
        const tag = tagsStore.tags.find(t => t.id === selectedTag.value);
-       if (hover.value && tag) {
-              return `box-shadow: 0px 0px 10px 0px ${tag.color};`;
-       }
-       return '';
+       return hover.value && tag ? `box-shadow: 0px 0px 10px 0px ${tag.color};` : '';
 });
+
 onMounted(async () => {
        await tagsStore.fetchTags();
-       // Set the default selected tag to the one matching the user's ID
-       if (userId) {
-              selectedTag.value = userId;
-       }
 });
 interface FormState {
        title: string;
@@ -77,11 +71,11 @@ watch(formState, () => {
 const addNewNote = async () => {
        if (formState.title.trim() && formState.description.trim()) {
               const newNote: NoteType = {
-                     id: '', // Assign a unique ID, for instance using a UUID or similar method
+                     id: '', // Assign a unique ID
                      title: formState.title,
                      content: formState.description,
                      createdDate: new Date(),
-                     tagId: selectedTag.value // Add the selected tag ID
+                     tagId: selectedTag.value || null // Use selected tag ID or null if none is selected
               };
 
               await notesStore.addNoteToFirestore(newNote);
@@ -89,7 +83,7 @@ const addNewNote = async () => {
               // Reset the form state and noteModified flag after adding the note
               Object.assign(formState, initialFormState);
               noteModified.value = false;
-              selectedTag.value = ''; // Reset the selected tag
+              selectedTag.value = null; // Reset the selected tag to null
        }
 };
 </script>

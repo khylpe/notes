@@ -19,7 +19,7 @@
 import { h, ref, onMounted, onUnmounted, watch } from 'vue';
 import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
-import { Modal } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 import type { TagType } from '@/types/Tag';
 import { useTagsStore } from '@/stores/tagsStore'; // Import the tags store
 import router from "@/router";
@@ -45,23 +45,27 @@ interface FetchedTag {
 async function handleOk() {
        isAddingTag.value = true;  // Start loading
 
-       if (newTagName.value.trim()) {
-              const newTag: TagType = {
-                     id: Date.now().toString(), // Generate a unique ID for the tag
-                     name: newTagName.value,
-                     color: newTagColor.value, // Use the selected color
-                     createdDate: new Date(),
-                     numberOfNotes: 0,
-              };
-
-              await tagsStore.addTag(newTag); // Use the store action to add the tag
-
-              isAddingTag.value = false;  // Stop loading
-              isModalVisible.value = false;
-              newTagName.value = '';
-              newTagColor.value = '#000000'; // Reset the color
-              await tagsStore.fetchTags(); // Fetch tags again after adding a new one
+       if (!newTagName.value.trim()) {
+              message.warning('Please enter a tag name')
+              isAddingTag.value = false;
+              return;
        }
+
+       const newTag: TagType = {
+              id: Date.now().toString(), // Generate a unique ID for the tag
+              name: newTagName.value.trim(),
+              color: newTagColor.value, // Use the selected color
+              createdDate: new Date(),
+              numberOfNotes: 0,
+       };
+
+       await tagsStore.addTag(newTag); // Use the store action to add the tag
+
+       isAddingTag.value = false;  // Stop loading
+       isModalVisible.value = false;
+       newTagName.value = '';
+       newTagColor.value = '#000000'; // Reset the color
+       await tagsStore.fetchTags(); // Fetch tags again after adding a new one
 }
 function showModal() {
        isModalVisible.value = true;

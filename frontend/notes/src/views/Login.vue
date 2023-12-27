@@ -18,8 +18,7 @@
 
                             <a-form-item name="email" :rules="[{ required: true, message: 'Please input your email!' }]">
                                    <a-auto-complete v-model:value="formState.email" size="large" :disabled="state.submitting"
-                                           :options="emailOptions" @search="handleEmailSearch"
-                                          style="width: 100%;">
+                                          :options="emailOptions" @search="handleEmailSearch" style="width: 100%;">
                                           <a-input slot="input" :value="formState.email" placeholder="Mail" size="large">
                                                  <template #prefix>
                                                         <MailOutlined class="site-form-item-icon" />
