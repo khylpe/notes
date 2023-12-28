@@ -105,7 +105,6 @@ const onRefreshClicked = () => {
               }
        }, 1000);
        router.push('/notes');
-       console.log("onRefreshClicked");
 };
 
 const userProfilePicture = ref<string>('');

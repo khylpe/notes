@@ -143,7 +143,7 @@ const onFinish = async () => {
        }
 };
 const onFinishFailed = (errorInfo: any) => {
-       console.log('Failed:', errorInfo);
+       console.error('Failed:', errorInfo);
        message.error(`Please fill in all the fields. Error: ${errorInfo}`);
 };
 const login = async () => {
@@ -210,12 +210,19 @@ const signInWithGithub = async () => {
               const credential = GithubAuthProvider.credentialFromResult(result);
               if (credential === null) {
                      console.log('Credential is null');
+                     message.error('Credential is null');
                      throw new Error('Credential is null');
               }
               const store = useNotesStore();
               await store.fetchAndStoreNotes();
               router.push('/notes');
        } catch (error) {
+              if(error instanceof Error){
+                     message.error(error.message);
+              }
+              else{
+                     message.error('An unknown error occurred.');
+              }
        }
 };
 const isDisableSubmit = computed(() => {

@@ -7,7 +7,10 @@
                      <template #actions>
                             <home-outlined @click="returnHome" key="home" />
                      </template>
-                     <a-card-meta title="Error 404" description="Page not foud">
+                     <a-card-meta description="Page not foud">
+                            <template #title>
+                                   <h1 class="text-2xl">Error 404</h1>
+                            </template>
                      </a-card-meta>
               </a-card>
        </div>

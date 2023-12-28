@@ -35,6 +35,4 @@ watch(route, (newRoute, oldRoute) => {
 const filteredNotes = computed<NoteType[]>(() => {
        return notesStore.notes.filter(note => note.folderId === folderName.value);
 });
-
-console.log('Filtered Notes:', filteredNotes.value);
 </script>

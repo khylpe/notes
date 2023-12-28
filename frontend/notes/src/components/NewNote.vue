@@ -62,7 +62,6 @@ interface FormState {
 watch(selectedTag, (newTagId) => {
        if (newTagId) {
               const tagData = tagsStore.tags.find(tag => tag.id === newTagId);
-              console.log('Selected Tag Data:', tagData);
        }
 });
 watch(formState, () => {

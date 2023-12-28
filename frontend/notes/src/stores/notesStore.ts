@@ -80,7 +80,6 @@ export const useNotesStore = defineStore('notes', {
                             console.error("Note not found:", noteId);
                      }
               },
-
               async moveToMyNotes(noteId: string) {
                      const auth = getAuth();
                      const user = auth.currentUser;
@@ -104,7 +103,6 @@ export const useNotesStore = defineStore('notes', {
                             console.error("Note not found:", noteId);
                      }
               },
-
               async updateStoreAndFirestore(note: NoteType) {
                      const auth = getAuth();
                      const user = auth.currentUser;

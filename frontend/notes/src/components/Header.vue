@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import { Divider } from 'ant-design-vue';
+import { Divider, message } from 'ant-design-vue';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { ref } from 'vue';
 import auth from '@/services/FirebaseConfig';
@@ -19,10 +19,13 @@ onAuthStateChanged(auth, (user) => {
 const logout = async () => {
        try {
               await signOut(auth);
-              console.log("Logged out successfully");
+              message.success('Logged out successfully');
               router.push('/login');
        } catch (error) {
-              console.error("Logout failed", error);
+              if(error instanceof Error){
+                     message.error(`Couldn't logout : ${error.message}`);
+              }
+              message.error("Logout failed");
        }
 };
 </script>

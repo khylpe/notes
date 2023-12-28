@@ -20,7 +20,7 @@
                             <template #title>Move to deleted folder</template>
                             <a-popconfirm title="Delete this note?" ok-text="Yes" cancel-text="No"
                                    @confirm="moveToDeletedFolder">
-                                   <delete-outlined key="moveToDeletedFolder" />
+                                   <delete-outlined key="moveToDeletedFolder"/>
                             </a-popconfirm>
                      </a-tooltip>
 
@@ -42,7 +42,7 @@
                      <a-tooltip v-if="key === 'Settings' && editableNote.folderId != null" placement="bottom">
                             <template #title>Move to notes list</template>
 
-                            <a-popconfirm title="Archive this note?" ok-text="Yes" cancel-text="No" @confirm="moveToMyNotes">
+                            <a-popconfirm title="Move to my list?" ok-text="Yes" cancel-text="No" @confirm="moveToMyNotes">
                                    <unordered-list-outlined key="moveToMyNotes" />
                             </a-popconfirm>
                      </a-tooltip>
@@ -85,7 +85,7 @@
        </a-card>
 </template>
 <script lang="ts" setup>
-import { CheckOutlined, EditOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, FolderOutlined, UnorderedListOutlined } from '@ant-design/icons-vue';
+import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined } from '@ant-design/icons-vue';
 import { defineProps, ref, computed, watch } from 'vue';
 import type { NoteType } from '@/types/Note';
 import { useNotesStore } from '@/stores/notesStore';
@@ -191,7 +191,6 @@ const deleteNote = () => {
               message.error("No note ID available for deletion.");
        }
 }
-
 const moveToArchiveFolder = () => {
        if (editableNote.value.id) {
               try {
@@ -221,7 +220,6 @@ const formattedDate = computed(() => {
 
        return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 });
-
 const moveToMyNotes = () => {
        if (editableNote.value.id) {
               try {
@@ -239,7 +237,6 @@ const moveToMyNotes = () => {
               message.error("No note ID available for moving.");
        }
 }
-
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
        selectedTag.value = newNote.tagId || null;
