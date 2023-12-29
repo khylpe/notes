@@ -6,7 +6,7 @@ import Profil from './../views/Profil.vue';
 import MyNotes from './../views/MyNotes.vue';
 import LoginForm from './../views/Login.vue';
 // import Home from './../views/Home.vue';
-import VerifyEmail from './../views/VerifyEmail.vue'; // Import a view for email verification
+import VerifyEmail from './../views/VerifyEmail.vue';
 import NotFound from './../views/NotFound.vue';
 import NotesByTag from './../views/NotesByTag.vue';
 import NotesByFolder from './../views/NotesByFolder.vue';
@@ -66,15 +66,20 @@ const router = createRouter({
                                    component: MyNotes
                             },
                             {
-                                   path: 'notes/tag/:tagName', // Dynamic route for tag name
+                                   path: 'notes/tag/:tagName',
                                    name: 'notesByTag',
-                                   component: NotesByTag, // The component to display notes filtered by tag
+                                   component: NotesByTag,
                             },
                             {
-                                   path: 'notes/folder/:tagName', // Dynamic route for tag name
+                                   path: 'notes/folder/:tagName',
                                    name: 'notesByFolder',
-                                   component: NotesByFolder, // The component to display notes filtered by tag
+                                   component: NotesByFolder,
                             },
+                            {
+                                   path: 'notes/:noteId',
+                                   name: 'note',
+                                   component: () => import(/* webpackChunkName: "note" */ './../views/Note.vue')
+                            }
                      ]
               },
               { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
@@ -123,6 +128,5 @@ router.beforeEach(async (to, from, next) => {
               next(false);
        }
 });
-
 
 export default router;

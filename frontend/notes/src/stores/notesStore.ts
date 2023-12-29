@@ -149,6 +149,50 @@ export const useNotesStore = defineStore('notes', {
                             console.error('Error deleting note:', error);
                      }
               },
+              async fetchFilteredNotes(titleOrContentValue: string | null, tagId: string | null, folderIds: (string | null)[], dateRange: [Date, Date] | null) {
+                     // Fetch all notes if they haven't been fetched already
+                     if (this.notes.length === 0) {
+                            await this.fetchAndStoreNotes();
+                     }
+
+                     return this.notes.filter(note => {
+                            // Check if note matches the tag criteria
+                            const matchesTag = tagId ? note.tagId === tagId : true;
+
+                            // Check if note matches the folder criteria
+                            const matchesFolder = folderIds.length === 0 ? true :
+                                   folderIds.includes(null) && note.folderId === null || folderIds.includes(note.folderId);
+
+                            // Check if note matches the title or content criteria
+                            const matchesTitleOrContent = !titleOrContentValue ? true :
+                                   note.title.toLowerCase().includes(titleOrContentValue.toLowerCase()) ||
+                                   note.content.toLowerCase().includes(titleOrContentValue.toLowerCase());
+
+
+                            // Date range filter
+                            let matchesDateRange = true;
+                            if (dateRange) {
+                                   const [startDate, endDate] = dateRange;
+                                   const noteDate = new Date(note.createdDate); // Convert to Date object
+
+                                   // Adjust for same day range
+                                   if (startDate.toDateString() === endDate.toDateString()) {
+                                          matchesDateRange = noteDate.toDateString() === startDate.toDateString();
+                                   } else {
+                                          matchesDateRange = noteDate >= startDate && noteDate <= endDate;
+                                   }
+                            }
+
+                            return matchesTag && matchesFolder && matchesTitleOrContent && matchesDateRange;
+                     });
+              },
+              async getNoteById(noteId: string) {
+                     // Fetch all notes if they haven't been fetched already or if the note isn't in the store
+                     if (this.notes.length === 0 || !this.notes.find(note => note.id === noteId)) {
+                            await this.fetchAndStoreNotes();
+                     }
+                     return this.notes.find(note => note.id === noteId);
+              }
        },
 },
 );
