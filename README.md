@@ -1,68 +1,32 @@
-# notes
 
-This template should help get you started developing with Vue 3 in Vite.
+# Notes
 
-## Recommended IDE Setup
+<p align="center">
+  <a href="https://crahe-arthur.com/">
+      <img width="20%" src="https://crahe-arthur.com/public_files/img/logo.png" alt="Arthur CRAHÉ logo" />
+      <h1 align="center">Arthur CRAHÉ</h1>
+  </a>
+</p>
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## Purpose of This Project
+The primary goal of this project is to delve into and master contemporary technologies. This endeavor serves as a platform for my exploration, learning, and practical application of various cutting-edge tools in the realm of web development.
 
-## Type Support for `.vue` Imports in TS
+## Tech Stack
+In this project, I have harnessed a combination of robust and modern technologies to create an efficient and user-friendly experience. Here's a breakdown of the tech stack I used:
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+- **Vite**: I chose Vite for its remarkable speed and simplicity, significantly enhancing the development workflow with its incredibly fast front-end build tool capabilities.
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+- **Vue**: Vue.js is adopted for its reactivity and composability. It's a progressive framework for building user interfaces, allowing for an interactive and dynamic experience on the web app.
 
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+- **Pinia**: As the store library, Pinia is used for state management in Vue applications. Its intuitive and straightforward API makes managing and accessing states across components efficient and straightforward.
 
-## Customize configuration
+- **Basscss**: For styling, I use Basscss, which offers a lightweight collection of base element styles and immutable utilities. Its simplicity and composability make it an excellent choice for creating responsive designs with ease.
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+- **Ant Design Vue**: Integrated into the project is Ant Design Vue, which brings the enterprise-level UI design language of Ant Design to Vue applications. It provides a comprehensive set of high-quality Vue components that enhance the overall user interface and experience.
 
-## Project Setup
+- **Firebase Auth**: Firebase Auth is incorporated for its reliable and easy-to-use authentication system. It provides a secure way to manage user sessions and identity, ensuring a safe user experience.
 
-```sh
-npm install
-```
+- **Cloud Firestore**: I use Cloud Firestore for data storage and real-time updates. It's a flexible and scalable database from Firebase and Google Cloud.
 
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Run End-to-End Tests with [Cypress](https://www.cypress.io/)
-
-```sh
-npm run test:e2e:dev
-```
-
-This runs the end-to-end tests against the Vite development server.
-It is much faster than the production build.
-
-But it's still recommended to test the production build with `test:e2e` before deploying (e.g. in CI environments):
-
-```sh
-npm run build
-npm run test:e2e
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+## Website Accessibility
+My Notes can be accessed at the following URL: [notes.crahe-arthur.com](http://notes.crahe-arthur.com). The website offers a seamless and interactive way to engage with the content, powered by the aforementioned technologies.
