@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia';
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc, addDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import type { NoteType } from '@/types/Note';
-import { Timestamp } from 'firebase/firestore';
 import { isEqual } from 'lodash';
 
 export const useNotesStore = defineStore('notes', {
