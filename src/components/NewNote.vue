@@ -75,7 +75,8 @@ const addNewNote = async () => {
                      content: formState.description,
                      createdDate: new Date(),
                      tagId: selectedTag.value || null, // Use selected tag ID or null if none is selected
-                     folderId: null // Set folderId as null by default
+                     folderId: null, // Set folderId as null by default
+                     isPinned: false,
               };
 
               try {
