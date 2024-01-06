@@ -16,12 +16,13 @@
 </template>
 
 <script lang="ts" setup>
-import { h, ref, onMounted, onUnmounted, watch } from 'vue';
+import { h, ref, onMounted, onUnmounted, watch, watchEffect } from 'vue';
 import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
 import { message } from 'ant-design-vue';
 import type { TagType } from '@/types/Tag';
 import { useTagsStore } from '@/stores/tagsStore'; // Import the tags store
+import { useNotesStore } from '@/stores/notesStore';
 import router from "@/router";
 
 const menuMode = ref('inline');
@@ -34,6 +35,8 @@ const current = ref<string[]>();
 const items = ref<MenuProps['items']>([]);
 const isAddingTag = ref(false);
 const tagsStore = useTagsStore(); // Use the tags store
+const notesStore = useNotesStore();
+const userHasPinNote = ref(false); // Make it a reactive reference
 
 interface FetchedTag {
        label: string;
@@ -104,17 +107,17 @@ function updateMenuMode() {
 function handleMenuClick(e: any) {
        current.value = [e.key];
 }
-const updateMenuItems = (fetchedTags: FetchedTag[]) => {
-       items.value = [
-              // {
-              //        // style: { marginTop: '50px' },
-              //        key: 'My pinned notes',
-              //        icon: () => h(PushpinOutlined),
-              //        label: 'My pinned notes',
-              //        title: 'My pinned notes',
-              //        onClick: () => {
-              //        },
-              // },
+const updateMenuItems = () => {
+       const fetchedTags = tagsStore.tags.map(tag => ({
+        label: tag.name,
+        key: tag.id,
+        style: { color: tag.color },
+        onclick: () => {
+            router.push(`/notes/tag/${tag.name}`);
+        },
+    }));
+
+       const menuItems = [
               {
                      key: 'My notes',
                      icon: () => h(UnorderedListOutlined),
@@ -165,8 +168,23 @@ const updateMenuItems = (fetchedTags: FetchedTag[]) => {
                      ],
               },
        ];
+
+       if (userHasPinNote.value) {
+              menuItems.unshift({ // unshift to add it to the beginning of the array
+                     key: 'Pinned notes',
+                     icon: () => h(PushpinOutlined),
+                     label: 'My pinned notes',
+                     title: 'My pinned notes',
+                     onClick: () => {
+                            router.push('/notes/pinned');
+                     },
+              });
+       }
+
+       items.value = menuItems;
 };
-onMounted(() => {
+
+onMounted(async () => {
        window.addEventListener('resize', updateMenuMode);
        updateMenuMode(); // Initial check
 
@@ -185,14 +203,12 @@ onUnmounted(() => {
        window.removeEventListener('resize', updateMenuMode);
 });
 watch(() => tagsStore.tags, (newTags) => {
-       const fetchedTags = newTags.map(tag => ({
-              label: tag.name,
-              key: tag.id,
-              style: { color: tag.color },
-              onclick: () => {
-                     router.push(`/notes/tag/${tag.name}`);
-              },
-       }));
-       updateMenuItems(fetchedTags);
+       updateMenuItems();
 }, { deep: true });
+
+watchEffect(() => {
+    userHasPinNote.value = notesStore.notes.some(note => note.isPinned);
+    updateMenuItems(); // Update menu items when notes change
+});
+
 </script>

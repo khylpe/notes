@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc, addDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc, addDoc, deleteDoc, Timestamp, query, where } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import type { NoteType } from '@/types/Note';
 import { isEqual } from 'lodash';
@@ -27,6 +27,7 @@ export const useNotesStore = defineStore('notes', {
 
                      this.notes = querySnapshot.docs.map(doc => {
                             const noteData = doc.data() as Partial<NoteType>;
+                            noteData.isPinned = noteData.isPinned ?? false;
                             if (noteData.createdDate && noteData.createdDate instanceof Timestamp) {
                                    return { id: doc.id, ...noteData, createdDate: noteData.createdDate.toDate() } as NoteType;
                             }
@@ -107,6 +108,11 @@ export const useNotesStore = defineStore('notes', {
                      const user = auth.currentUser;
                      if (!user) return; // No user logged in
 
+                     // Default isPinned to false if undefined
+                     if (note.isPinned === undefined) {
+                            note.isPinned = false;
+                     }
+
                      // Find and update the note in the store if it's different
                      const noteIndex = this.notes.findIndex(n => n.id === note.id);
                      if (noteIndex !== -1 && !isEqual(this.notes[noteIndex], note)) {
@@ -126,7 +132,7 @@ export const useNotesStore = defineStore('notes', {
                      const db = getFirestore();
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
 
-                     const fullNewNote: NoteType = { ...newNote, id: '', folderId: null }; // Setting folderId to null by default
+                     const fullNewNote: NoteType = { ...newNote, id: '', folderId: null, isPinned: false }; // Setting folderId to null by default
                      const docRef = await addDoc(notesCollectionRef, fullNewNote);
 
                      fullNewNote.id = docRef.id; // Assigning the generated id
@@ -191,7 +197,62 @@ export const useNotesStore = defineStore('notes', {
                             await this.fetchAndStoreNotes();
                      }
                      return this.notes.find(note => note.id === noteId);
-              }
+              },
+              async pinNote(noteId: string) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return; // No user logged in
+
+                     // Find the note in the store
+                     const noteIndex = this.notes.findIndex(n => n.id === noteId);
+                     if (noteIndex !== -1) {
+                            // Update the isPinned property locally
+                            this.notes[noteIndex].isPinned = true;
+
+                            // Update Firestore
+                            const db = getFirestore();
+                            const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
+                            await setDoc(noteRef, { ...this.notes[noteIndex] });
+                     } else {
+                            console.error("Note not found:", noteId);
+                     }
+              },
+              async unpinNote(noteId: string) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return; // No user logged in
+
+                     // Find the note in the store
+                     const noteIndex = this.notes.findIndex(n => n.id === noteId);
+                     if (noteIndex !== -1) {
+                            // Update the isPinned property locally
+                            this.notes[noteIndex].isPinned = false;
+
+                            // Update Firestore
+                            const db = getFirestore();
+                            const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
+                            await setDoc(noteRef, { ...this.notes[noteIndex] });
+                     } else {
+                            console.error("Note not found:", noteId);
+                     }
+              },
+              async countPinnedNotes() {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return 0; // Return 0 if no user is logged in
+
+                     const db = getFirestore();
+                     const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
+                     const pinnedNotesQuery = query(notesCollectionRef, where('isPinned', '==', true));
+
+                     try {
+                            const querySnapshot = await getDocs(pinnedNotesQuery);
+                            return querySnapshot.docs.length; // This is the count of pinned notes
+                     } catch (error) {
+                            console.error("Error fetching pinned notes:", error);
+                            return 0; // Return 0 in case of error
+                     }
+              },
        },
 },
 );

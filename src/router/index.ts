@@ -10,6 +10,7 @@ import VerifyEmail from './../views/VerifyEmail.vue';
 import NotFound from './../views/NotFound.vue';
 import NotesByTag from './../views/NotesByTag.vue';
 import NotesByFolder from './../views/NotesByFolder.vue';
+import PinnedNotes from './../views/Pinned.vue';
 
 const checkSignUpMethod = (user: User | null) => {
        if (user && user.providerData.length > 0) {
@@ -64,6 +65,11 @@ const router = createRouter({
                                    path: 'notes',
                                    name: 'notes',
                                    component: MyNotes
+                            },
+                            {
+                                   path: 'notes/pinned',
+                                   name: 'pinned',
+                                   component: PinnedNotes
                             },
                             {
                                    path: 'notes/tag/:tagName',

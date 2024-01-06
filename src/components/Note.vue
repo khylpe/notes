@@ -10,6 +10,13 @@
               </template>
               <template #actions>
                      <!-- <edit-outlined @click="checkAndUpdateNote" key="save" /> -->
+                     <a-tooltip>
+                            <template #title v-if="editableNote.isPinned">Unpin</template>
+                            <template #title v-if="!editableNote.isPinned">Pin</template>
+
+                            <pushpin-outlined :style="{ color: pinIconColor }" @mouseenter="onMouseEnterPinIcon"
+                                   @mouseleave="onMouseLeavePinIcon" @click="pinIconClicked" key="pinIcon" />
+                     </a-tooltip>
 
                      <a-tooltip v-if="noteModified">
                             <template #title>Save modification</template>
@@ -20,7 +27,7 @@
                             <template #title>Move to deleted folder</template>
                             <a-popconfirm title="Delete this note?" ok-text="Yes" cancel-text="No"
                                    @confirm="moveToDeletedFolder">
-                                   <delete-outlined key="moveToDeletedFolder"/>
+                                   <delete-outlined key="moveToDeletedFolder" />
                             </a-popconfirm>
                      </a-tooltip>
 
@@ -85,7 +92,7 @@
        </a-card>
 </template>
 <script lang="ts" setup>
-import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined } from '@ant-design/icons-vue';
+import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined } from '@ant-design/icons-vue';
 import { defineProps, ref, computed, watch } from 'vue';
 import type { NoteType } from '@/types/Note';
 import { useNotesStore } from '@/stores/notesStore';
@@ -93,6 +100,7 @@ import { useTagsStore } from '@/stores/tagsStore';
 import { isEqual } from 'lodash';
 import { Timestamp } from 'firebase/firestore';
 import { message } from 'ant-design-vue';
+
 
 const props = defineProps<{ note: NoteType }>();
 const notesStore = useNotesStore();
@@ -103,6 +111,7 @@ const hover = ref(false);  // Define hover here
 const key = ref('Note');
 const selectedTag = ref<string | null>(props.note.tagId || null);
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
+const pinIconColor = ref('currentColor');
 const tabList = [
        {
               key: 'Note',
@@ -237,6 +246,39 @@ const moveToMyNotes = () => {
               message.error("No note ID available for moving.");
        }
 }
+const onMouseEnterPinIcon = () => {
+       pinIconColor.value = editableNote.value.isPinned ? 'red' : 'currentColor';
+};
+const onMouseLeavePinIcon = () => {
+       pinIconColor.value = 'currentColor';
+};
+const pinIconClicked = async () => {
+       if (!editableNote.value.id) {
+              message.error("No note ID available for pinning/unpinning.");
+              return;
+       }
+
+       // Toggle the isPinned status
+       editableNote.value.isPinned = !editableNote.value.isPinned;
+
+       try {
+              // Call the appropriate store action based on the new isPinned status
+              if (editableNote.value.isPinned) {
+                     await notesStore.pinNote(editableNote.value.id);
+                     message.success('Note pinned');
+              } else {
+                     await notesStore.unpinNote(editableNote.value.id);
+                     message.success('Note unpinned');
+              }
+       } catch (error) {
+              if (error instanceof Error) {
+                     message.error(error.message);
+              } else {
+                     // Handle non-Error objects
+                     message.error('An unknown error occurred.');
+              }
+       }
+};
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
        selectedTag.value = newNote.tagId || null;
