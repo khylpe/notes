@@ -36,7 +36,7 @@ const logout = async () => {
                             <RouterLink to="/">
                                    <img alt="Vue logo" class="logo" src="@/assets/logo_black.svg" width="75" height="auto" />
                             </RouterLink>
-                            <span class="ml3 h1">Notes by Arthur CRAHE</span>
+                            <span class="ml3 h1">Notes by Arthur CRAHE test</span>
                      </div>
                      <a-popover v-if="isAuthenticated" placement="bottomRight" trigger="click">
                             <template #content>

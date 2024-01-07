@@ -9,7 +9,6 @@
                      </span>
               </template>
               <template #actions>
-                     <!-- <edit-outlined @click="checkAndUpdateNote" key="save" /> -->
                      <a-tooltip>
                             <template #title v-if="editableNote.isPinned">Unpin</template>
                             <template #title v-if="!editableNote.isPinned">Pin</template>
