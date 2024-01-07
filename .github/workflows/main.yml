@@ -25,5 +25,5 @@ jobs:
             sudo -E git pull
             sudo npm install
             sudo npm run build
-            sudo pm2 restart "Notes client"
+            sudo pm2 restart "Notes"
           EOF
