@@ -16,14 +16,17 @@
                                           </div>
                                           <div v-else>
                                                  <template v-if="item.options">
-                                                        <span>{{ item.value }}</span>
-                                                        <folder-outlined class="mr1"
-                                                               v-if="item.value == 'Deleted' || item.value == 'Archives' || item.value == 'My notes'"
-                                                               style="float: right">
+                                                        <div class="flex items-center justify-between"> <!-- center icons -->
+                                                               <span>{{ item.value }}</span>
+                                                               <folder-outlined class="mr1"
+                                                                      v-if="item.value == 'Deleted' || item.value == 'Archives' || item.value == 'My notes'"
+                                                                      style="float: right" />
 
-                                                        </folder-outlined>
-                                                        <tags-outlined v-else class="mr1" style="float: right">
-                                                        </tags-outlined>
+                                                               <pushpin-outlined v-else-if="item.value == 'Pinned'" class="mr1"
+                                                                      style="float: right" />
+                                                               <tags-outlined v-else class="mr1" style="float: right" />
+
+                                                        </div>
                                                  </template>
                                                  <!-- Handling for other items if any -->
                                                  <template v-else>
@@ -84,7 +87,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, watch } from 'vue';
-import { UndoOutlined, FolderOutlined, TagsOutlined, CalendarOutlined } from '@ant-design/icons-vue';
+import { UndoOutlined, FolderOutlined, TagsOutlined, CalendarOutlined, PushpinOutlined } from '@ant-design/icons-vue';
 import dayjs, { Dayjs } from 'dayjs';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
@@ -220,7 +223,19 @@ const updateDataSource = (filteredNotes: NoteType[]) => {
                      noteId: note.id
               }))
        }));
-       dataSource.value = [...tagsData, ...foldersData];
+
+       const pinnedNotes = filteredNotes.filter(note => note.isPinned);
+       const pinnedData = {
+              value: 'Pinned',
+              count: pinnedNotes.length,
+              options: pinnedNotes.map(note => ({
+                     title: note.title,
+                     date: Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(note.createdDate),
+                     noteId: note.id,
+              }))
+       };
+
+       dataSource.value = [pinnedData, ...foldersData, ...tagsData];
        isSearchResultsLoading.value = false;
 };
 const fetchNotesByFilters = async () => {
