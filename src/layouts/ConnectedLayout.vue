@@ -3,9 +3,9 @@
        <Header />
 
        <!-- Child component will be rendered here -->
-       <main class="flex flex-row content-page ">
+       <main class="flex flex-row content-page">
               <SideBar />
-              <div class="flex flex-column w-100 mt3">
+              <div class="flex flex-col w-full mt-3 ml-20">
                      <router-view></router-view>
               </div>
        </main>

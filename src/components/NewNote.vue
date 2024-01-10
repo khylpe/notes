@@ -21,7 +21,7 @@
                                    :autoSize="{ minRows: 2, maxRows: 10 }" @pressEnter="addNewNote" />
                      </template>
               </a-card-meta>
-              <div class="flex w-100 justify-center mt3">
+              <div class="flex w-full justify-center mt-3">
                      <a-select :allowClear=true v-model:value="selectedTag" placeholder="Select tag" style="width: 150px"
                             :options="tagOptions">
                             <template #suffixIcon><tags-outlined /></template>

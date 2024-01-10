@@ -5,8 +5,6 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import Antd from 'ant-design-vue'
-import 'basscss/css/basscss.min.css'
-
 // Create the VueAuth3 instance
 const app = createApp(App)
 

@@ -1,5 +1,5 @@
 <template>
-       <div class="col col-12 flex flex-row justify-center items-center h-100 rm-header-height">
+       <div class="col col-12 flex flex-row justify-center items-center h-full rm-header-height">
               <a-card hoverable style="width: 300px">
                      <template #cover>
                             <img src="@/assets/mail.png" alt="Mail image by ChatGPT/DALL-E">
@@ -12,10 +12,10 @@
 
                             <a-popover placement="bottom" trigger="click" title="Profil settings">
                                    <template #content>
-                                          <div class="flex flex-row items-center justify-between mt3">
-                                                 <a-avatar :size="36" class="mr3" v-if="userProfilePicture"
+                                          <div class="flex flex-row items-center justify-between mt-3">
+                                                 <a-avatar :size="36" class="mr-3" v-if="userProfilePicture"
                                                         :src="userProfilePicture" />
-                                                 <a-avatar v-else :size="36" class="mr3">
+                                                 <a-avatar v-else :size="36" class="mr-3">
                                                         <UserOutlined width="65px" />
                                                  </a-avatar>
                                                  <a-upload name="file" list-type="picture" class="flex flex-row items-center">
@@ -66,8 +66,8 @@
                      </template>
                      <a-card-meta :title="title">
                             <template #avatar>
-                                   <a-avatar :size="36" class="mr2" v-if="userProfilePicture" :src="userProfilePicture" />
-                                   <a-avatar v-else :size="36" class="mr2">
+                                   <a-avatar :size="36" class="mr-2" v-if="userProfilePicture" :src="userProfilePicture" />
+                                   <a-avatar v-else :size="36" class="mr-2">
                                           <UserOutlined width="65px" />
                                    </a-avatar>
                             </template>

@@ -1,6 +1,6 @@
 <template>
-       <div class="certain-category-search-wrapper flex flex-column" style="margin-left: auto; margin-right: auto;">
-              <div class="flex flex-row items-center w-100">
+       <div class="certain-category-search-wrapper flex flex-col" style="margin-left: auto; margin-right: auto;">
+              <div class="flex flex-row items-center w-full">
                      <!-- Tooltip element -->
                      <a-tooltip>
                             <!-- Tooltip value -->
@@ -18,13 +18,13 @@
                                                  <template v-if="item.options">
                                                         <div class="flex items-center justify-between"> <!-- center icons -->
                                                                <span>{{ item.value }}</span>
-                                                               <folder-outlined class="mr1"
+                                                               <folder-outlined class="mr-1"
                                                                       v-if="item.value == 'Deleted' || item.value == 'Archives' || item.value == 'My notes'"
                                                                       style="float: right" />
 
-                                                               <pushpin-outlined v-else-if="item.value == 'Pinned'" class="mr1"
+                                                               <pushpin-outlined v-else-if="item.value == 'Pinned'" class="mr-1"
                                                                       style="float: right" />
-                                                               <tags-outlined v-else class="mr1" style="float: right" />
+                                                               <tags-outlined v-else class="mr-1" style="float: right" />
 
                                                         </div>
                                                  </template>
@@ -35,7 +35,7 @@
                                                                :href="`/notes/${item.noteId}`">
                                                                {{ item.title }}
                                                                <span>
-                                                                      <calendar-outlined class="mr1"></calendar-outlined>
+                                                                      <calendar-outlined class="mr-1"></calendar-outlined>
                                                                       {{ item.date }}
                                                                </span>
                                                         </a>
@@ -49,8 +49,8 @@
                             <!-- Tooltip value -->
                             <template #title>Reset search settings</template>
                             <!-- Element to hover for tooltip -->
-                            <a-button @click="resetFilters" type="text" class="ml2">
-                                   <UndoOutlined class="flex-column" style="font-size: 24px; display: flex; color: #7a7878" />
+                            <a-button @click="resetFilters" type="text" class="ml-2">
+                                   <UndoOutlined class="flex-col" style="font-size: 24px; display: flex; color: #7a7878" />
                             </a-button>
                      </a-tooltip>
               </div>

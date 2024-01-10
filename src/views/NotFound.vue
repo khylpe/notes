@@ -1,5 +1,5 @@
 <template>
-       <div class="flex justify-center items-center h-100 w-100">
+       <div class="flex justify-center items-center h-full w-full">
               <a-card hoverable style="width: 600px">
                      <template #cover>
                             <img alt="example" src="@/assets/404.webp" />
