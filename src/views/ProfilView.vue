@@ -22,20 +22,18 @@
                                           </div>
                                           <div v-if="email" class="flex flex-col sm:flex-row sm:items-center mt-3">
                                                  <span>Email</span>
-                                                 <a-input class="sm:ml-3" style="width: fit-content;"
-                                                        disabled
-                                                        v-model:value="email"
-                                                        placeholder="Your email" />
+                                                 <a-input class="sm:ml-3" style="width: fit-content;" disabled
+                                                        v-model:value="email" placeholder="Your email" />
                                           </div>
                                    </div>
                             </div>
                             <a-button class="mt-20" :disabled="!isProfileModified" @click="onSaveProfile" type="primary">Save
                                    profil</a-button>
                      </a-tab-pane>
-                     <a-tab-pane key="preferences" tab="Preferences" force-render>
+                     <a-tab-pane key="preferences" disabled tab="Preferences">
                             Preferences
                      </a-tab-pane>
-                     <a-tab-pane key="account" tab="Account">
+                     <a-tab-pane key="account" disabled tab="Account">
                             Account
                      </a-tab-pane>
               </a-tabs>
@@ -43,34 +41,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { onAuthStateChanged, updateProfile } from 'firebase/auth';
+import { ref, computed, watch } from 'vue';
+import { updateProfile } from 'firebase/auth';
 import auth from '@/services/FirebaseConfig';
 import { UserOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
+import { useUserInformationStore } from '@/stores/userInformationStore';
 
+const userInformationStore = useUserInformationStore();
 const activeKey = ref('information');
-const initialValues = ref<{ username: string | null, email: string | null }>({ username: null, email: null });
-const username = ref<string | null>(null);
-const profilPicture = ref<string | null>(null);
-const email = ref<string | null>(null);
-const providerType = ref<string | null>(null);
+const username = ref<string | null>(userInformationStore.userInformation?.username ?? null);
+console.log("🚀 ~ username:", username);
+const profilPicture = ref<string | null>(userInformationStore.userInformation?.profilePictureUrl ?? null);
+const email = ref<string | null>(userInformationStore.userInformation?.email ?? null);
+const providerType = ref<string | null>(userInformationStore.userInformation?.providerType ?? null);
 
+const initialValues = ref({
+       username: userInformationStore.userInformation?.username ?? null,
+       email: userInformationStore.userInformation?.email ?? null
+});
 const isProfileModified = computed(() => {
        return initialValues.value.username !== username.value || initialValues.value.email !== email.value;
 });
-// Example of an authentication state change handler
-onAuthStateChanged(auth, (user) => {
-       if (user) {
-              username.value = user.displayName;
-              profilPicture.value = user.photoURL;
-              email.value = user.email;
-              providerType.value = user.providerData[0].providerId;
-              initialValues.value = { username: user.displayName, email: user.email };
-       } else {
-              console.log('User is signed out');
-       }
-});
+
 const onSaveProfile = async () => {
        if (username.value && auth.currentUser) {
               try {
@@ -79,11 +72,26 @@ const onSaveProfile = async () => {
                      });
                      message.info("Profile updated");
 
-                     // Mettre à jour les valeurs réactives après le rechargement
-                     profilPicture.value = auth.currentUser.photoURL;
-                     username.value = auth.currentUser.displayName;
-                     email.value = auth.currentUser.email;
-                     initialValues.value = { username: auth.currentUser.displayName, email: auth.currentUser.email };
+                     // Update the store with the new user information from firebase
+                     userInformationStore.setUser({
+                            id: auth.currentUser.uid,
+                            username: auth.currentUser.displayName,
+                            email: auth.currentUser.email,
+                            profilePictureUrl: auth.currentUser.photoURL,
+                            providerType: auth.currentUser.providerData[0].providerId,
+                     });
+
+                     // Update the component state with the store to reflect the new values
+                     profilPicture.value = userInformationStore.userInformation?.profilePictureUrl ?? '';
+                     username.value = userInformationStore.userInformation?.username ?? '';
+                     email.value = userInformationStore.userInformation?.email ?? '';
+
+                     // Update the initial values to reflect the new values (to be able to check if the user modified the profile)
+                     initialValues.value = {
+                            username: userInformationStore.userInformation?.username ?? null,
+                            email: userInformationStore.userInformation?.email ?? null
+                     };
+
               } catch (error) {
                      console.error("Error while updating profile:", error);
                      message.error("Error while updating profile");

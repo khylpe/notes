@@ -1,7 +1,7 @@
 // tagsStore.ts
 import { defineStore } from 'pinia';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import type { TagType } from '@/types/Tag';
 
 export const useTagsStore = defineStore('tags', {

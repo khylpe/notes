@@ -7,17 +7,17 @@
                             </RouterLink>
                             <span class="ml-3 text-4xl">{{ pageName }}</span>
                      </div>
-                     <a-popover v-if="isAuthenticated" placement="bottomRight" trigger="click">
+                     <a-popover v-if="!!userInformationStore.userInformation" placement="bottomRight" trigger="click">
                             <template #content>
                                    <div class="flex flex-col">
-                                          <span>{{ username }}</span>
+                                          <span>{{ userInformationStore.userInformation?.username }}</span>
                                           <RouterLink to="/profil">
                                                  <a-button class="mt-1" style="width: 100%;">Profil</a-button>
                                           </RouterLink>
                                           <a-button danger @click="logout" class="mt-1" style="width: 100%;">Logout</a-button>
                                    </div>
                             </template>
-                            <a-avatar :size="36" class="mr-2" v-if="userProfilePicture" :src="userProfilePicture" />
+                            <a-avatar :size="36" class="mr-2" v-if="userInformationStore.userInformation.profilePictureUrl" :src="userInformationStore.userInformation.profilePictureUrl" />
                             <a-avatar v-else :size="36" class="mr-2">
                                    <UserOutlined width="65px" />
                             </a-avatar>
@@ -33,19 +33,17 @@
 import { RouterLink, useRoute } from 'vue-router';
 import { Divider, message } from 'ant-design-vue';
 
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { ref, watch, onMounted } from 'vue';
 import auth from '@/services/FirebaseConfig';
 import { UserOutlined } from '@ant-design/icons-vue';
 import router from '@/router';
+import { useUserInformationStore } from '@/stores/userInformationStore';
 
 // Add useRoute here
 const route = useRoute();
 const pageName = ref<string | unknown>('');
-const isAuthenticated = ref(false);
-const userProfilePicture = ref<string>('');
-const username = ref<string>('');
-
+const userInformationStore = useUserInformationStore();
 const routeNameToTitle = [
        { path: 'login', title: 'Login' },
        { path: 'verifyEmail', title: 'Verify Email' },
@@ -58,11 +56,6 @@ const routeNameToTitle = [
        { path: 'NotFound', title: 'Not Found' }
 ];
 
-onAuthStateChanged(auth, (user) => {
-       isAuthenticated.value = !!user;
-       userProfilePicture.value = user && user.photoURL ? user.photoURL : '';
-       username.value = user ? user.displayName || 'Anonymous' : '';
-});
 const logout = async () => {
        try {
               await signOut(auth);
