@@ -3,7 +3,7 @@
               <SearchBar />
        </div>
 
-       <div class="flex flex-wrap justify-center mt4">
+       <div class="flex flex-wrap justify-center mt-4">
               <div class="notes-list flex flex-row items-start justify-center flex-wrap">
                      <div class="note">
                             <NewNote />

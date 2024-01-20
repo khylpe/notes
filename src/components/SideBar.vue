@@ -1,12 +1,12 @@
 <template>
-       <div class="col col-2 mt3">
-              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-100 fixed col col-2"
+       <div class="w-1/6 mt-3">
+              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-full fixed w-1/6"
                      v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
        </div>
        <a-modal v-model:open="isModalVisible" title="Create New Tag" @cancel="handleCancel">
               <div class="flex flex-row">
                      <a-input placeholder="Enter tag name" v-model:value="newTagName" />
-                     <a-input type="color" class="ml2" style="width: 50px;" v-model:value="newTagColor" /> <!-- Color input -->
+                     <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newTagColor" /> <!-- Color input -->
               </div>
               <template #footer>
                      <a-button key="back" @click="handleCancel">Cancel</a-button>

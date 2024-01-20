@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { getAuth, onAuthStateChanged, reload, type User } from 'firebase/auth';
 import ConnectedLayout from '@/layouts/ConnectedLayout.vue';
 import NotConnectedLayout from '@/layouts/NotConnectedLayout.vue';
-import Profil from './../views/Profil.vue';
+import Profil from './../views/ProfilView.vue';
 import MyNotes from './../views/MyNotes.vue';
 import LoginForm from './../views/Login.vue';
 // import Home from './../views/Home.vue';
@@ -11,6 +11,7 @@ import NotFound from './../views/NotFound.vue';
 import NotesByTag from './../views/NotesByTag.vue';
 import NotesByFolder from './../views/NotesByFolder.vue';
 import PinnedNotes from './../views/Pinned.vue';
+import { useUserInformationStore } from '@/stores/userInformationStore';
 
 const checkSignUpMethod = (user: User | null) => {
        if (user && user.providerData.length > 0) {
@@ -92,6 +93,7 @@ const router = createRouter({
        ]
 });
 router.beforeEach(async (to, from, next) => {
+       const userInformationStore = useUserInformationStore();
        try {
               const auth = getAuth();
               const user = await new Promise<User | null>((resolve, reject) => {
@@ -99,6 +101,15 @@ router.beforeEach(async (to, from, next) => {
                             if (user) {
                                    // Reload user to get the latest status
                                    reload(user).then(() => {
+                                          console.log("reloading user")
+                                          userInformationStore.setUser({
+                                                 id: user.uid,
+                                                 username: user.displayName,
+                                                 email: user.email,
+                                                 profilePictureUrl: user.photoURL,
+                                                 providerType: user.providerData[0]?.providerId
+                                          });
+                                          userInformationStore.initAuthObserver();
                                           resolve(user);
                                    }).catch(reject);
                             } else {

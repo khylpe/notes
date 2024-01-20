@@ -1,6 +1,6 @@
 <template>
-       <div class="certain-category-search-wrapper flex flex-column" style="margin-left: auto; margin-right: auto;">
-              <div class="flex flex-row items-center w-100">
+       <div class="certain-category-search-wrapper flex flex-col" style="margin-left: auto; margin-right: auto;">
+              <div class="flex flex-row items-center w-full">
                      <!-- Tooltip element -->
                      <a-tooltip>
                             <!-- Tooltip value -->
@@ -18,13 +18,13 @@
                                                  <template v-if="item.options">
                                                         <div class="flex items-center justify-between"> <!-- center icons -->
                                                                <span>{{ item.value }}</span>
-                                                               <folder-outlined class="mr1"
+                                                               <folder-outlined class="mr-1"
                                                                       v-if="item.value == 'Deleted' || item.value == 'Archives' || item.value == 'My notes'"
                                                                       style="float: right" />
 
-                                                               <pushpin-outlined v-else-if="item.value == 'Pinned'" class="mr1"
-                                                                      style="float: right" />
-                                                               <tags-outlined v-else class="mr1" style="float: right" />
+                                                               <pushpin-outlined v-else-if="item.value == 'Pinned'"
+                                                                      class="mr-1" style="float: right" />
+                                                               <tags-outlined v-else class="mr-1" style="float: right" />
 
                                                         </div>
                                                  </template>
@@ -35,7 +35,7 @@
                                                                :href="`/notes/${item.noteId}`">
                                                                {{ item.title }}
                                                                <span>
-                                                                      <calendar-outlined class="mr1"></calendar-outlined>
+                                                                      <calendar-outlined class="mr-1"></calendar-outlined>
                                                                       {{ item.date }}
                                                                </span>
                                                         </a>
@@ -49,13 +49,14 @@
                             <!-- Tooltip value -->
                             <template #title>Reset search settings</template>
                             <!-- Element to hover for tooltip -->
-                            <a-button @click="resetFilters" type="text" class="ml2">
-                                   <UndoOutlined class="flex-column" style="font-size: 24px; display: flex; color: #7a7878" />
+                            <a-button @click="resetFilters" type="text" class="ml-2">
+                                   <UndoOutlined class="flex-col" style="font-size: 24px; display: flex; color: #7a7878" />
                             </a-button>
                      </a-tooltip>
               </div>
               <!-- Div containing settings such as Folder, Tags, date -->
-              <div style="max-width: 600px; margin-top: -10px;" class="flex justify-around flex-wrap pt1 settings">
+              <div style="max-width: 600px; margin-top: -4px;" class="flex justify-around flex-wrap pt-1 settings">
+                     <!-- margin-top (negative) must be equal of the padding-top value -->
                      <!-- Select folder to search in -->
                      <a-select v-model:value="folderValue" mode="multiple" style="width: fit-content; min-width: 120px;"
                             :options="folderOptions" size="large" :dropdown-match-select-width="200" :max-tag-count="3"
@@ -74,11 +75,13 @@
                      <!-- Filter by creation date -->
                      <a-space direction="vertical" :size="12" class="setting flex-child">
                             <a-range-picker :presets="rangePresets" :disabled-date="disabledDate" format="DD/MM/YYYY"
-                                   @change="onRangeChange" :value="selectedDateRange" size="large" #renderExtraFooter><span
-                                          class="flex justify-center">Select a
-                                          start and end date for when the
-                                          note was
-                                          created.</span>
+                                   @change="onRangeChange" :value="selectedDateRange" size="large">
+                                   <template #renderExtraFooter>
+                                          <span class="flex justify-center">Select a
+                                                 start and end date for when the
+                                                 note was
+                                                 created.</span>
+                                   </template>
                             </a-range-picker>
                      </a-space>
               </div>
@@ -86,7 +89,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { UndoOutlined, FolderOutlined, TagsOutlined, CalendarOutlined, PushpinOutlined } from '@ant-design/icons-vue';
 import dayjs, { Dayjs } from 'dayjs';
 import { useNotesStore } from '@/stores/notesStore';

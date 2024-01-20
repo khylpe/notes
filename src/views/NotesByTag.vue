@@ -1,12 +1,12 @@
 <template>
-       <div class="container mx4 items-center">
+       <div class="container mx-4 items-center">
               <div class="center-element">
                      <h2>Notes with the "{{ tagName }}" tag</h2>
               </div>
               <a-button type="dashed" @click="openModal"><setting-outlined></setting-outlined></a-button>
        </div>
 
-       <div class="flex flex-wrap justify-center mt4">
+       <div class="flex flex-wrap justify-center mt-4">
               <div class="notes-list flex flex-row items-start justify-center flex-wrap">
                      <div class="note flex justify-center" v-for="note in filteredNotesByTag" :key="note.id">
                             <Note :note="note" />
@@ -17,7 +17,7 @@
        <a-modal v-model:open="isModalVisible" title="Update Tag" @ok="updateCurrentTag">
               <div class="flex flex-row my3">
                      <a-input placeholder="New tag name" v-model:value="newTagName" />
-                     <a-input type="color" class="mx2" style="width: 50px;" v-model:value="newTagColor" />
+                     <a-input type="color" class="mx-2" style="width: 50px;" v-model:value="newTagColor" />
 
                      <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No" @confirm="deleteTag">
                             <a-button danger type="text"><delete-outlined></delete-outlined></a-button>

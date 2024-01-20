@@ -21,7 +21,7 @@
                                    :autoSize="{ minRows: 2, maxRows: 10 }" @pressEnter="addNewNote" />
                      </template>
               </a-card-meta>
-              <div class="flex w-100 justify-center mt3">
+              <div class="flex w-full justify-center mt-3">
                      <a-select :allowClear=true v-model:value="selectedTag" placeholder="Select tag" style="width: 150px"
                             :options="tagOptions">
                             <template #suffixIcon><tags-outlined /></template>
@@ -32,7 +32,7 @@
 
 <script lang="ts" setup>
 import { reactive, ref, watch, onMounted, computed } from 'vue';
-import { CheckOutlined, TagsOutlined, PlusOutlined } from '@ant-design/icons-vue';
+import { CheckOutlined, TagsOutlined } from '@ant-design/icons-vue';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
 import type { NoteType } from '@/types/Note';
@@ -59,11 +59,11 @@ interface FormState {
        title: string;
        description: string;
 }
-watch(selectedTag, (newTagId) => {
-       if (newTagId) {
-              const tagData = tagsStore.tags.find(tag => tag.id === newTagId);
-       }
-});
+// watch(selectedTag, (newTagId) => {
+//        if (newTagId) {
+//               const tagData = tagsStore.tags.find(tag => tag.id === newTagId);
+//        }
+// });
 watch(formState, () => {
        noteModified.value = formState.title.trim() !== '' || formState.description.trim() !== '';
 }, { deep: true });

@@ -1,10 +1,10 @@
 <template>
-       <div class="col col-12 flex flex-row justify-center items-center h-100 rm-header-height">
-              <div class="flex flex-column items-center">
+       <div class="col col-12 flex flex-row justify-center items-center h-full rm-header-height">
+              <div class="flex flex-col items-center">
                      <span class="h1" v-if="state.iHaveAnAccount">Log in</span>
                      <span class="h1" v-else>Sign up</span>
 
-                     <a-form :model="formState" name="normal_login" class="login-form mt3" @finish="onFinish"
+                     <a-form :model="formState" name="normal_login" class="login-form mt-3" @finish="onFinish"
                             @finishFailed="onFinishFailed">
                             <a-form-item name="username"
                                    :rules="[{ required: !state.iHaveAnAccount, message: 'Please input your username!' }]">
@@ -53,7 +53,7 @@
 
                      <a-divider>Use a provider</a-divider>
 
-                     <div class="flex flex-column" style="width: 100%;">
+                     <div class="flex flex-col" style="width: 100%;">
                             <a-button @click="signInWithGoogle" style="height: fit-content;">
                                    <div class="flex items-center justify-around">
                                           <img src="@/assets/google-color-icon.svg" alt="Google Icon" srcset="" width="25"
@@ -61,7 +61,7 @@
                                           <span>Log in or Sign up with Google</span>
                                    </div>
                             </a-button>
-                            <a-button @click="signInWithGithub" style="height: fit-content;" class="mt1">
+                            <a-button @click="signInWithGithub" style="height: fit-content;" class="mt-1">
                                    <div class="flex items-center justify-around">
                                           <GithubOutlined style="font-size: 25px;" />
                                           <span>Log in or Sign up with GitHub</span>
