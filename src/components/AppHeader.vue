@@ -1,4 +1,35 @@
-<script setup lang="ts">
+<template>
+       <header class="flex flex-col pl-1 pt-1">
+              <div class="flex flex-row items-center justify-between">
+                     <div class="flex flex-row items-center">
+                            <RouterLink to="/">
+                                   <img alt="Vue logo" class="logo" src="@/assets/logo_black.svg" width="75" height="auto" />
+                            </RouterLink>
+                            <span class="ml-3 text-4xl">{{ pageName }}</span>
+                     </div>
+                     <a-popover v-if="isAuthenticated" placement="bottomRight" trigger="click">
+                            <template #content>
+                                   <div class="flex flex-col">
+                                          <span>{{ username }}</span>
+                                          <RouterLink to="/profil">
+                                                 <a-button class="mt-1" style="width: 100%;">Profil</a-button>
+                                          </RouterLink>
+                                          <a-button danger @click="logout" class="mt-1" style="width: 100%;">Logout</a-button>
+                                   </div>
+                            </template>
+                            <a-avatar :size="36" class="mr-2" v-if="userProfilePicture" :src="userProfilePicture" />
+                            <a-avatar v-else :size="36" class="mr-2">
+                                   <UserOutlined width="65px" />
+                            </a-avatar>
+                     </a-popover>
+              </div>
+              <div class="mx-1">
+                     <Divider class="my1" />
+              </div>
+       </header>
+</template>
+
+<script  lang="ts" setup>
 import { RouterLink, useRoute } from 'vue-router';
 import { Divider, message } from 'ant-design-vue';
 
@@ -55,33 +86,3 @@ onMounted(() => {
        updatePageName();
 });
 </script>
-<template>
-       <header class="flex flex-col pl-1 pt-1">
-              <div class="flex flex-row items-center justify-between">
-                     <div class="flex flex-row items-center">
-                            <RouterLink to="/">
-                                   <img alt="Vue logo" class="logo" src="@/assets/logo_black.svg" width="75" height="auto" />
-                            </RouterLink>
-                            <span class="ml-3 text-4xl">{{ pageName }}</span>
-                     </div>
-                     <a-popover v-if="isAuthenticated" placement="bottomRight" trigger="click">
-                            <template #content>
-                                   <div class="flex flex-col">
-                                          <span>{{ username }}</span>
-                                          <RouterLink to="/profil">
-                                                 <a-button class="mt-1" style="width: 100%;">Profil</a-button>
-                                          </RouterLink>
-                                          <a-button danger @click="logout" class="mt-1" style="width: 100%;">Logout</a-button>
-                                   </div>
-                            </template>
-                            <a-avatar :size="36" class="mr-2" v-if="userProfilePicture" :src="userProfilePicture" />
-                            <a-avatar v-else :size="36" class="mr-2">
-                                   <UserOutlined width="65px" />
-                            </a-avatar>
-                     </a-popover>
-              </div>
-              <div class="mx-1">
-                     <Divider class="my1" />
-              </div>
-       </header>
-</template>

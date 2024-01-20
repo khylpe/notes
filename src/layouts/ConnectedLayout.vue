@@ -12,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import Header from '@/components/Header.vue';
+import Header from '@/components/AppHeader.vue';
 import SideBar from '@/components/SideBar.vue';
-import SearchBar from '@/components/SearchBar.vue';
 </script>
