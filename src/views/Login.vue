@@ -98,9 +98,6 @@ const handleEmailSearch = (val: string) => {
        emailOptions.value = filteredDomains.map(domain => ({ value: `${namePart}@${domain}` }));
 };
 
-
-
-
 const state = reactive({
        iHaveAnAccount: true,
        submitting: false, // Add this property
@@ -217,10 +214,10 @@ const signInWithGithub = async () => {
               await store.fetchAndStoreNotes();
               router.push('/notes');
        } catch (error) {
-              if(error instanceof Error){
+              if (error instanceof Error) {
                      message.error(error.message);
               }
-              else{
+              else {
                      message.error('An unknown error occurred.');
               }
        }

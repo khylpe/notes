@@ -17,8 +17,11 @@
                                    <div class="flex flex-col md:ml-14">
                                           <div class="flex flex-col sm:flex-row sm:items-center mt-3">
                                                  <span>Username</span>
-                                                 <a-input class="sm:ml-3" style="width: fit-content;" v-model:value="username"
-                                                        placeholder="Your username" />
+                                                 <div class="w-fit">
+                                                        <a-input class="sm:ml-3 w-full" v-model:value="username"
+                                                        placeholder="Your" />
+                                                 </div>
+                                                 
                                           </div>
                                           <div v-if="email" class="flex flex-col sm:flex-row sm:items-center mt-3">
                                                  <span>Email</span>

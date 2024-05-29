@@ -90,9 +90,10 @@
               </template>
        </a-card>
 </template>
+
 <script lang="ts" setup>
 import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined } from '@ant-design/icons-vue';
-import { defineProps, ref, computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { NoteType } from '@/types/Note';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
@@ -278,6 +279,7 @@ const pinIconClicked = async () => {
               }
        }
 };
+
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
        selectedTag.value = newNote.tagId || null;
