@@ -10,11 +10,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import NewNote from '@/components/NewNote.vue';
 import Note from '@/components/Note.vue';
 import { useNotesStore } from '@/stores/notesStore';
 import type { NoteType } from '@/types/Note';
-import SearchBar from '@/components/SearchBar.vue';
 
 const notesStore = useNotesStore();
 notesStore.fetchAndStoreNotes();

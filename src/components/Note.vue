@@ -1,7 +1,8 @@
 <template>
-       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteTagColor}` : 'none' }" style="width: 300px"
-              :tab-list="tabList" :active-tab-key="key" @tabChange="onTabChange" @mouseenter="hover = true"
-              @mouseleave="hover = false">
+       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteTagColor}` : 'none' }"
+              :tab-list="tabList" :active-tab-key="key" @tabChange="onTabChange"
+              class="w-auto sm:w-[450px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px]"
+              @mouseenter="hover = true" @mouseleave="hover = false">
               <template #customTab="item">
                      <span v-if="item.key === 'Settings'">
                             <setting-outlined />
@@ -9,6 +10,11 @@
                      </span>
               </template>
               <template #actions>
+
+                     <a-tooltip title="View full screen">
+                            <expand-alt-outlined @click="showFullScreenModal" key="expandIcon" />
+                     </a-tooltip>
+
                      <a-tooltip>
                             <template #title v-if="editableNote.isPinned">Unpin</template>
                             <template #title v-if="!editableNote.isPinned">Pin</template>
@@ -48,7 +54,8 @@
                      <a-tooltip v-if="key === 'Settings' && editableNote.folderId != null" placement="bottom">
                             <template #title>Move to notes list</template>
 
-                            <a-popconfirm title="Move to my list?" ok-text="Yes" cancel-text="No" @confirm="moveToMyNotes">
+                            <a-popconfirm title="Move to my list?" ok-text="Yes" cancel-text="No"
+                                   @confirm="moveToMyNotes">
                                    <unordered-list-outlined key="moveToMyNotes" />
                             </a-popconfirm>
                      </a-tooltip>
@@ -74,8 +81,8 @@
                      <a-card-meta style="min-height: 200px;">
                             <template #description>
                                    <div class="flex justify-center">
-                                          <a-select :allowClear="true" v-model:value="selectedTag" placeholder="Select tag"
-                                                 style="width: 150px" :options="tagOptions">
+                                          <a-select :allowClear="true" v-model:value="selectedTag"
+                                                 placeholder="Select tag" style="width: 150px" :options="tagOptions">
                                                  <template #suffixIcon><tags-outlined /></template>
                                           </a-select>
                                    </div>
@@ -89,10 +96,85 @@
                      </a-tooltip>
               </template>
        </a-card>
+
+       <!-- Full Screen Modal -->
+       <div>
+              <!-- Full Screen Modal -->
+              <a-modal v-model:open="isFullScreenModalVisible" width="100%" wrap-class-name="full-modal"
+              >
+                     <template #title>
+                            <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
+                                   v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote"
+                                   :maxlength="20" />
+                     </template>
+                     <div class="full-screen-modal-content">
+                            <a-tabs v-model:activeKey="key" @change="onTabChange">
+                                   <a-tab-pane key="Note" tab="Note">
+                                          <a-textarea spellcheck="false" :autoSize="{ minRows: 10, maxRows: 20 }"
+                                                 placeholder="Content of your note" :bordered="false"
+                                                 v-model:value="editableNote.content" style="height: 100%;" />
+                                   </a-tab-pane>
+                                   <a-tab-pane key="Settings" tab="Settings">
+                                          <div class="flex justify-center">
+                                                 <a-select :allowClear="true" v-model:value="selectedTag"
+                                                        placeholder="Select tag" style="width: 150px"
+                                                        :options="tagOptions">
+                                                        <template #suffixIcon><tags-outlined /></template>
+                                                 </a-select>
+                                          </div>
+                                   </a-tab-pane>
+                            </a-tabs>
+                     </div>
+                     <template #footer>
+                            <div class="modal-footer">
+                                   <a-tooltip title="Exit full screen">
+                                          <shrink-outlined @click="closeFullScreenModal" key="shrinkIcon" />
+                                   </a-tooltip>
+                                   <a-divider type="vertical" />
+                                   <a-tooltip :title="editableNote.isPinned ? 'Unpin' : 'Pin'">
+                                          <pushpin-outlined :style="{ color: pinIconColor }"
+                                                 @mouseenter="onMouseEnterPinIcon" @mouseleave="onMouseLeavePinIcon"
+                                                 @click="pinIconClicked" key="pinIcon" />
+                                   </a-tooltip>
+                                   <a-divider type="vertical" />
+                                   <a-tooltip v-if="noteModified" title="Save modification">
+                                          <check-outlined @click="checkAndUpdateNote" key="save" />
+                                   </a-tooltip>
+                                   <a-divider type="vertical" v-if="noteModified" />
+                                   <a-tooltip v-if="editableNote.folderId != 'deleted'" title="Move to deleted folder">
+                                          <a-popconfirm title="Delete this note?" ok-text="Yes" cancel-text="No"
+                                                 @confirm="moveToDeletedFolder">
+                                                 <delete-outlined key="moveToDeletedFolder" />
+                                          </a-popconfirm>
+                                   </a-tooltip>
+                                   <a-tooltip v-if="editableNote.folderId === 'deleted'" title="Delete permanently">
+                                          <a-popconfirm title="Delete this note permanently?" ok-text="Yes"
+                                                 cancel-text="No" @confirm="deleteNote">
+                                                 <delete-outlined key="deleteNote" />
+                                          </a-popconfirm>
+                                   </a-tooltip>
+                                   <a-divider type="vertical" />
+                                   <a-tooltip v-if="editableNote.folderId != 'archive'" title="Move to archives">
+                                          <a-popconfirm title="Archive this note?" ok-text="Yes" cancel-text="No"
+                                                 @confirm="moveToArchiveFolder">
+                                                 <inbox-outlined key="moveToArchiveFolder" />
+                                          </a-popconfirm>
+                                   </a-tooltip>
+                                   <a-divider type="vertical" v-if="editableNote.folderId != 'archive'" />
+                                   <a-tooltip v-if="editableNote.folderId != null" title="Move to notes list">
+                                          <a-popconfirm title="Move to my list?" ok-text="Yes" cancel-text="No"
+                                                 @confirm="moveToMyNotes">
+                                                 <unordered-list-outlined key="moveToMyNotes" />
+                                          </a-popconfirm>
+                                   </a-tooltip>
+                            </div>
+                     </template>
+              </a-modal>
+       </div>
 </template>
 
 <script lang="ts" setup>
-import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined } from '@ant-design/icons-vue';
+import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined } from '@ant-design/icons-vue';
 import { ref, computed, watch } from 'vue';
 import type { NoteType } from '@/types/Note';
 import { useNotesStore } from '@/stores/notesStore';
@@ -100,7 +182,7 @@ import { useTagsStore } from '@/stores/tagsStore';
 import { isEqual } from 'lodash';
 import { Timestamp } from 'firebase/firestore';
 import { message } from 'ant-design-vue';
-
+import { ShrinkOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps<{ note: NoteType }>();
 const notesStore = useNotesStore();
@@ -122,6 +204,17 @@ const tabList = [
               tab: 'Settings',
        },
 ];
+
+// Full screen modal state
+const isFullScreenModalVisible = ref(false);
+
+const showFullScreenModal = () => {
+       isFullScreenModalVisible.value = true;
+};
+
+const closeFullScreenModal = () => {
+       isFullScreenModalVisible.value = false;
+};
 
 const onTabChange = (value: string) => {
        key.value = value;
@@ -284,12 +377,69 @@ watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
        selectedTag.value = newNote.tagId || null;
 }, { deep: true });
+
 watch(editableNote, () => {
        noteModified.value = !isEqual(notesStore.notes.find(n => n.id === editableNote.value.id), editableNote.value);
 }, { deep: true });
+
 watch(selectedTag, (newTagId) => {
        if (newTagId !== editableNote.value.tagId && editableNote.value.id) {
               editableNote.value.tagId = newTagId || null;
        }
 });
 </script>
+
+<style lang="less">
+.full-modal {
+       
+       .ant-modal {
+              max-width: 100%;
+              top: 0;
+              padding-bottom: 0;
+              margin: 0;
+       }
+
+       .ant-modal-content {
+              display: flex;
+              flex-direction: column;
+              height: 100vh;
+              border-radius: 0%;
+       }
+
+       .ant-modal-body {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+       }
+
+       .full-screen-modal-content {
+              flex: 1;
+              overflow-y: auto;
+       }
+
+       .ant-modal-footer {
+              padding: 16px;
+       }
+
+       .modal-footer {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              width: 100%;
+
+              .anticon {
+                     font-size: 20px;
+                     cursor: pointer;
+              }
+
+              .ant-divider-vertical {
+                     height: 24px;
+                     margin: 0 16px;
+              }
+
+              .ant-tooltip-open {
+                     display: inline-flex;
+              }
+       }
+}
+</style>

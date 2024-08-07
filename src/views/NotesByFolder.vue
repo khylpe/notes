@@ -1,6 +1,6 @@
 <template>
        <div class="flex justify-center">
-              <h2>Notes in the "{{ folderName }}" folder</h2>
+              <Title :level="2">Notes in the "{{ folderName }}" folder</Title>
        </div>
 
        <div class="flex flex-wrap justify-center mt-4">
@@ -18,6 +18,9 @@ import { useRoute } from 'vue-router';
 import { useNotesStore } from '@/stores/notesStore';
 import Note from '@/components/Note.vue';
 import type { NoteType } from '@/types/Note';
+import { Typography } from 'ant-design-vue';
+
+const { Title } = Typography;
 
 const route = useRoute();
 const notesStore = useNotesStore();

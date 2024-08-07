@@ -1,0 +1,40 @@
+/* Apply these styles globally */
+::-webkit-scrollbar {
+       width: 8px;
+       height: 8px;
+   }
+   
+   ::-webkit-scrollbar-track {
+       background-color: #2f2f2f; /* Track color to match the dark theme background */
+   }
+   
+   ::-webkit-scrollbar-thumb {
+       background-color: #505050; /* Thumb color to match the dark theme accents */
+       border-radius: 4px;
+       border: 2px solid #2f2f2f; /* Match the scrollbar track color */
+   }
+   
+   ::-webkit-scrollbar-thumb:hover {
+       background-color: #686868; /* Lighter color on hover for better visibility */
+   }
+   
+   /* Firefox scrollbar */
+   * {
+       scrollbar-width: thin;
+       scrollbar-color: #505050 #2f2f2f; /* thumb color and track color */
+   }
+   
+   /* Edge, IE scrollbar */
+   *::-ms-scrollbar {
+       width: 8px;
+   }
+   
+   *::-ms-scrollbar-track {
+       background-color: #2f2f2f;
+   }
+   
+   *::-ms-scrollbar-thumb {
+       background-color: #505050;
+       border-radius: 4px;
+   }
+   

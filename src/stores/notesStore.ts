@@ -8,7 +8,7 @@ export const useNotesStore = defineStore('notes', {
        state: () => ({
               notes: [] as NoteType[],
        }),
-       actions: {
+              actions: {
               async fetchAndStoreNotes() {
                      const auth = getAuth();
                      const user = auth.currentUser;

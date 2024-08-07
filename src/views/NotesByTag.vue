@@ -1,7 +1,7 @@
 <template>
        <div class="container mx-4 items-center">
               <div class="center-element">
-                     <h2>Notes with the "{{ tagName }}" tag</h2>
+                     <Title :level="2">Notes with the "{{ tagName }}" tag</Title>
               </div>
               <a-button type="dashed" @click="openModal"><setting-outlined></setting-outlined></a-button>
        </div>
@@ -19,7 +19,8 @@
                      <a-input placeholder="New tag name" v-model:value="newTagName" />
                      <a-input type="color" class="mx-2" style="width: 50px;" v-model:value="newTagColor" />
 
-                     <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No" @confirm="deleteTag">
+                     <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No"
+                            @confirm="deleteTag">
                             <a-button danger type="text"><delete-outlined></delete-outlined></a-button>
                      </a-popconfirm>
               </div>
@@ -38,7 +39,9 @@ import { ref } from 'vue';
 import { Modal as AModal, message } from 'ant-design-vue'; // Import Modal
 import type { TagType } from '@/types/Tag';
 import router from '@/router';
+import { Typography } from 'ant-design-vue';
 
+const { Title } = Typography;
 const route = useRoute();
 const tagName = computed(() => route.params.tagName as string);
 

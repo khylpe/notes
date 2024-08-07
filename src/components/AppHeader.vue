@@ -17,10 +17,12 @@
                      <!-- Right Side Icons -->
                      <div class="flex flex-row items-center">
                             <!-- Search Icon -->
+                            <!-- Search Icon with Shortcut Indicator -->
                             <a-tooltip>
-                                   <template #title>Search</template>
-                                   <a-button type="text" @click="toggleSearchBar" class="mr-2">
+                                   <template #title>Search (Ctrl + K)</template>
+                                   <a-button type="text" @click="toggleSearchBar" class="flex items-center mr-2">
                                           <SearchOutlined style="font-size: 24px; color: #7a7878" />
+                                          <Text class="ml-2 shortcut-indicator" code type="secondary">Ctrl + K</Text>
                                    </a-button>
                             </a-tooltip>
 
@@ -63,7 +65,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { Divider, message, Typography } from 'ant-design-vue';
 import { PlusOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons-vue';
@@ -118,9 +120,24 @@ const toggleNewNote = () => {
        isNewNoteVisible.value = !isNewNoteVisible.value;
 };
 
+// Function to handle the CTRL + K shortcut
+const handleShortcut = (event: KeyboardEvent) => {
+       if (event.ctrlKey && event.key === 'k') {
+              event.preventDefault(); // Prevent the default browser behavior
+              toggleSearchBar(); // Toggle the search bar visibility
+       }
+};
+
 watch(route, updatePageName);
-onMounted(updatePageName);
-</script>
+// Add event listener when the component is mounted and remove it when unmounted
+onMounted(() => {
+       window.addEventListener('keydown', handleShortcut);
+       updatePageName();
+});
+
+onUnmounted(() => {
+       window.removeEventListener('keydown', handleShortcut);
+});</script>
 
 <style scoped>
 header {

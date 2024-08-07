@@ -1,5 +1,5 @@
 <template>
-       <div class="flex flex-row justify-center">
+       <div class="flex flex-row justify-center pb-10">
               <div class="certain-category-search-wrapper flex flex-col" style="margin-left: auto; margin-right: auto;">
                      <div class="flex flex-row items-center w-full">
                             <!-- Tooltip element -->
@@ -7,7 +7,7 @@
                                    <!-- Tooltip value -->
                                    <template #title>By default, it will search in all notes.</template>
                                    <!-- Element to hover for the tooltip -->
-                                   <a-auto-complete v-model:value="searchValue" class="certain-category-search"
+                                   <a-auto-complete v-model:value="searchValue" autofocus class="certain-category-search"
                                           popup-class-name="certain-category-search-dropdown"
                                           :dropdown-match-select-width="600" :options="dataSource"
                                           @focus="fetchNotesByFilters">
