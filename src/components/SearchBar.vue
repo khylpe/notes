@@ -1,89 +1,101 @@
 <template>
-       <div class="certain-category-search-wrapper flex flex-col" style="margin-left: auto; margin-right: auto;">
-              <div class="flex flex-row items-center w-full">
-                     <!-- Tooltip element -->
-                     <a-tooltip>
-                            <!-- Tooltip value -->
-                            <template #title>By default, it will search in all notes.</template>
-                            <!-- Element to hover for the tooltip -->
-                            <a-auto-complete v-model:value="searchValue" class="certain-category-search"
-                                   popup-class-name="certain-category-search-dropdown" :dropdown-match-select-width="600"
-                                   :options="dataSource" @focus="fetchNotesByFilters">
-                                   <template #option="item">
-                                          <!-- Check if the item is a main category (Tags or Folders) -->
-                                          <div v-if="isSearchResultsLoading">
-                                                 <a-skeleton active :title="true" />
-                                          </div>
-                                          <div v-else>
-                                                 <template v-if="item.options">
-                                                        <div class="flex items-center justify-between"> <!-- center icons -->
-                                                               <span>{{ item.value }}</span>
-                                                               <folder-outlined class="mr-1"
-                                                                      v-if="item.value == 'Deleted' || item.value == 'Archives' || item.value == 'My notes'"
-                                                                      style="float: right" />
+       <div class="flex flex-row justify-center">
+              <div class="certain-category-search-wrapper flex flex-col" style="margin-left: auto; margin-right: auto;">
+                     <div class="flex flex-row items-center w-full">
+                            <!-- Tooltip element -->
+                            <a-tooltip>
+                                   <!-- Tooltip value -->
+                                   <template #title>By default, it will search in all notes.</template>
+                                   <!-- Element to hover for the tooltip -->
+                                   <a-auto-complete v-model:value="searchValue" class="certain-category-search"
+                                          popup-class-name="certain-category-search-dropdown"
+                                          :dropdown-match-select-width="600" :options="dataSource"
+                                          @focus="fetchNotesByFilters">
+                                          <template #option="item">
+                                                 <!-- Check if the item is a main category (Tags or Folders) -->
+                                                 <div v-if="isSearchResultsLoading">
+                                                        <a-skeleton active :title="true" />
+                                                 </div>
+                                                 <div v-else>
+                                                        <template v-if="item.options">
+                                                               <div class="flex items-center justify-between">
+                                                                      <!-- center icons -->
+                                                                      <span>{{ item.value }}</span>
+                                                                      <folder-outlined class="mr-1"
+                                                                             v-if="item.value == 'Deleted' || item.value == 'Archives' || item.value == 'My notes'"
+                                                                             style="float: right" />
 
-                                                               <pushpin-outlined v-else-if="item.value == 'Pinned'"
-                                                                      class="mr-1" style="float: right" />
-                                                               <tags-outlined v-else class="mr-1" style="float: right" />
+                                                                      <pushpin-outlined
+                                                                             v-else-if="item.value == 'Pinned'"
+                                                                             class="mr-1" style="float: right" />
+                                                                      <tags-outlined v-else class="mr-1"
+                                                                             style="float: right" />
 
-                                                        </div>
-                                                 </template>
-                                                 <!-- Handling for other items if any -->
-                                                 <template v-else>
-                                                        <a class="flex justify-between text-decoration-none"
-                                                               :style="{ color: item.color || '#000' }"
-                                                               :href="`/notes/${item.noteId}`">
-                                                               {{ item.title }}
-                                                               <span>
-                                                                      <calendar-outlined class="mr-1"></calendar-outlined>
-                                                                      {{ item.date }}
-                                                               </span>
-                                                        </a>
-                                                 </template>
-                                          </div>
+                                                               </div>
+                                                        </template>
+                                                        <!-- Handling for other items if any -->
+                                                        <template v-else>
+                                                               <a class="flex justify-between text-decoration-none"
+                                                                      :style="{ color: item.color || '#000' }"
+                                                                      :href="`/notes/${item.noteId}`">
+                                                                      {{ item.title }}
+                                                                      <span>
+                                                                             <calendar-outlined
+                                                                                    class="mr-1"></calendar-outlined>
+                                                                             {{ item.date }}
+                                                                      </span>
+                                                               </a>
+                                                        </template>
+                                                 </div>
+                                          </template>
+                                          <a-input-search placeholder="Input Here" size="large"></a-input-search>
+                                   </a-auto-complete>
+                            </a-tooltip>
+                            <a-tooltip>
+                                   <!-- Tooltip value -->
+                                   <template #title>Reset search settings</template>
+                                   <!-- Element to hover for tooltip -->
+                                   <a-button @click="resetFilters" type="text" class="ml-2">
+                                          <UndoOutlined class="flex-col"
+                                                 style="font-size: 24px; display: flex; color: #7a7878" />
+                                   </a-button>
+                            </a-tooltip>
+                     </div>
+                     <!-- Div containing settings such as Folder, Tags, date -->
+                     <div style="max-width: 600px; margin-top: -4px;"
+                            class="flex justify-around flex-wrap pt-1 settings">
+                            <!-- margin-top (negative) must be equal of the padding-top value -->
+                            <!-- Select folder to search in -->
+                            <a-select v-model:value="folderValue" mode="multiple"
+                                   style="width: fit-content; min-width: 120px;" :options="folderOptions" size="large"
+                                   :dropdown-match-select-width="200" :max-tag-count="3" placeholder="Folder"
+                                   @change="handleFolderChange" class="setting flex-child">
+                            </a-select>
+                            <!-- Filter by tags -->
+                            <a-select v-model:value="tagValue" mode="multiple"
+                                   style="width: fit-content ; min-width: 120px;" :options="tagOptions" size="large"
+                                   :dropdown-match-select-width="200" :max-tag-count="3" placeholder="Tags"
+                                   @change="handleTagChange" class="setting flex-child">
+                                   <template v-slot:option="option">
+                                          <!-- Custom rendering of each option -->
+                                          <div :style="{ color: option.color }">{{ option.label }}</div>
                                    </template>
-                                   <a-input-search placeholder="Input Here" size="large"></a-input-search>
-                            </a-auto-complete>
-                     </a-tooltip>
-                     <a-tooltip>
-                            <!-- Tooltip value -->
-                            <template #title>Reset search settings</template>
-                            <!-- Element to hover for tooltip -->
-                            <a-button @click="resetFilters" type="text" class="ml-2">
-                                   <UndoOutlined class="flex-col" style="font-size: 24px; display: flex; color: #7a7878" />
-                            </a-button>
-                     </a-tooltip>
-              </div>
-              <!-- Div containing settings such as Folder, Tags, date -->
-              <div style="max-width: 600px; margin-top: -4px;" class="flex justify-around flex-wrap pt-1 settings">
-                     <!-- margin-top (negative) must be equal of the padding-top value -->
-                     <!-- Select folder to search in -->
-                     <a-select v-model:value="folderValue" mode="multiple" style="width: fit-content; min-width: 120px;"
-                            :options="folderOptions" size="large" :dropdown-match-select-width="200" :max-tag-count="3"
-                            placeholder="Folder" @change="handleFolderChange" class="setting flex-child">
-                     </a-select>
-                     <!-- Filter by tags -->
-                     <a-select v-model:value="tagValue" mode="multiple" style="width: fit-content ; min-width: 120px;"
-                            :options="tagOptions" size="large" :dropdown-match-select-width="200" :max-tag-count="3"
-                            placeholder="Tags" @change="handleTagChange" class="setting flex-child">
-                            <template v-slot:option="option">
-                                   <!-- Custom rendering of each option -->
-                                   <div :style="{ color: option.color }">{{ option.label }}</div>
-                            </template>
-                     </a-select>
+                            </a-select>
 
-                     <!-- Filter by creation date -->
-                     <a-space direction="vertical" :size="12" class="setting flex-child">
-                            <a-range-picker :presets="rangePresets" :disabled-date="disabledDate" format="DD/MM/YYYY"
-                                   @change="onRangeChange" :value="selectedDateRange" size="large">
-                                   <template #renderExtraFooter>
-                                          <span class="flex justify-center">Select a
-                                                 start and end date for when the
-                                                 note was
-                                                 created.</span>
-                                   </template>
-                            </a-range-picker>
-                     </a-space>
+                            <!-- Filter by creation date -->
+                            <a-space direction="vertical" :size="12" class="setting flex-child">
+                                   <a-range-picker :presets="rangePresets" :disabled-date="disabledDate"
+                                          format="DD/MM/YYYY" @change="onRangeChange" :value="selectedDateRange"
+                                          size="large">
+                                          <template #renderExtraFooter>
+                                                 <span class="flex justify-center">Select a
+                                                        start and end date for when the
+                                                        note was
+                                                        created.</span>
+                                          </template>
+                                   </a-range-picker>
+                            </a-space>
+                     </div>
               </div>
        </div>
 </template>

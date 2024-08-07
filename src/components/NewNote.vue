@@ -1,38 +1,41 @@
 <template>
-       <a-card hoverable :style="cardStyle" style="width: 300px" class="shadow" @mouseenter="hover = true"
-              @mouseleave="hover = false">
-              <template #cover>
-                     <img alt="example" src="@/assets/newNoteBanner.png" />
-              </template>
-              <template #actions>
-                     <a-tooltip v-if="noteModified">
-                            <template #title>Save modification</template>
-                            <check-outlined @click="addNewNote" key="save" />
-                     </a-tooltip>
-              </template>
-              <a-card-meta style="min-height: 200px;">
-                     <template #title>
-                            <a-input spellcheck="false" v-model:value="formState.title" placeholder="Your title"
-                                   :bordered="false" size="large" :maxlength="20" @pressEnter="addNewNote" />
-                     </template>
-                     <template #description>
-                            <a-textarea spellcheck="false" v-model:value="formState.description"
-                                   placeholder="Content of your note ! :)" :bordered="false"
-                                   :autoSize="{ minRows: 2, maxRows: 10 }" @pressEnter="addNewNote" />
-                     </template>
-              </a-card-meta>
-              <div class="flex w-full justify-center mt-3">
-                     <a-select :allowClear=true v-model:value="selectedTag" placeholder="Select tag" style="width: 150px"
-                            :options="tagOptions">
-                            <template #suffixIcon><tags-outlined /></template>
-                     </a-select>
-              </div>
-       </a-card>
+       <div class="new-note-container">
+              <a-form layout="vertical" @submit.prevent="addNewNote">
+                     <a-form-item label="Title" required>
+                            <a-input v-model:value="formState.title" placeholder="Your title" :maxlength="50"
+                                   @keypress="handleKeyPress($event, 'title')" />
+                     </a-form-item>
+
+                     <a-form-item label="Description" required>
+                            <a-textarea v-model:value="formState.description" placeholder="Content of your note!"
+                                   :autoSize="{ minRows: 8, maxRows: 15 }"
+                                   @keypress="handleKeyPress($event, 'description')" />
+                     </a-form-item>
+
+                     <a-form-item label="Tag">
+                            <a-select v-model:value="selectedTag" placeholder="Select tag" :options="tagOptions"
+                                   allowClear>
+                                   <template #suffixIcon>
+                                          <tags-outlined />
+                                   </template>
+                            </a-select>
+                     </a-form-item>
+
+                     <div class="note-actions">
+                            <a-button @click="resetForm" type="default">Clear</a-button>
+                            <a-button type="primary"
+                                   :disabled="!noteModified || !formState.title.trim() || !formState.description.trim()"
+                                   @click="addNewNote">
+                                   Save
+                            </a-button>
+                     </div>
+              </a-form>
+       </div>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref, watch, onMounted, computed } from 'vue';
-import { CheckOutlined, TagsOutlined } from '@ant-design/icons-vue';
+import { TagsOutlined } from '@ant-design/icons-vue';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
 import type { NoteType } from '@/types/Note';
@@ -42,31 +45,23 @@ const initialFormState = { title: '', description: '' };
 const formState = reactive<FormState>({ ...initialFormState });
 const noteModified = ref(false);
 const tagsStore = useTagsStore();
-const hover = ref(false);
 const selectedTag = ref<string | null>(null);
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
 const notesStore = useNotesStore();
 
-const cardStyle = computed(() => {
-       const tag = tagsStore.tags.find(t => t.id === selectedTag.value);
-       return hover.value && tag ? `box-shadow: 0px 0px 10px 0px ${tag.color};` : '';
-});
-
 onMounted(async () => {
        await tagsStore.fetchTags();
 });
+
 interface FormState {
        title: string;
        description: string;
 }
-// watch(selectedTag, (newTagId) => {
-//        if (newTagId) {
-//               const tagData = tagsStore.tags.find(tag => tag.id === newTagId);
-//        }
-// });
+
 watch(formState, () => {
        noteModified.value = formState.title.trim() !== '' || formState.description.trim() !== '';
 }, { deep: true });
+
 const addNewNote = async () => {
        if (formState.title.trim() && formState.description.trim()) {
               const newNote: NoteType = {
@@ -87,18 +82,66 @@ const addNewNote = async () => {
                      if (error instanceof Error) {
                             message.error(error.message);
                      } else {
-                            // Handle non-Error objects
                             message.error('An unknown error occurred.');
                      }
               }
 
-              // Reset the form state and noteModified flag after adding the note
               noteModified.value = false;
-              selectedTag.value = null; // Reset the selected tag to null
+              selectedTag.value = null;
        } else if (!formState.title.trim()) {
               message.warning('Please enter a title');
        } else if (!formState.description.trim()) {
               message.warning('Please enter a description');
        }
 };
+
+const resetForm = () => {
+       Object.assign(formState, initialFormState);
+       selectedTag.value = null;
+       noteModified.value = false;
+};
+
+// Handle key press events for title and description inputs
+const handleKeyPress = (event: KeyboardEvent, field: 'title' | 'description') => {
+       if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              if (field === 'title' || field === 'description') {
+                     addNewNote();
+              }
+       }
+};
 </script>
+
+<style scoped>
+.new-note-container {
+       width: 100%;
+       max-width: 800px;
+       /* Increase width for larger modals */
+       margin: 0 auto;
+       padding: 24px;
+}
+
+.note-banner {
+       width: 100%;
+       height: auto;
+       margin-bottom: 24px;
+}
+
+.note-actions {
+       display: flex;
+       justify-content: flex-end;
+       gap: 16px;
+       margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+       .new-note-container {
+              padding: 16px;
+       }
+
+       .note-actions {
+              flex-direction: column;
+              gap: 8px;
+       }
+}
+</style>

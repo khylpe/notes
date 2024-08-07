@@ -1,8 +1,9 @@
 <template>
        <div class="col col-12 flex flex-row justify-center items-center h-full rm-header-height">
               <div class="flex flex-col items-center">
-                     <span class="h1" v-if="state.iHaveAnAccount">Log in</span>
-                     <span class="h1" v-else>Sign up</span>
+                     <!-- <span class="h1" ></span> -->
+                     <Title :level="1" v-if="state.iHaveAnAccount">Log in</Title>
+                     <Title :level="1" v-else>Sign up</Title>
 
                      <a-form :model="formState" name="normal_login" class="login-form mt-3" @finish="onFinish"
                             @finishFailed="onFinishFailed">
@@ -80,6 +81,8 @@ import auth from "@/services/FirebaseConfig"; // Adjust the path as necessary
 import { message } from 'ant-design-vue';
 import router from "@/router"; // Adjust the path as necessary
 import { useNotesStore } from '@/stores/notesStore';
+import { Typography } from 'ant-design-vue';
+const { Title } = Typography;
 
 const emailOptions = ref<{ value: string }[]>([]);
 
@@ -99,7 +102,7 @@ const handleEmailSearch = (val: string) => {
 };
 
 const state = reactive({
-       iHaveAnAccount: true,
+       iHaveAnAccount: false,
        submitting: false, // Add this property
 
 });

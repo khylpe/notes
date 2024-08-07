@@ -1,12 +1,13 @@
 <template>
-       <div class="w-1/6 mt-3">
-              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-full fixed w-1/6"
+       <div class="w-1/6">
+              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-full fixed w-1/6 pt-3"
                      v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
        </div>
        <a-modal v-model:open="isModalVisible" title="Create New Tag" @cancel="handleCancel">
               <div class="flex flex-row">
                      <a-input placeholder="Enter tag name" v-model:value="newTagName" />
-                     <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newTagColor" /> <!-- Color input -->
+                     <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newTagColor" />
+                     <!-- Color input -->
               </div>
               <template #footer>
                      <a-button key="back" @click="handleCancel">Cancel</a-button>
@@ -109,13 +110,13 @@ function handleMenuClick(e: any) {
 }
 const updateMenuItems = () => {
        const fetchedTags = tagsStore.tags.map(tag => ({
-        label: tag.name,
-        key: tag.id,
-        style: { color: tag.color },
-        onclick: () => {
-            router.push(`/notes/tag/${tag.name}`);
-        },
-    }));
+              label: tag.name,
+              key: tag.id,
+              style: { color: tag.color },
+              onclick: () => {
+                     router.push(`/notes/tag/${tag.name}`);
+              },
+       }));
 
        const menuItems = [
               {
@@ -170,7 +171,7 @@ const updateMenuItems = () => {
        ];
 
        if (userHasPinNote.value) {
-              menuItems.unshift({ // unshift to add it to the beginning of the array
+              menuItems.splice(1, 0, { // splice to add it as the second element
                      key: 'Pinned notes',
                      icon: () => h(PushpinOutlined),
                      label: 'My pinned notes',
@@ -180,7 +181,6 @@ const updateMenuItems = () => {
                      },
               });
        }
-
        items.value = menuItems;
 };
 
@@ -207,8 +207,8 @@ watch(() => tagsStore.tags, (newTags) => {
 }, { deep: true });
 
 watchEffect(() => {
-    userHasPinNote.value = notesStore.notes.some(note => note.isPinned);
-    updateMenuItems(); // Update menu items when notes change
+       userHasPinNote.value = notesStore.notes.some(note => note.isPinned);
+       updateMenuItems(); // Update menu items when notes change
 });
 
 </script>
