@@ -83,6 +83,7 @@ const addNewNote = async () => {
                      tagId: selectedTag.value || null, // Use selected tag ID or null if none is selected
                      folderId: null, // Set folderId as null by default
                      isPinned: false,
+                     updatedDate: new Date(),
               };
 
               try {
