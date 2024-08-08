@@ -58,7 +58,7 @@
               </a-modal>
 
               <!-- Modal for New Note -->
-              <a-modal v-model:visible="isNewNoteVisible" title="New Note" width="60%" footer="">
+              <a-modal v-model:visible="isNewNoteVisible" title="New Note" :width="isMobile ? '95%' : '60%'" footer="">
                      <NewNote @close="toggleNewNote" />
               </a-modal>
        </header>
@@ -83,14 +83,27 @@ const userInformationStore = useUserInformationStore();
 const isSearchBarVisible = ref(false); // State for search bar visibility
 const isNewNoteVisible = ref(false); // State for new note visibility
 
+const isMobile = ref(window.innerWidth < 768);
+
+
+const handleResize = () => {
+       // Update the isMobile ref based on the current window width
+       isMobile.value = window.innerWidth < 768;
+};
+
+onMounted(() => {
+       window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+       window.removeEventListener('resize', handleResize);
+});
 const routeNameToTitle = [
        { path: 'login', title: 'Login' },
        { path: 'verifyEmail', title: 'Verify Email' },
        { path: 'profil', title: 'Profile' },
        { path: 'notes', title: 'My Notes' },
        { path: 'pinned', title: 'Pinned Notes' },
-       { path: 'notesByTag', title: 'Notes by Tag' },
-       { path: 'notesByFolder', title: 'Notes by Folder' },
        { path: 'note', title: 'Note Details' },
        { path: 'NotFound', title: 'Not Found' }
 ];
@@ -109,7 +122,16 @@ const logout = async () => {
 };
 
 const updatePageName = () => {
-       pageName.value = routeNameToTitle.find(r => r.path === route.name)?.title;
+       if (route.path.includes('/notes/tag/')) {
+              const tagName = route.path.split('/notes/tag/')[1];
+              pageName.value = tagName.charAt(0).toUpperCase() + tagName.slice(1);
+       } else if (route.path.includes('/notes/folder/')) {
+              const tagName = route.path.split('/notes/folder/')[1];
+              pageName.value = tagName.charAt(0).toUpperCase() + tagName.slice(1);
+       }
+       else {
+              pageName.value = routeNameToTitle.find(r => r.path === route.name)?.title || '';
+       }
 };
 
 const toggleSearchBar = () => {
@@ -137,7 +159,9 @@ onMounted(() => {
 
 onUnmounted(() => {
        window.removeEventListener('keydown', handleShortcut);
-});</script>
+});
+</script>
+
 
 <style scoped>
 header {

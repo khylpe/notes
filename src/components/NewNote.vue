@@ -125,39 +125,37 @@ const handleKeyPress = (event: KeyboardEvent, field: 'title' | 'description') =>
 
 <style scoped>
 .new-note-container {
-       width: 100%;
-       max-width: 800px;
-       /* Increase width for larger modals */
-       margin: 0 auto;
-       padding: 24px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
 }
 
 .markdown-preview-container {
-       max-height: 300px;
-       /* Set a maximum height */
-       overflow-y: auto;
-       /* Enable vertical scrolling */
-       padding: 10px;
-       border: 1px solid #ddd;
-       border-radius: 4px;
-       margin-bottom: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 16px;
 }
 
 .note-actions {
-       display: flex;
-       justify-content: flex-end;
-       gap: 16px;
-       margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 24px;
 }
 
 @media (max-width: 768px) {
-       .new-note-container {
-              padding: 16px;
-       }
+    .new-note-container {
+        width: 95%; /* Adjust width to fit better on smaller screens */
+        padding: 16px;
+    }
 
-       .note-actions {
-              flex-direction: column;
-              gap: 8px;
-       }
+    .note-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
 }
 </style>
