@@ -22,7 +22,7 @@
                                                                       <!-- center icons -->
                                                                       <span>{{ item.value }}</span>
                                                                       <folder-outlined class="mr-1"
-                                                                             v-if="item.value == 'Deleted' || item.value == 'Archives' || item.value == 'My notes'"
+                                                                             v-if="item.value == 'Deleted' || item.value == 'Archived' || item.value == 'My notes'"
                                                                              style="float: right" />
 
                                                                       <pushpin-outlined
@@ -139,7 +139,7 @@ const rangePresets = ref([
 const folderOptions = [
        // value should match the database values
        { label: 'My Notes', value: null },       // Display 'My Notes', value is `null`
-       { label: 'Archives', value: 'archive' },  // Display 'Archives', value is 'archive'
+       { label: 'Archived', value: 'archived' },  // Display 'Archived', value is 'archived'
        { label: 'Deleted', value: 'deleted' },   // Display 'Deleted', value is 'deleted'
 ];
 const disabledDate = (current: Dayjs) => {

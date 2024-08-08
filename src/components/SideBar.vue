@@ -134,9 +134,9 @@ const updateMenuItems = () => {
                      title: 'Folders',
                      children: [
                             {
-                                   label: 'Archives',
-                                   key: 'archive', // Make sure this matches the route
-                                   onClick: () => router.push('/notes/folder/archive'),
+                                   label: 'Archived',
+                                   key: 'archived', // Make sure this matches the route
+                                   onClick: () => router.push('/notes/folder/archived'),
                             },
                             { type: 'divider' },
                             {

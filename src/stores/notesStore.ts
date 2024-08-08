@@ -8,7 +8,7 @@ export const useNotesStore = defineStore('notes', {
        state: () => ({
               notes: [] as NoteType[],
        }),
-              actions: {
+       actions: {
               async fetchAndStoreNotes() {
                      const auth = getAuth();
                      const user = auth.currentUser;
@@ -28,9 +28,14 @@ export const useNotesStore = defineStore('notes', {
                      this.notes = querySnapshot.docs.map(doc => {
                             const noteData = doc.data() as Partial<NoteType>;
                             noteData.isPinned = noteData.isPinned ?? false;
+
                             if (noteData.createdDate && noteData.createdDate instanceof Timestamp) {
-                                   return { id: doc.id, ...noteData, createdDate: noteData.createdDate.toDate() } as NoteType;
+                                   noteData.createdDate = noteData.createdDate.toDate();
                             }
+                            if (noteData.updatedDate && noteData.updatedDate instanceof Timestamp) {
+                                   noteData.updatedDate = noteData.updatedDate.toDate();
+                            }
+
                             return { id: doc.id, ...noteData } as NoteType;
                      });
               },
@@ -44,11 +49,13 @@ export const useNotesStore = defineStore('notes', {
                      const noteDoc = await getDoc(noteRef);
 
                      if (noteDoc.exists()) {
-                            // Update the note's folderId to 'Deleted'
-                            const updatedNote = { ...noteDoc.data(), folderId: 'deleted' } as NoteType;
+                            const updatedNote = {
+                                   ...noteDoc.data(),
+                                   folderId: 'deleted',
+                                   updatedDate: new Date()  // Update the updatedDate
+                            } as NoteType;
                             await setDoc(noteRef, updatedNote);
 
-                            // Update the note in the local store
                             const noteIndex = this.notes.findIndex(n => n.id === noteId);
                             if (noteIndex !== -1) {
                                    this.notes[noteIndex] = updatedNote;
@@ -67,11 +74,13 @@ export const useNotesStore = defineStore('notes', {
                      const noteDoc = await getDoc(noteRef);
 
                      if (noteDoc.exists()) {
-                            // Update the note's folderId to 'archive'
-                            const updatedNote = { ...noteDoc.data(), folderId: 'archive' } as NoteType;
+                            const updatedNote = {
+                                   ...noteDoc.data(),
+                                   folderId: 'archived',
+                                   updatedDate: new Date()  // Update the updatedDate
+                            } as NoteType;
                             await setDoc(noteRef, updatedNote);
 
-                            // Update the note in the local store
                             const noteIndex = this.notes.findIndex(n => n.id === noteId);
                             if (noteIndex !== -1) {
                                    this.notes[noteIndex] = updatedNote;
@@ -90,11 +99,13 @@ export const useNotesStore = defineStore('notes', {
                      const noteDoc = await getDoc(noteRef);
 
                      if (noteDoc.exists()) {
-                            // Update the note's folderId to 'archive'
-                            const updatedNote = { ...noteDoc.data(), folderId: null } as NoteType;
+                            const updatedNote = {
+                                   ...noteDoc.data(),
+                                   folderId: null,
+                                   updatedDate: new Date()  // Update the updatedDate
+                            } as NoteType;
                             await setDoc(noteRef, updatedNote);
 
-                            // Update the note in the local store
                             const noteIndex = this.notes.findIndex(n => n.id === noteId);
                             if (noteIndex !== -1) {
                                    this.notes[noteIndex] = updatedNote;
@@ -106,19 +117,18 @@ export const useNotesStore = defineStore('notes', {
               async updateStoreAndFirestore(note: NoteType) {
                      const auth = getAuth();
                      const user = auth.currentUser;
-                     if (!user) return; // No user logged in
+                     if (!user) return;
 
-                     // Default isPinned to false if undefined
+                     note.updatedDate = new Date();  // Update the updatedDate before saving
+
                      if (note.isPinned === undefined) {
                             note.isPinned = false;
                      }
 
-                     // Find and update the note in the store if it's different
                      const noteIndex = this.notes.findIndex(n => n.id === note.id);
                      if (noteIndex !== -1 && !isEqual(this.notes[noteIndex], note)) {
                             this.notes[noteIndex] = note;
 
-                            // Update Firestore
                             const db = getFirestore();
                             const noteRef = doc(db, `users/${user.uid}/notes/${note.id}`);
                             await setDoc(noteRef, note);
@@ -132,10 +142,17 @@ export const useNotesStore = defineStore('notes', {
                      const db = getFirestore();
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
 
-                     const fullNewNote: NoteType = { ...newNote, id: '', folderId: null, isPinned: false }; // Setting folderId to null by default
+                     const fullNewNote: NoteType = {
+                            ...newNote,
+                            id: '',
+                            folderId: null,
+                            isPinned: false,
+                            createdDate: new Date(),
+                            updatedDate: new Date()  // Initialize with the current date
+                     };
                      const docRef = await addDoc(notesCollectionRef, fullNewNote);
 
-                     fullNewNote.id = docRef.id; // Assigning the generated id
+                     fullNewNote.id = docRef.id;
                      await setDoc(docRef, fullNewNote);
                      this.notes.push(fullNewNote);
               },
@@ -155,32 +172,23 @@ export const useNotesStore = defineStore('notes', {
                      }
               },
               async fetchFilteredNotes(titleOrContentValue: string | null, tagId: string | null, folderIds: (string | null)[], dateRange: [Date, Date] | null) {
-                     // Fetch all notes if they haven't been fetched already
                      if (this.notes.length === 0) {
                             await this.fetchAndStoreNotes();
                      }
 
                      return this.notes.filter(note => {
-                            // Check if note matches the tag criteria
                             const matchesTag = tagId ? note.tagId === tagId : true;
-
-                            // Check if note matches the folder criteria
                             const matchesFolder = folderIds.length === 0 ? true :
-                                   folderIds.includes(null) && note.folderId === null || folderIds.includes(note.folderId);
-
-                            // Check if note matches the title or content criteria
+                                   (folderIds.includes(null) && note.folderId === null) || folderIds.includes(note.folderId);
                             const matchesTitleOrContent = !titleOrContentValue ? true :
                                    note.title.toLowerCase().includes(titleOrContentValue.toLowerCase()) ||
                                    note.content.toLowerCase().includes(titleOrContentValue.toLowerCase());
 
-
-                            // Date range filter
                             let matchesDateRange = true;
                             if (dateRange) {
                                    const [startDate, endDate] = dateRange;
-                                   const noteDate = new Date(note.createdDate); // Convert to Date object
+                                   const noteDate = new Date(note.createdDate);
 
-                                   // Adjust for same day range
                                    if (startDate.toDateString() === endDate.toDateString()) {
                                           matchesDateRange = noteDate.toDateString() === startDate.toDateString();
                                    } else {
@@ -192,7 +200,6 @@ export const useNotesStore = defineStore('notes', {
                      });
               },
               async getNoteById(noteId: string) {
-                     // Fetch all notes if they haven't been fetched already or if the note isn't in the store
                      if (this.notes.length === 0 || !this.notes.find(note => note.id === noteId)) {
                             await this.fetchAndStoreNotes();
                      }
@@ -201,15 +208,13 @@ export const useNotesStore = defineStore('notes', {
               async pinNote(noteId: string) {
                      const auth = getAuth();
                      const user = auth.currentUser;
-                     if (!user) return; // No user logged in
+                     if (!user) return;
 
-                     // Find the note in the store
                      const noteIndex = this.notes.findIndex(n => n.id === noteId);
                      if (noteIndex !== -1) {
-                            // Update the isPinned property locally
                             this.notes[noteIndex].isPinned = true;
+                            this.notes[noteIndex].updatedDate = new Date(); // Update the updatedDate
 
-                            // Update Firestore
                             const db = getFirestore();
                             const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
                             await setDoc(noteRef, { ...this.notes[noteIndex] });
@@ -220,15 +225,13 @@ export const useNotesStore = defineStore('notes', {
               async unpinNote(noteId: string) {
                      const auth = getAuth();
                      const user = auth.currentUser;
-                     if (!user) return; // No user logged in
+                     if (!user) return;
 
-                     // Find the note in the store
                      const noteIndex = this.notes.findIndex(n => n.id === noteId);
                      if (noteIndex !== -1) {
-                            // Update the isPinned property locally
                             this.notes[noteIndex].isPinned = false;
+                            this.notes[noteIndex].updatedDate = new Date(); // Update the updatedDate
 
-                            // Update Firestore
                             const db = getFirestore();
                             const noteRef = doc(db, `users/${user.uid}/notes/${noteId}`);
                             await setDoc(noteRef, { ...this.notes[noteIndex] });
@@ -239,7 +242,7 @@ export const useNotesStore = defineStore('notes', {
               async countPinnedNotes() {
                      const auth = getAuth();
                      const user = auth.currentUser;
-                     if (!user) return 0; // Return 0 if no user is logged in
+                     if (!user) return 0;
 
                      const db = getFirestore();
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
@@ -247,12 +250,11 @@ export const useNotesStore = defineStore('notes', {
 
                      try {
                             const querySnapshot = await getDocs(pinnedNotesQuery);
-                            return querySnapshot.docs.length; // This is the count of pinned notes
+                            return querySnapshot.docs.length;
                      } catch (error) {
                             console.error("Error fetching pinned notes:", error);
-                            return 0; // Return 0 in case of error
+                            return 0;
                      }
               },
        },
-},
-);
+});

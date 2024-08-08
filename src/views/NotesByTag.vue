@@ -6,11 +6,16 @@
        </div>
 
        <div class="flex flex-wrap justify-center mt-4">
-              <div class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
+              <div v-if="filteredNotesByTag.length > 0"
+                     class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
                      <div class="note flex justify-center" v-for="note in filteredNotesByTag" :key="note.id">
                             <Note :note="note" />
                      </div>
               </div>
+
+              <a-result v-else status="info" :title="`Add your first note to the ${tagName} tag`"
+                     sub-title="You currently have no notes in this tag. Create a new note and add it to this tag to get started!">
+              </a-result>
        </div>
 
        <a-modal v-model:open="isModalVisible" title="Update Tag" @ok="updateCurrentTag">
@@ -38,9 +43,7 @@ import { ref } from 'vue';
 import { Modal as AModal, message } from 'ant-design-vue'; // Import Modal
 import type { TagType } from '@/types/Tag';
 import router from '@/router';
-import { Typography } from 'ant-design-vue';
 
-const { Title } = Typography;
 const route = useRoute();
 const tagName = computed(() => route.params.tagName as string);
 
@@ -49,14 +52,22 @@ const tagsStore = useTagsStore();
 notesStore.fetchAndStoreNotes();
 
 const filteredNotesByTag = computed<NoteType[]>(() => {
-       return notesStore.notes.filter(note => note.tagId === tagId.value && note.folderId === null);
+       return notesStore.notes
+              .filter(note => note.tagId === tagId.value && note.folderId === null)
+              .sort((a, b) => {
+                     const dateA = a.updatedDate ? new Date(a.updatedDate).getTime() : new Date(a.createdDate).getTime();
+                     const dateB = b.updatedDate ? new Date(b.updatedDate).getTime() : new Date(b.createdDate).getTime();
+                     return dateB - dateA;
+              });
 });
+
 tagsStore.fetchTags();
 
 const tagColor = computed(() => {
        const tag = tagsStore.tags.find(t => t.name === tagName.value);
        return tag ? tag.color : null;
 });
+
 const newTagColor = ref(tagColor.value); // Default color
 const isModalVisible = ref(false);
 
@@ -66,13 +77,16 @@ const isModifyingTagLoading = ref(false);
 const openModal = () => {
        isModalVisible.value = true;
 };
+
 const tagId = computed(() => {
        const tag = tagsStore.tags.find(t => t.name === tagName.value);
        return tag ? tag.id : null;
 });
+
 watch(route, () => {
        notesStore.fetchAndStoreNotes();
 });
+
 const updateCurrentTag = () => {
        isModalVisible.value = true;
        isModifyingTagLoading.value = true;

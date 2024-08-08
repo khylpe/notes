@@ -51,7 +51,7 @@
                                    <delete-outlined key="deleteNote" />
                             </a-popconfirm>
                      </a-tooltip>
-                     <a-tooltip v-if="key === 'Settings' && editableNote.folderId != 'archive'" placement="bottom">
+                     <a-tooltip v-if="key === 'Settings' && editableNote.folderId != 'archived'" placement="bottom">
                             <template #title>Move to archives</template>
                             <a-popconfirm title="Archive this note?" ok-text="Yes" cancel-text="No"
                                    @confirm="moveToArchiveFolder">
@@ -89,7 +89,7 @@
                                                  <a v-if="showFullContent" @click="toggleFullContent">Show Less</a>
                                           </div>
                                           <div v-else>
-                                                 <div v-html="compiledMarkdown"></div>
+                                                 <div class="!text-[#dfd9d9]" v-html="compiledMarkdown"></div>
                                           </div>
                                    </div>
                             </template>
@@ -116,14 +116,11 @@
                                    @click="redirectToTag">
                                    {{ getTagName(selectedTag) }}
                             </a-tag>
-                            <a-tooltip>
-                                   <template #title>Creation date</template>
-                                   {{ formattedDate }}
+                            <a-tooltip :title="datesTooltipTitle">
+                                   <calendar-outlined />
                             </a-tooltip>
                      </div>
               </template>
-
-
        </a-card>
 
        <!-- Full Screen Modal -->
@@ -199,13 +196,13 @@
                                           </a-popconfirm>
                                    </a-tooltip>
                                    <a-divider type="vertical" />
-                                   <a-tooltip v-if="editableNote.folderId != 'archive'" title="Move to archives">
+                                   <a-tooltip v-if="editableNote.folderId != 'archived'" title="Move to archives">
                                           <a-popconfirm title="Archive this note?" ok-text="Yes" cancel-text="No"
                                                  @confirm="moveToArchiveFolder">
                                                  <inbox-outlined key="moveToArchiveFolder" />
                                           </a-popconfirm>
                                    </a-tooltip>
-                                   <a-divider type="vertical" v-if="editableNote.folderId != 'archive'" />
+                                   <a-divider type="vertical" v-if="editableNote.folderId != 'archived'" />
                                    <a-tooltip v-if="editableNote.folderId != null" title="Move to notes list">
                                           <a-popconfirm title="Move to my list?" ok-text="Yes" cancel-text="No"
                                                  @confirm="moveToMyNotes">
@@ -219,7 +216,7 @@
 </template>
 
 <script lang="ts" setup>
-import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined } from '@ant-design/icons-vue';
+import { CheckOutlined, SettingOutlined, CalendarOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined } from '@ant-design/icons-vue';
 import { ref, computed, watch } from 'vue';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons-vue';
 
@@ -246,23 +243,8 @@ const noteModified = ref(false);
 const editableNote = ref({ ...props.note });
 const pinIconColor = ref('currentColor');
 const showFullContent = ref(false);
+const isFullScreenModalVisible = ref(false);
 const router = useRouter();
-// Computed property to compile the markdown
-const compiledMarkdown = computed(() => {
-       return md.render(editableNote.value.content || '');
-});
-
-// Toggle between edit and view modes
-const toggleEditMode = () => {
-       isEditMode.value = !isEditMode.value;
-};
-
-const redirectToTag = () => {
-       const tagName = getTagName(selectedTag.value as string);
-       if (tagName) {
-              router.push(`/notes/tag/${tagName}`);
-       }
-};
 
 const tabList = [
        {
@@ -275,17 +257,21 @@ const tabList = [
        },
 ];
 
-// Full screen modal state
-const isFullScreenModalVisible = ref(false);
-
+const toggleEditMode = () => {
+       isEditMode.value = !isEditMode.value;
+};
+const redirectToTag = () => {
+       const tagName = getTagName(selectedTag.value as string);
+       if (tagName) {
+              router.push(`/notes/tag/${tagName}`);
+       }
+};
 const showFullScreenModal = () => {
        isFullScreenModalVisible.value = true;
 };
-
 const closeFullScreenModal = () => {
        isFullScreenModalVisible.value = false;
 };
-
 const onTabChange = (value: string) => {
        key.value = value;
 };
@@ -329,12 +315,10 @@ const noteTagColor = computed(() => {
        const tag = tagsStore.tags.find(tag => tag.id === selectedTag.value);
        return tag ? tag.color : '#000000';
 });
-
 const getTagName = (tagId: string) => {
        const tag = tagsStore.tags.find(tag => tag.id === tagId);
        return tag ? tag.name : '';
 };
-
 const getTagColor = (tagId: string) => {
        const tag = tagsStore.tags.find(tag => tag.id === tagId);
        console.log(tag?.color);
@@ -342,30 +326,11 @@ const getTagColor = (tagId: string) => {
 
        return tag ? tag.color : '#000000'; // Default to black if no color found
 };
-
-
 const moveToDeletedFolder = () => {
        if (editableNote.value.id) {
               try {
                      notesStore.moveToDeletedFolder(editableNote.value.id);
                      message.success('Note deleted');
-              } catch (error) {
-                     if (error instanceof Error) {
-                            message.error(error.message);
-                     } else {
-                            // Handle non-Error objects
-                            message.error('An unknown error occurred.');
-                     }
-              }
-       } else {
-              message.error("No note ID available for deletion.");
-       }
-}
-const deleteNote = () => {
-       if (editableNote.value.id) {
-              try {
-                     notesStore.deleteNote(editableNote.value.id);
-                     message.success('Note deleted permanently');
               } catch (error) {
                      if (error instanceof Error) {
                             message.error(error.message);
@@ -395,18 +360,6 @@ const moveToArchiveFolder = () => {
               message.error("No note ID available for archiving.");
        }
 }
-const formattedDate = computed(() => {
-       if (!editableNote.value.createdDate) return '';
-
-       let date: Date;
-       if (editableNote.value.createdDate instanceof Timestamp) {
-              date = editableNote.value.createdDate.toDate(); // Type assertion here
-       } else {
-              date = new Date(editableNote.value.createdDate);
-       }
-
-       return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
-});
 const moveToMyNotes = () => {
        if (editableNote.value.id) {
               try {
@@ -422,6 +375,23 @@ const moveToMyNotes = () => {
               }
        } else {
               message.error("No note ID available for moving.");
+       }
+}
+const deleteNote = () => {
+       if (editableNote.value.id) {
+              try {
+                     notesStore.deleteNote(editableNote.value.id);
+                     message.success('Note deleted permanently');
+              } catch (error) {
+                     if (error instanceof Error) {
+                            message.error(error.message);
+                     } else {
+                            // Handle non-Error objects
+                            message.error('An unknown error occurred.');
+                     }
+              }
+       } else {
+              message.error("No note ID available for deletion.");
        }
 }
 const onMouseEnterPinIcon = () => {
@@ -457,8 +427,41 @@ const pinIconClicked = async () => {
               }
        }
 };
+const toggleFullContent = () => {
+       showFullContent.value = !showFullContent.value;
+};
 
+const formattedCreationDate = computed(() => {
+       if (!editableNote.value.createdDate) return '';
 
+       let date: Date;
+       if (editableNote.value.createdDate instanceof Timestamp) {
+              date = editableNote.value.createdDate.toDate();
+       } else {
+              date = new Date(editableNote.value.createdDate);
+       }
+
+       return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+});
+const formattedUpdatedDate = computed(() => {
+       if (!editableNote.value.updatedDate) return '';
+
+       let date: Date;
+       if (editableNote.value.updatedDate instanceof Timestamp) {
+              date = editableNote.value.updatedDate.toDate();
+       } else {
+              date = new Date(editableNote.value.updatedDate);
+       }
+
+       return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+});
+const datesTooltipTitle = computed(() => {
+       let title = `Created: ${formattedCreationDate.value}`;
+       if (formattedUpdatedDate.value) {
+              title += `\nModified: ${formattedUpdatedDate.value}`;
+       }
+       return title;
+});
 const truncatedMarkdown = computed(() => {
        if (showFullContent.value || !editableNote.value.content) {
               return compiledMarkdown.value;
@@ -468,21 +471,17 @@ const truncatedMarkdown = computed(() => {
               return md.render(truncatedContent);
        }
 });
-
-const toggleFullContent = () => {
-       showFullContent.value = !showFullContent.value;
-};
-
+const compiledMarkdown = computed(() => {
+       return md.render(editableNote.value.content || '');
+});
 
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
        selectedTag.value = newNote.tagId || null;
 }, { deep: true });
-
 watch(editableNote, () => {
        noteModified.value = !isEqual(notesStore.notes.find(n => n.id === editableNote.value.id), editableNote.value);
 }, { deep: true });
-
 watch(selectedTag, (newTagId) => {
        if (newTagId !== editableNote.value.tagId && editableNote.value.id) {
               editableNote.value.tagId = newTagId || null;
