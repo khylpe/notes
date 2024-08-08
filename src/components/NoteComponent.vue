@@ -1,5 +1,5 @@
 <template>
-       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteTagColor}` : 'none' }" :tab-list="tabList"
+       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteFolderColor}` : 'none' }" :tab-list="tabList"
               :active-tab-key="key" @tabChange="onTabChange"
               class="w-auto sm:w-[450px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px]"
               @mouseenter="hover = true" @mouseleave="hover = false">
@@ -36,38 +36,30 @@
                             <check-outlined @click="checkAndUpdateNote" key="save" />
                      </a-tooltip>
 
-                     <a-tooltip v-if="key === 'Settings' && editableNote.folderId != 'deleted'" placement="bottom">
-                            <template #title>Move to deleted folder</template>
-                            <a-popconfirm title="Delete this note?" ok-text="Yes" cancel-text="No"
-                                   @confirm="moveToDeletedFolder">
-                                   <delete-outlined key="moveToDeletedFolder" />
-                            </a-popconfirm>
+                     <!-- Conditional rendering based on note status -->
+                     <a-tooltip v-if="key === 'Settings' && !editableNote.isDeleted" placement="bottom">
+                            <template #title>Delete this note</template>
+                            <delete-outlined :onclick="moveToDeletedFolder" key="moveToDeletedFolder" />
                      </a-tooltip>
 
-                     <a-tooltip v-if="key === 'Settings' && editableNote.folderId === 'deleted'" placement="bottom">
-                            <template #title>Delete</template>
+                     <a-tooltip v-if="key === 'Settings' && editableNote.isDeleted" placement="bottom">
+                            <template #title>Delete Permanently</template>
                             <a-popconfirm title="Delete this note permanently?" ok-text="Yes" cancel-text="No"
                                    @confirm="deleteNote">
                                    <delete-outlined key="deleteNote" />
                             </a-popconfirm>
                      </a-tooltip>
-                     <a-tooltip v-if="key === 'Settings' && editableNote.folderId != 'archived'" placement="bottom">
-                            <template #title>Move to archives</template>
-                            <a-popconfirm title="Archive this note?" ok-text="Yes" cancel-text="No"
-                                   @confirm="moveToArchiveFolder">
-                                   <inbox-outlined key="moveToArchiveFolder" />
-                            </a-popconfirm>
+
+                     <a-tooltip v-if="key === 'Settings' && !editableNote.isArchived" placement="bottom">
+                            <template #title>Archive this note</template>
+                            <inbox-outlined :onclick="moveToArchiveFolder" key="moveToArchiveFolder" />
                      </a-tooltip>
 
-                     <a-tooltip v-if="key === 'Settings' && editableNote.folderId != null" placement="bottom">
-                            <template #title>Move to notes list</template>
-
-                            <a-popconfirm title="Move to my list?" ok-text="Yes" cancel-text="No"
-                                   @confirm="moveToMyNotes">
-                                   <unordered-list-outlined key="moveToMyNotes" />
-                            </a-popconfirm>
+                     <a-tooltip v-if="key === 'Settings' && (editableNote.isDeleted || editableNote.isArchived)"
+                            placement="bottom">
+                            <template #title>Restore to notes list</template>
+                            <unordered-list-outlined :onclick="moveToMyNotes" key="moveToMyNotes" />
                      </a-tooltip>
-
               </template>
 
               <template #title>
@@ -96,7 +88,6 @@
                      </a-card-meta>
               </template>
 
-
               <template v-if="key === 'Settings'">
                      <!-- Settings content here -->
                      <a-card-meta style="min-height: 200px;">
@@ -105,6 +96,13 @@
                                           <a-select :allowClear="true" v-model:value="selectedTag"
                                                  placeholder="Select tag" style="width: 150px" :options="tagOptions">
                                                  <template #suffixIcon><tags-outlined /></template>
+                                          </a-select>
+                                   </div>
+                                   <div class="flex justify-center mt-3">
+                                          <a-select :allowClear="true" v-model:value="selectedFolder"
+                                                 placeholder="Select folder" style="width: 150px"
+                                                 :options="folderOptions">
+                                                 <template #suffixIcon><folder-outlined /></template>
                                           </a-select>
                                    </div>
                             </template>
@@ -117,7 +115,6 @@
                                    @click="redirectToTag">
                                    {{ getTagName(selectedTag) }}
                             </a-tag>
-
                             <a-tooltip :title="datesTooltipTitle">
                                    <calendar-outlined />
                             </a-tooltip>
@@ -127,7 +124,6 @@
 
        <!-- Full Screen Modal -->
        <div>
-              <!-- Full Screen Modal -->
               <a-modal v-model:open="isFullScreenModalVisible" width="100%" wrap-class-name="full-modal">
                      <template #title>
                             <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
@@ -153,12 +149,18 @@
                                                         <template #suffixIcon><tags-outlined /></template>
                                                  </a-select>
                                           </div>
+                                          <div class="flex justify-center mt-3">
+                                                 <a-select :allowClear="true" v-model:value="selectedFolder"
+                                                        placeholder="Select folder" style="width: 150px"
+                                                        :options="folderOptions">
+                                                        <template #suffixIcon><folder-outlined /></template>
+                                                 </a-select>
+                                          </div>
                                    </a-tab-pane>
                             </a-tabs>
                      </div>
                      <template #footer>
                             <div class="modal-footer">
-                                   <!-- Vos icônes et actions existantes -->
                                    <a-tooltip v-if="key === 'Note'"
                                           :title="isEditMode ? 'View Markdown' : 'Edit Content'">
                                           <template v-if="isEditMode">
@@ -185,31 +187,26 @@
                                           <check-outlined @click="checkAndUpdateNote" key="save" />
                                    </a-tooltip>
                                    <a-divider type="vertical" v-if="noteModified" />
-                                   <a-tooltip v-if="editableNote.folderId != 'deleted'" title="Move to deleted folder">
-                                          <a-popconfirm title="Delete this note?" ok-text="Yes" cancel-text="No"
-                                                 @confirm="moveToDeletedFolder">
-                                                 <delete-outlined key="moveToDeletedFolder" />
-                                          </a-popconfirm>
+                                   <a-tooltip v-if="!editableNote.isDeleted" title="Move to deleted folder"
+                                          :onclick="moveToDeletedFolder">
+                                          <delete-outlined key="moveToDeletedFolder" />
                                    </a-tooltip>
-                                   <a-tooltip v-if="editableNote.folderId === 'deleted'" title="Delete permanently">
+                                   <a-tooltip v-if="editableNote.isDeleted" title="Delete permanently">
                                           <a-popconfirm title="Delete this note permanently?" ok-text="Yes"
                                                  cancel-text="No" @confirm="deleteNote">
                                                  <delete-outlined key="deleteNote" />
                                           </a-popconfirm>
                                    </a-tooltip>
                                    <a-divider type="vertical" />
-                                   <a-tooltip v-if="editableNote.folderId != 'archived'" title="Move to archives">
-                                          <a-popconfirm title="Archive this note?" ok-text="Yes" cancel-text="No"
-                                                 @confirm="moveToArchiveFolder">
-                                                 <inbox-outlined key="moveToArchiveFolder" />
-                                          </a-popconfirm>
+                                   <a-tooltip v-if="!editableNote.isArchived" title="Move to archives"
+                                          :onclick="moveToArchiveFolder">
+                                          <inbox-outlined key="moveToArchiveFolder" />
                                    </a-tooltip>
-                                   <a-divider type="vertical" v-if="editableNote.folderId != 'archived'" />
-                                   <a-tooltip v-if="editableNote.folderId != null" title="Move to notes list">
-                                          <a-popconfirm title="Move to my list?" ok-text="Yes" cancel-text="No"
-                                                 @confirm="moveToMyNotes">
-                                                 <unordered-list-outlined key="moveToMyNotes" />
-                                          </a-popconfirm>
+                                   <a-divider type="vertical"
+                                          v-if="editableNote.isDeleted && !editableNote.isArchived"></a-divider>
+                                   <a-tooltip v-if="editableNote.isDeleted || editableNote.isArchived"
+                                          title="Move to notes list">
+                                          <unordered-list-outlined :onclick="moveToMyNotes" key="moveToMyNotes" />
                                    </a-tooltip>
                             </div>
                      </template>
@@ -218,13 +215,14 @@
 </template>
 
 <script lang="ts" setup>
-import { CheckOutlined, SettingOutlined, CalendarOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined } from '@ant-design/icons-vue';
+import { CheckOutlined, SettingOutlined, CalendarOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
 import { ref, computed, watch } from 'vue';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons-vue';
 
 import type { NoteType } from '@/types/Note';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
+import { useFoldersStore } from '@/stores/foldersStore'; // Import the folders store
 import { isEqual } from 'lodash';
 import { Timestamp } from 'firebase/firestore';
 import { message } from 'ant-design-vue';
@@ -235,12 +233,15 @@ import { useRouter } from 'vue-router';
 const props = defineProps<{ note: NoteType }>();
 const notesStore = useNotesStore();
 const tagsStore = useTagsStore();
+const foldersStore = useFoldersStore(); // Use the folders store
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
+const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id }))); // Folder options for select
 
 const key = ref('Note');
-const hover = ref(false);  // Define hover here
-const isEditMode = ref(false); // State for toggling between edit and view modes
+const hover = ref(false);
+const isEditMode = ref(false);
 const selectedTag = ref<string | null>(props.note.tagId || null);
+const selectedFolder = ref<string | null>(props.note.folderId || null); // Selected folder state
 const noteModified = ref(false);
 const editableNote = ref({ ...props.note });
 const pinIconColor = ref('currentColor');
@@ -317,6 +318,12 @@ const noteTagColor = computed(() => {
        const tag = tagsStore.tags.find(tag => tag.id === selectedTag.value);
        return tag ? tag.color : '#000000';
 });
+
+const noteFolderColor = computed(() => {
+       const folder = foldersStore.folders.find(folder => folder.id === selectedFolder.value);
+       return folder ? folder.color : '#000000';
+});
+
 const getTagName = (tagId: string) => {
        const tag = tagsStore.tags.find(tag => tag.id === tagId);
        return tag ? tag.name : '';
@@ -493,6 +500,7 @@ const compiledMarkdown = computed(() => {
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
        selectedTag.value = newNote.tagId || null;
+       selectedFolder.value = newNote.folderId || null; // Update selected folder state
 }, { deep: true });
 watch(editableNote, () => {
        noteModified.value = !isEqual(notesStore.notes.find(n => n.id === editableNote.value.id), editableNote.value);
@@ -500,6 +508,11 @@ watch(editableNote, () => {
 watch(selectedTag, (newTagId) => {
        if (newTagId !== editableNote.value.tagId && editableNote.value.id) {
               editableNote.value.tagId = newTagId || null;
+       }
+});
+watch(selectedFolder, (newFolderId) => {
+       if (newFolderId !== editableNote.value.folderId && editableNote.value.id) {
+              editableNote.value.folderId = newFolderId || null;
        }
 });
 </script>

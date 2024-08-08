@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { updateProfile } from 'firebase/auth';
-import auth from '@/services/FirebaseConfig';
+import {auth} from '@/services/FirebaseConfig';
 import { UserOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import { useUserInformationStore } from '@/stores/userInformationStore';

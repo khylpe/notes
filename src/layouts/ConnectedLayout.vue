@@ -28,7 +28,7 @@ const customTheme = {
               colorTextBase: '#e0e0e0', // Softer text color
               colorWarning: '#faad14', // Softer warning color
               controlHeight: 36, // Slightly larger control height for better accessibility
-              fontSize: 16, // Default font size
+              fontSize: 14, // Default font size
               lineType: 'solid', // Default line type
               lineWidth: 1, // Default line width
               motionBase: 0, // No motion

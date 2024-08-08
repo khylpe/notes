@@ -18,7 +18,8 @@
                                                  <a-avatar v-else :size="36" class="mr-3">
                                                         <UserOutlined width="65px" />
                                                  </a-avatar>
-                                                 <a-upload name="file" list-type="picture" class="flex flex-row items-center">
+                                                 <a-upload name="file" list-type="picture"
+                                                        class="flex flex-row items-center">
                                                         <a-button type="text">
                                                                <edit-outlined key="edit" />
                                                         </a-button>
@@ -30,13 +31,15 @@
                                                  @finish="onFinish" @finishFailed="onFinishFailed">
 
                                                  <a-form-item name="username" :rules="usernameRules">
-                                                        <a-input style="width: 110px;" :disabled="isInputUsernameDisabled"
+                                                        <a-input style="width: 110px;"
+                                                               :disabled="isInputUsernameDisabled"
                                                                v-model:value="formState.username"
                                                                :bordered="!isInputUsernameDisabled" />
                                                  </a-form-item>
                                                  <div class="flex justify-center">
                                                         <a-form-item v-if="isInputUsernameDisabled">
-                                                               <a-button @click="handleEditUsername" type="text"><edit-outlined
+                                                               <a-button @click="handleEditUsername"
+                                                                      type="text"><edit-outlined
                                                                              key="edit" /></a-button>
                                                         </a-form-item>
 
@@ -60,19 +63,22 @@
                             <a-tooltip placement="bottom" color="cyan" @click="onRefreshClicked">
                                    <template #title>Refresh</template>
                                    <a-badge :offset="[10, -5]" :count="remainingSeconds">
-                                          <UndoOutlined :style="{ cursor: isRefreshDisabled ? 'not-allowed' : 'pointer' }" />
+                                          <UndoOutlined
+                                                 :style="{ cursor: isRefreshDisabled ? 'not-allowed' : 'pointer' }" />
                                    </a-badge>
                             </a-tooltip>
                      </template>
                      <a-card-meta :title="title">
                             <template #avatar>
-                                   <a-avatar :size="36" class="mr-2" v-if="userProfilePicture" :src="userProfilePicture" />
+                                   <a-avatar :size="36" class="mr-2" v-if="userProfilePicture"
+                                          :src="userProfilePicture" />
                                    <a-avatar v-else :size="36" class="mr-2">
                                           <UserOutlined width="65px" />
                                    </a-avatar>
                             </template>
                             <template #description>
-                                   <div>Please check your mailbox and verify your address before using the website.</div>
+                                   <div>Please check your mailbox and verify your address before using the website.
+                                   </div>
                             </template>
                      </a-card-meta>
               </a-card>
@@ -84,7 +90,7 @@ import { ref, reactive } from 'vue';
 import { SettingOutlined, EditOutlined, UserOutlined, InfoCircleOutlined, CheckOutlined, CloseOutlined, UndoOutlined } from '@ant-design/icons-vue';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { Divider, message } from 'ant-design-vue';
-import auth from '@/services/FirebaseConfig';
+import { auth } from '@/services/FirebaseConfig';
 import router from '@/router';
 
 const isRefreshDisabled = ref(false); // New reactive property

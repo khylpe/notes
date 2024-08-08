@@ -14,15 +14,29 @@
                      <a-button key="submit" type="primary" @click="handleOk" :loading="isAddingTag">Add</a-button>
               </template>
        </a-modal>
+       <!-- Modal for creating a new folder -->
+       <a-modal v-model:open="isFolderModalVisible" title="Create New Folder" @cancel="handleFolderCancel">
+              <div class="flex flex-row">
+                     <a-input placeholder="Enter folder name" v-model:value="newFolderName" />
+                     <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newFolderColor" />
+              </div>
+              <template #footer>
+                     <a-button key="back" @click="handleFolderCancel">Cancel</a-button>
+                     <a-button key="submit" type="primary" @click="handleFolderOk"
+                            :loading="isAddingFolder">Add</a-button>
+              </template>
+       </a-modal>
 </template>
 
 <script lang="ts" setup>
 import { h, ref, onMounted, onUnmounted, watch, watchEffect } from 'vue';
-import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined } from '@ant-design/icons-vue';
+import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
 import { message } from 'ant-design-vue';
 import type { TagType } from '@/types/Tag';
+import type { FolderType } from '@/types/Folder';
 import { useTagsStore } from '@/stores/tagsStore';
+import { useFoldersStore } from '@/stores/foldersStore';
 import { useNotesStore } from '@/stores/notesStore';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -30,12 +44,17 @@ const menuMode = ref('inline');
 const isCollapsed = ref(false);
 const inLineIndentValue = ref(24);
 const isModalVisible = ref(false);
+const isFolderModalVisible = ref(false);
 const newTagName = ref('');
 const newTagColor = ref('#000000');
+const newFolderName = ref(''); // Folder name for the new folder
+const newFolderColor = ref('#000000'); // Folder color for the new folder
 const current = ref<string[]>([]);
 const items = ref<MenuProps['items']>([]);
 const isAddingTag = ref(false);
+const isAddingFolder = ref(false);
 const tagsStore = useTagsStore();
+const foldersStore = useFoldersStore();
 const notesStore = useNotesStore();
 const userHasPinNote = ref(false);
 const sidebarClass = ref('w-1/6');
@@ -46,15 +65,16 @@ const router = useRouter();
 async function handleOk() {
        isAddingTag.value = true;  // Start loading
        if (!newTagName.value.trim()) {
-              message.warning('Please enter a tag name')
+              message.warning('Please enter a tag name');
               isAddingTag.value = false;
               return;
        }
        const newTag: TagType = {
-              id: Date.now().toString(), // Generate a unique ID for the tag
+              id: Date.now().toString(),
               name: newTagName.value.trim(),
-              color: newTagColor.value, // Use the selected color
+              color: newTagColor.value,
               createdDate: new Date(),
+              updatedDate: new Date(),
               numberOfNotes: 0,
        };
        try {
@@ -64,14 +84,44 @@ async function handleOk() {
               if (error instanceof Error) {
                      message.error(error.message);
               } else {
-                     // Handle non-Error objects
                      message.error('An unknown error occurred.');
               }
        }
-       isAddingTag.value = false;  // Stop loading
+       isAddingTag.value = false;
        isModalVisible.value = false;
        newTagName.value = '';
-       newTagColor.value = '#000000'; // Reset the color
+       newTagColor.value = '#000000';
+}
+
+async function handleFolderOk() {
+       isAddingFolder.value = true;  // Start loading
+       if (!newFolderName.value.trim()) {
+              message.warning('Please enter a folder name');
+              isAddingFolder.value = false;
+              return;
+       }
+       try {
+              const newFolder: FolderType = {
+                     id: Date.now().toString(),
+                     name: newFolderName.value.trim(),
+                     color: newFolderColor.value,
+                     createdDate: new Date(),
+                     updatedDate: new Date(),
+                     numberOfNotes: 0,
+              };
+              await foldersStore.addFolder(newFolder); // Use the store action to add the folder
+              message.success('Folder added successfully');
+       } catch (error) {
+              if (error instanceof Error) {
+                     message.error(error.message);
+              } else {
+                     message.error('An unknown error occurred.');
+              }
+       }
+       isAddingFolder.value = false;
+       isFolderModalVisible.value = false;
+       newFolderName.value = '';
+       newFolderColor.value = '#000000';
 }
 
 const showModal = () => {
@@ -79,10 +129,22 @@ const showModal = () => {
        newTagName.value = '';
 };
 
+const showFolderModal = () => {
+       isFolderModalVisible.value = true;
+       newFolderName.value = '';
+       newFolderColor.value = '#000000';
+};
+
 const handleCancel = () => {
        isModalVisible.value = false;
        newTagName.value = '';
        newTagColor.value = '#000000';
+};
+
+const handleFolderCancel = () => {
+       isFolderModalVisible.value = false;
+       newFolderName.value = '';
+       newFolderColor.value = '#000000';
 };
 
 const updateMenuMode = () => {
@@ -120,7 +182,16 @@ const updateMenuItems = () => {
               },
        }));
 
-       const menuItems = [
+       const fetchedFolders = foldersStore.folders.map(folder => ({
+              label: folder.name,
+              key: folder.name,
+              style: { color: folder.color },
+              onClick: () => {
+                     router.push(`/notes/folder/${folder.name}`);
+              },
+       }));
+
+       const menuItems: MenuProps['items'] = [
               {
                      key: 'notes',
                      icon: () => h(UnorderedListOutlined),
@@ -128,22 +199,21 @@ const updateMenuItems = () => {
                      title: 'My notes',
                      onClick: () => router.push('/notes'),
               },
+              { type: 'divider' } as any,  // Divider between Tags and Archived
+
               {
                      key: 'Folders',
                      icon: () => h(FolderOutlined),
                      label: 'Folders',
                      title: 'Folders',
                      children: [
+                            ...fetchedFolders,
+                            { type: 'divider' } as any,
                             {
-                                   label: 'Archived',
-                                   key: 'archived', // Make sure this matches the route
-                                   onClick: () => router.push('/notes/folder/archived'),
-                            },
-                            { type: 'divider' },
-                            {
-                                   label: 'Deleted',
-                                   key: 'deleted', // Make sure this matches the route
-                                   onClick: () => router.push('/notes/folder/deleted'),
+                                   label: 'Create new folder',
+                                   key: 'Create new folder',
+                                   icon: () => h(PlusCircleOutlined),
+                                   onClick: () => showFolderModal(),
                             },
                      ],
               },
@@ -154,7 +224,7 @@ const updateMenuItems = () => {
                      title: 'Tags',
                      children: [
                             ...fetchedTags,
-                            { type: 'divider' },
+                            { type: 'divider' } as any,
                             {
                                    label: 'Create new tag',
                                    key: 'Create new tag',
@@ -162,6 +232,21 @@ const updateMenuItems = () => {
                                    onClick: () => showModal(),
                             },
                      ],
+              },
+              { type: 'divider' } as any,  // Divider between Tags and Archived
+              {
+                     key: 'Archived',
+                     icon: () => h(InboxOutlined),
+                     label: 'Archived',
+                     title: 'Archived',
+                     onClick: () => router.push('/notes/archived'),
+              },
+              {
+                     key: 'Deleted',
+                     icon: () => h(DeleteOutlined),
+                     label: 'Deleted',
+                     title: 'Deleted',
+                     onClick: () => router.push('/notes/deleted'),
               },
        ];
 
@@ -186,9 +271,13 @@ const updateSelectedKeys = (path: string) => {
               }
        } else if (path.includes('/notes/folder/')) {
               const folderKey = path.split('/notes/folder/')[1];
-              current.value = [folderKey]; // Changed this line
+              current.value = [folderKey];
        } else if (path.includes('/notes/pinned')) {
               current.value = ['Pinned notes'];
+       } else if (path.includes('/notes/archived')) {
+              current.value = ['Archived'];
+       } else if (path.includes('/notes/deleted')) {
+              current.value = ['Deleted'];
        } else {
               current.value = [path.replace('/notes', 'notes')];
        }
@@ -200,6 +289,7 @@ onMounted(async () => {
 
        try {
               await tagsStore.fetchTags();
+              await foldersStore.fetchFolders();
        } catch (error) {
               if (error instanceof Error) {
                      message.error(error.message);
@@ -218,6 +308,10 @@ onUnmounted(() => {
 });
 
 watch(() => tagsStore.tags, () => {
+       updateMenuItems();
+}, { deep: true });
+
+watch(() => foldersStore.folders, () => {
        updateMenuItems();
 }, { deep: true });
 

@@ -9,4 +9,6 @@ export interface NoteType {
        tagId: string | null;       // Tag of the note
        folderId: string | null;    // Folder of the note
        isPinned: boolean;          // Is the note pinned
+       isArchived: boolean;        // Is the note archived
+       isDeleted: boolean;         // Is the note deleted
 }

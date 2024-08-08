@@ -4,8 +4,9 @@
                      <!-- Plus Icon for New Note -->
                      <a-tooltip>
                             <template #title>New Note</template>
-                            <a-button type="text" @click="toggleNewNote" class="ml-2">
+                            <a-button type="text" @click="toggleNewNote" class="flex items-center mx-2">
                                    <PlusOutlined style="font-size: 24px; color: #7a7878" />
+                                   <Text class="ml-2 shortcut-indicator" code type="secondary">Ctrl + M</Text>
                             </a-button>
                      </a-tooltip>
 
@@ -70,7 +71,7 @@ import { RouterLink, useRoute } from 'vue-router';
 import { Divider, message, Typography } from 'ant-design-vue';
 import { PlusOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons-vue';
 import { signOut } from 'firebase/auth';
-import auth from '@/services/FirebaseConfig';
+import { auth } from '@/services/FirebaseConfig';
 import router from '@/router';
 import { useUserInformationStore } from '@/stores/userInformationStore';
 import SearchBar from '@/components/SearchBar.vue'; // Import the SearchBar component
@@ -129,6 +130,11 @@ const updatePageName = () => {
               const tagName = route.path.split('/notes/folder/')[1];
               pageName.value = tagName.charAt(0).toUpperCase() + tagName.slice(1);
        }
+       else if(route.path === "/notes/deleted") {
+              pageName.value = "Deleted Notes";
+       } else if(route.path === "/notes/archived") {
+              pageName.value = "Archived Notes";
+       }
        else {
               pageName.value = routeNameToTitle.find(r => r.path === route.name)?.title || '';
        }
@@ -142,24 +148,27 @@ const toggleNewNote = () => {
        isNewNoteVisible.value = !isNewNoteVisible.value;
 };
 
-// Function to handle the CTRL + K shortcut
-const handleShortcut = (event: KeyboardEvent) => {
-       if (event.ctrlKey && event.key === 'k') {
-              event.preventDefault(); // Prevent the default browser behavior
-              toggleSearchBar(); // Toggle the search bar visibility
-       }
-};
+onMounted(() => {
+       const handleShortcut = (event: KeyboardEvent) => {
+              if (event.ctrlKey && event.key === 'k') {
+                     event.preventDefault();
+                     toggleSearchBar();
+              } else if (event.ctrlKey && event.key === 'm') { // Change to Ctrl + M
+                     event.preventDefault();
+                     toggleNewNote();
+              }
+       };
+
+       window.addEventListener('keydown', handleShortcut);
+
+       return () => {
+              window.removeEventListener('keydown', handleShortcut);
+       };
+});
+
 
 watch(route, updatePageName);
-// Add event listener when the component is mounted and remove it when unmounted
-onMounted(() => {
-       window.addEventListener('keydown', handleShortcut);
-       updatePageName();
-});
 
-onUnmounted(() => {
-       window.removeEventListener('keydown', handleShortcut);
-});
 </script>
 
 

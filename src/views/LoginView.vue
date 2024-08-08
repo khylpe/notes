@@ -80,7 +80,7 @@
 import { reactive, computed, ref } from 'vue';
 import { UserOutlined, LockOutlined, GithubOutlined, MailOutlined } from '@ant-design/icons-vue';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
-import auth from "@/services/FirebaseConfig"; // Adjust the path as necessary
+import {auth} from "@/services/FirebaseConfig"; // Adjust the path as necessary
 import { message } from 'ant-design-vue';
 import router from "@/router"; // Adjust the path as necessary
 import { useNotesStore } from '@/stores/notesStore';

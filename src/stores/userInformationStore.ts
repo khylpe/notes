@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { UserType } from '@/types/User';
-import auth from '@/services/FirebaseConfig';
+import {auth} from '@/services/FirebaseConfig';
 
 export const useUserInformationStore = defineStore('userInformation', {
        state: () => ({

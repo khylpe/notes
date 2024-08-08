@@ -1,9 +1,10 @@
-// TagType.ts
+// Tag.ts
 
 export interface TagType {
-       id: string;       // Unique identifier for the note
-       name: string;    // Title of the note
-       color: string;  // Content of the note
-       createdDate: Date;    // Date when the note was created
+       id: string;       
+       name: string;    
+       color: string; 
+       createdDate: Date;
+       updatedDate: Date;
        numberOfNotes: number;
 }

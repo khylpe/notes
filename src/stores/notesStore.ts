@@ -28,6 +28,8 @@ export const useNotesStore = defineStore('notes', {
                      this.notes = querySnapshot.docs.map(doc => {
                             const noteData = doc.data() as Partial<NoteType>;
                             noteData.isPinned = noteData.isPinned ?? false;
+                            noteData.isDeleted = noteData.isDeleted ?? false;
+                            noteData.isArchived = noteData.isArchived ?? false;
 
                             if (noteData.createdDate && noteData.createdDate instanceof Timestamp) {
                                    noteData.createdDate = noteData.createdDate.toDate();
@@ -51,7 +53,9 @@ export const useNotesStore = defineStore('notes', {
                      if (noteDoc.exists()) {
                             const updatedNote = {
                                    ...noteDoc.data(),
-                                   folderId: 'deleted',
+                                   isDeleted: true,
+                                   isArchived: false,  // Ensure it's not archived
+                                   folderId: null,
                                    updatedDate: new Date()  // Update the updatedDate
                             } as NoteType;
                             await setDoc(noteRef, updatedNote);
@@ -76,7 +80,9 @@ export const useNotesStore = defineStore('notes', {
                      if (noteDoc.exists()) {
                             const updatedNote = {
                                    ...noteDoc.data(),
-                                   folderId: 'archived',
+                                   isArchived: true,
+                                   isDeleted: false,  // Ensure it's not deleted
+                                   folderId: null,
                                    updatedDate: new Date()  // Update the updatedDate
                             } as NoteType;
                             await setDoc(noteRef, updatedNote);
@@ -101,6 +107,8 @@ export const useNotesStore = defineStore('notes', {
                      if (noteDoc.exists()) {
                             const updatedNote = {
                                    ...noteDoc.data(),
+                                   isDeleted: false,
+                                   isArchived: false,
                                    folderId: null,
                                    updatedDate: new Date()  // Update the updatedDate
                             } as NoteType;
@@ -123,6 +131,19 @@ export const useNotesStore = defineStore('notes', {
 
                      if (note.isPinned === undefined) {
                             note.isPinned = false;
+                     }
+                     if (note.isDeleted === undefined) {
+                            note.isDeleted = false;
+                     }
+                     if (note.isArchived === undefined) {
+                            note.isArchived = false;
+                     }
+
+                     // Ensure a note cannot be both archived and deleted
+                     if (note.isDeleted) {
+                            note.isArchived = false;
+                     } else if (note.isArchived) {
+                            note.isDeleted = false;
                      }
 
                      const noteIndex = this.notes.findIndex(n => n.id === note.id);
@@ -147,6 +168,8 @@ export const useNotesStore = defineStore('notes', {
                             id: '',
                             folderId: null,
                             isPinned: false,
+                            isDeleted: false,
+                            isArchived: false,
                             createdDate: new Date(),
                             updatedDate: new Date()  // Initialize with the current date
                      };

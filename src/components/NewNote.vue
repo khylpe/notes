@@ -84,6 +84,8 @@ const addNewNote = async () => {
                      folderId: null, // Set folderId as null by default
                      isPinned: false,
                      updatedDate: new Date(),
+                     isArchived: false,
+                     isDeleted: false,
               };
 
               try {

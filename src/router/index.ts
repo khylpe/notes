@@ -10,6 +10,8 @@ import NotFound from './../views/NotFound.vue';
 import NotesByTag from './../views/NotesByTag.vue';
 import NotesByFolder from './../views/NotesByFolder.vue';
 import PinnedNotes from '../views/PinnedNotes.vue';
+import ArchivedNotes from './../views/ArchivedNotes.vue'; // Import the ArchivedNotes component
+import DeletedNotes from './../views/DeletedNotes.vue'; // Import the DeletedNotes component
 import { useUserInformationStore } from '@/stores/userInformationStore';
 
 const checkSignUpMethod = (user: User | null) => {
@@ -25,6 +27,7 @@ const checkSignUpMethod = (user: User | null) => {
        }
        return '';
 };
+
 const router = createRouter({
        history: createWebHistory(import.meta.env.BASE_URL),
        routes: [
@@ -82,6 +85,16 @@ const router = createRouter({
                                    component: NotesByFolder,
                             },
                             {
+                                   path: 'notes/archived',
+                                   name: 'archivedNotes',
+                                   component: ArchivedNotes
+                            },
+                            {
+                                   path: 'notes/deleted',
+                                   name: 'deletedNotes',
+                                   component: DeletedNotes
+                            },
+                            {
                                    path: 'notes/:noteId',
                                    name: 'note',
                                    component: () => import(/* webpackChunkName: "note" */ '../views/NoteDetails.vue')
@@ -91,6 +104,7 @@ const router = createRouter({
               { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
        ]
 });
+
 router.beforeEach(async (to, from, next) => {
        const userInformationStore = useUserInformationStore();
        try {
