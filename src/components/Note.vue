@@ -84,7 +84,7 @@
                                    </div>
                                    <div v-else>
                                           <div v-if="editableNote.content.length > 250">
-                                                 <div v-html="truncatedMarkdown"></div>
+                                                 <div v-html="truncatedMarkdown" class="!text-[#dfd9d9]"></div>
                                                  <a v-if="!showFullContent" @click="toggleFullContent">Show More</a>
                                                  <a v-if="showFullContent" @click="toggleFullContent">Show Less</a>
                                           </div>
@@ -111,11 +111,19 @@
                      </a-card-meta>
               </template>
               <template #extra>
-                     <a-tooltip>
-                            <template #title>Creation date</template>
-                            {{ formattedDate }}
-                     </a-tooltip>
+                     <div class="flex items-center">
+                            <a-tag class="mr-3" v-if="selectedTag" :color="getTagColor(selectedTag)"
+                                   @click="redirectToTag">
+                                   {{ getTagName(selectedTag) }}
+                            </a-tag>
+                            <a-tooltip>
+                                   <template #title>Creation date</template>
+                                   {{ formattedDate }}
+                            </a-tooltip>
+                     </div>
               </template>
+
+
        </a-card>
 
        <!-- Full Screen Modal -->
@@ -124,7 +132,7 @@
               <a-modal v-model:open="isFullScreenModalVisible" width="100%" wrap-class-name="full-modal">
                      <template #title>
                             <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
-                                   v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote"
+                                   class="p-0 m-0" v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote"
                                    :maxlength="20" />
                      </template>
                      <div class="full-screen-modal-content">
@@ -134,9 +142,9 @@
                                                  <a-textarea spellcheck="false" :autoSize="false"
                                                         placeholder="Content of your note" :bordered="false"
                                                         v-model:value="editableNote.content"
-                                                        class="full-height-textarea" />
+                                                        class="full-height-textarea !text-[#dfd9d9]" />
                                           </div>
-                                          <div v-else v-html="compiledMarkdown"></div>
+                                          <div v-else class="!text-[#dfd9d9]" v-html="compiledMarkdown"></div>
                                    </a-tab-pane>
                                    <a-tab-pane key="Settings" tab="Settings">
                                           <div class="flex justify-center">
@@ -223,6 +231,7 @@ import { Timestamp } from 'firebase/firestore';
 import { message } from 'ant-design-vue';
 import { ShrinkOutlined } from '@ant-design/icons-vue';
 import md from './test';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{ note: NoteType }>();
 const notesStore = useNotesStore();
@@ -237,7 +246,7 @@ const noteModified = ref(false);
 const editableNote = ref({ ...props.note });
 const pinIconColor = ref('currentColor');
 const showFullContent = ref(false);
-
+const router = useRouter();
 // Computed property to compile the markdown
 const compiledMarkdown = computed(() => {
        return md.render(editableNote.value.content || '');
@@ -246,6 +255,13 @@ const compiledMarkdown = computed(() => {
 // Toggle between edit and view modes
 const toggleEditMode = () => {
        isEditMode.value = !isEditMode.value;
+};
+
+const redirectToTag = () => {
+       const tagName = getTagName(selectedTag.value as string);
+       if (tagName) {
+              router.push(`/notes/tag/${tagName}`);
+       }
 };
 
 const tabList = [
@@ -313,6 +329,21 @@ const noteTagColor = computed(() => {
        const tag = tagsStore.tags.find(tag => tag.id === selectedTag.value);
        return tag ? tag.color : '#000000';
 });
+
+const getTagName = (tagId: string) => {
+       const tag = tagsStore.tags.find(tag => tag.id === tagId);
+       return tag ? tag.name : '';
+};
+
+const getTagColor = (tagId: string) => {
+       const tag = tagsStore.tags.find(tag => tag.id === tagId);
+       console.log(tag?.color);
+       console.log("tag?.color");
+
+       return tag ? tag.color : '#000000'; // Default to black if no color found
+};
+
+
 const moveToDeletedFolder = () => {
        if (editableNote.value.id) {
               try {
