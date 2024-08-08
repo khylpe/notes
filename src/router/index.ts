@@ -5,7 +5,6 @@ import NotConnectedLayout from '@/layouts/NotConnectedLayout.vue';
 import Profil from './../views/ProfilView.vue';
 import MyNotes from './../views/MyNotes.vue';
 import LoginForm from './../views/Login.vue';
-// import Home from './../views/Home.vue';
 import VerifyEmail from './../views/VerifyEmail.vue';
 import NotFound from './../views/NotFound.vue';
 import NotesByTag from './../views/NotesByTag.vue';
