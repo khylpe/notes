@@ -1,13 +1,12 @@
 <template>
-       <div class="container mx-4 items-center">
-              <div class="center-element">
-                     <Title :level="2">Notes with the "{{ tagName }}" tag</Title>
+       <div class="flex flex-col">
+              <div class="flex flex-row justify-end">
+                     <a-button type="dashed" @click="openModal"><setting-outlined></setting-outlined></a-button>
               </div>
-              <a-button type="dashed" @click="openModal"><setting-outlined></setting-outlined></a-button>
        </div>
 
        <div class="flex flex-wrap justify-center mt-4">
-              <div class="notes-list flex flex-row items-start justify-center flex-wrap">
+              <div class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
                      <div class="note flex justify-center" v-for="note in filteredNotesByTag" :key="note.id">
                             <Note :note="note" />
                      </div>
