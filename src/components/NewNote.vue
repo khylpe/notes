@@ -12,6 +12,12 @@
                                    @keypress="handleKeyPress($event, 'description')" />
                      </a-form-item>
 
+                     <a-form-item label="Preview" >
+                            <div class="markdown-preview-container">
+                                   <div v-html="renderedMarkdown" class="min-h-20"></div>
+                            </div>
+                     </a-form-item>
+
                      <a-form-item label="Tag">
                             <a-select v-model:value="selectedTag" placeholder="Select tag" :options="tagOptions"
                                    allowClear>
@@ -40,6 +46,7 @@ import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
 import type { NoteType } from '@/types/Note';
 import { message } from 'ant-design-vue';
+import md from './test';
 
 const initialFormState = { title: '', description: '' };
 const formState = reactive<FormState>({ ...initialFormState });
@@ -61,6 +68,10 @@ interface FormState {
 watch(formState, () => {
        noteModified.value = formState.title.trim() !== '' || formState.description.trim() !== '';
 }, { deep: true });
+
+const renderedMarkdown = computed(() => {
+       return md.render(formState.description);
+});
 
 const addNewNote = async () => {
        if (formState.title.trim() && formState.description.trim()) {
@@ -121,10 +132,15 @@ const handleKeyPress = (event: KeyboardEvent, field: 'title' | 'description') =>
        padding: 24px;
 }
 
-.note-banner {
-       width: 100%;
-       height: auto;
-       margin-bottom: 24px;
+.markdown-preview-container {
+       max-height: 300px;
+       /* Set a maximum height */
+       overflow-y: auto;
+       /* Enable vertical scrolling */
+       padding: 10px;
+       border: 1px solid #ddd;
+       border-radius: 4px;
+       margin-bottom: 16px;
 }
 
 .note-actions {

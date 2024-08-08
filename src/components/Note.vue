@@ -1,6 +1,6 @@
 <template>
-       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteTagColor}` : 'none' }"
-              :tab-list="tabList" :active-tab-key="key" @tabChange="onTabChange"
+       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteTagColor}` : 'none' }" :tab-list="tabList"
+              :active-tab-key="key" @tabChange="onTabChange"
               class="w-auto sm:w-[450px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px]"
               @mouseenter="hover = true" @mouseleave="hover = false">
               <template #customTab="item">
@@ -10,14 +10,22 @@
                      </span>
               </template>
               <template #actions>
+                     <a-tooltip v-if="key === 'Note'" :title="isEditMode ? 'View Markdown' : 'Edit Content'">
+                            <template v-if="isEditMode">
+                                   <eye-outlined @click="toggleEditMode" />
+                            </template>
+                            <template v-else>
+                                   <edit-outlined @click="toggleEditMode" />
+                            </template>
+                     </a-tooltip>
 
-                     <a-tooltip title="View full screen">
+                     <a-tooltip v-if="key === 'Note'" title="View full screen">
                             <expand-alt-outlined @click="showFullScreenModal" key="expandIcon" />
                      </a-tooltip>
 
-                     <a-tooltip>
+                     <a-tooltip v-if="key === 'Settings'">
                             <template #title v-if="editableNote.isPinned">Unpin</template>
-                            <template #title v-if="!editableNote.isPinned">Pin</template>
+                            <template #title v-else-if="!editableNote.isPinned">Pin</template>
 
                             <pushpin-outlined :style="{ color: pinIconColor }" @mouseenter="onMouseEnterPinIcon"
                                    @mouseleave="onMouseLeavePinIcon" @click="pinIconClicked" key="pinIcon" />
@@ -69,12 +77,25 @@
               <template v-if="key === 'Note'">
                      <a-card-meta style="min-height: 200px;">
                             <template #description>
-                                   <a-textarea spellcheck="false" :autoSize="{ minRows: 2, maxRows: 10 }"
-                                          placeholder="Content of your note ! :)" :bordered="false" :rows="8"
-                                          @pressEnter="checkAndUpdateNote" v-model:value="editableNote.content" />
+                                   <div v-if="isEditMode">
+                                          <a-textarea spellcheck="false" :autoSize="{ minRows: 2, maxRows: 10 }"
+                                                 placeholder="Content of your note!" :bordered="false" :rows="8"
+                                                 v-model:value="editableNote.content" />
+                                   </div>
+                                   <div v-else>
+                                          <div v-if="editableNote.content.length > 250">
+                                                 <div v-html="truncatedMarkdown"></div>
+                                                 <a v-if="!showFullContent" @click="toggleFullContent">Show More</a>
+                                                 <a v-if="showFullContent" @click="toggleFullContent">Show Less</a>
+                                          </div>
+                                          <div v-else>
+                                                 <div v-html="compiledMarkdown"></div>
+                                          </div>
+                                   </div>
                             </template>
                      </a-card-meta>
               </template>
+
 
               <template v-if="key === 'Settings'">
                      <!-- Settings content here -->
@@ -100,8 +121,7 @@
        <!-- Full Screen Modal -->
        <div>
               <!-- Full Screen Modal -->
-              <a-modal v-model:open="isFullScreenModalVisible" width="100%" wrap-class-name="full-modal"
-              >
+              <a-modal v-model:open="isFullScreenModalVisible" width="100%" wrap-class-name="full-modal">
                      <template #title>
                             <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
                                    v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote"
@@ -110,9 +130,13 @@
                      <div class="full-screen-modal-content">
                             <a-tabs v-model:activeKey="key" @change="onTabChange">
                                    <a-tab-pane key="Note" tab="Note">
-                                          <a-textarea spellcheck="false" :autoSize="{ minRows: 10, maxRows: 20 }"
-                                                 placeholder="Content of your note" :bordered="false"
-                                                 v-model:value="editableNote.content" style="height: 100%;" />
+                                          <div v-if="isEditMode" class="textarea-container">
+                                                 <a-textarea spellcheck="false" :autoSize="false"
+                                                        placeholder="Content of your note" :bordered="false"
+                                                        v-model:value="editableNote.content"
+                                                        class="full-height-textarea" />
+                                          </div>
+                                          <div v-else v-html="compiledMarkdown"></div>
                                    </a-tab-pane>
                                    <a-tab-pane key="Settings" tab="Settings">
                                           <div class="flex justify-center">
@@ -127,6 +151,19 @@
                      </div>
                      <template #footer>
                             <div class="modal-footer">
+                                   <!-- Vos icônes et actions existantes -->
+                                   <a-tooltip v-if="key === 'Note'"
+                                          :title="isEditMode ? 'View Markdown' : 'Edit Content'">
+                                          <template v-if="isEditMode">
+                                                 <eye-outlined @click="toggleEditMode" />
+                                          </template>
+                                          <template v-else>
+                                                 <edit-outlined @click="toggleEditMode" />
+                                          </template>
+                                   </a-tooltip>
+
+                                   <a-divider type="vertical" />
+
                                    <a-tooltip title="Exit full screen">
                                           <shrink-outlined @click="closeFullScreenModal" key="shrinkIcon" />
                                    </a-tooltip>
@@ -176,6 +213,8 @@
 <script lang="ts" setup>
 import { CheckOutlined, SettingOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined } from '@ant-design/icons-vue';
 import { ref, computed, watch } from 'vue';
+import { EyeOutlined, EditOutlined } from '@ant-design/icons-vue';
+
 import type { NoteType } from '@/types/Note';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
@@ -183,17 +222,32 @@ import { isEqual } from 'lodash';
 import { Timestamp } from 'firebase/firestore';
 import { message } from 'ant-design-vue';
 import { ShrinkOutlined } from '@ant-design/icons-vue';
+import md from './test';
 
 const props = defineProps<{ note: NoteType }>();
 const notesStore = useNotesStore();
 const tagsStore = useTagsStore();
-const editableNote = ref({ ...props.note });
-const noteModified = ref(false);
-const hover = ref(false);  // Define hover here
-const key = ref('Note');
-const selectedTag = ref<string | null>(props.note.tagId || null);
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
+
+const key = ref('Note');
+const hover = ref(false);  // Define hover here
+const isEditMode = ref(false); // State for toggling between edit and view modes
+const selectedTag = ref<string | null>(props.note.tagId || null);
+const noteModified = ref(false);
+const editableNote = ref({ ...props.note });
 const pinIconColor = ref('currentColor');
+const showFullContent = ref(false);
+
+// Computed property to compile the markdown
+const compiledMarkdown = computed(() => {
+       return md.render(editableNote.value.content || '');
+});
+
+// Toggle between edit and view modes
+const toggleEditMode = () => {
+       isEditMode.value = !isEditMode.value;
+};
+
 const tabList = [
        {
               key: 'Note',
@@ -373,6 +427,22 @@ const pinIconClicked = async () => {
        }
 };
 
+
+const truncatedMarkdown = computed(() => {
+       if (showFullContent.value || !editableNote.value.content) {
+              return compiledMarkdown.value;
+       } else {
+              // Truncate the content
+              const truncatedContent = editableNote.value.content.substring(0, 250) + (editableNote.value.content.length > 250 ? '...' : '');
+              return md.render(truncatedContent);
+       }
+});
+
+const toggleFullContent = () => {
+       showFullContent.value = !showFullContent.value;
+};
+
+
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
        selectedTag.value = newNote.tagId || null;
@@ -391,7 +461,6 @@ watch(selectedTag, (newTagId) => {
 
 <style lang="less">
 .full-modal {
-       
        .ant-modal {
               max-width: 100%;
               top: 0;
@@ -403,22 +472,30 @@ watch(selectedTag, (newTagId) => {
               display: flex;
               flex-direction: column;
               height: 100vh;
-              border-radius: 0%;
+              border-radius: 0;
        }
 
        .ant-modal-body {
               flex: 1;
               display: flex;
               flex-direction: column;
+              overflow-y: auto;
+              /* Ensure content scrolls inside the modal */
+              background-color: #3E3E3E;
+              /* Ensures the background color covers the entire content area */
        }
 
        .full-screen-modal-content {
               flex: 1;
+              padding: 16px;
+              /* Add some padding for content spacing */
               overflow-y: auto;
        }
 
        .ant-modal-footer {
               padding: 16px;
+              background-color: #3E3E3E;
+              /* Match the background color */
        }
 
        .modal-footer {
@@ -441,5 +518,18 @@ watch(selectedTag, (newTagId) => {
                      display: inline-flex;
               }
        }
+}
+
+.textarea-container {
+       height: calc(100vh - 200px);
+       /* Adjust this value to ensure the textarea fits well with the footer */
+       display: flex;
+       flex-direction: column;
+}
+
+.full-height-textarea {
+       flex: 1;
+       resize: none;
+       height: 100%;
 }
 </style>
