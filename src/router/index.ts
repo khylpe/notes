@@ -100,7 +100,6 @@ router.beforeEach(async (to, from, next) => {
                             if (user) {
                                    // Reload user to get the latest status
                                    reload(user).then(() => {
-                                          console.log("reloading user")
                                           userInformationStore.setUser({
                                                  id: user.uid,
                                                  username: user.displayName,

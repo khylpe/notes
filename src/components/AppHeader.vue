@@ -53,12 +53,12 @@
               </div>
 
               <!-- Modal for Search Bar -->
-              <a-modal v-model:visible="isSearchBarVisible" title="Search Notes" footer="" width="60%">
+              <a-modal v-model:open="isSearchBarVisible" title="Search Notes" footer="" width="60%">
                      <SearchBar @close="toggleSearchBar" />
               </a-modal>
 
               <!-- Modal for New Note -->
-              <a-modal v-model:visible="isNewNoteVisible" title="New Note" :width="isMobile ? '95%' : '60%'" footer="">
+              <a-modal v-model:open="isNewNoteVisible" title="New Note" :width="isMobile ? '95%' : '60%'" footer="">
                      <NewNote @close="toggleNewNote" />
               </a-modal>
        </header>

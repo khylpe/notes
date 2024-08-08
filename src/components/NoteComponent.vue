@@ -323,9 +323,6 @@ const getTagName = (tagId: string) => {
 };
 const getTagColor = (tagId: string) => {
        const tag = tagsStore.tags.find(tag => tag.id === tagId);
-       console.log(tag?.color);
-       console.log("tag?.color");
-
        return tag ? tag.color : '#000000'; // Default to black if no color found
 };
 const moveToDeletedFolder = () => {

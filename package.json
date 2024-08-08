@@ -17,8 +17,8 @@
               "cy:run": "cypress run"
        },
        "dependencies": {
-              "ant-design-vue": "^4.0.0-rc.6",
-              "antd": "^5.12.5",
+              "ant-design-vue": "^4.2.3",
+              "antd": "^5.20.0",
               "basscss": "^8.1.0",
               "firebase": "^10.12.5",
               "highlight.js": "^11.10.0",

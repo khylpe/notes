@@ -133,7 +133,6 @@ const handleEditUsername = () => {
        isInputUsernameDisabled.value = !isInputUsernameDisabled.value;
 };
 const onFinish = async () => {
-       console.log("onFinish")
        try {
               if (auth.currentUser && formState.username) {
                      await updateProfile(auth.currentUser, {
@@ -151,7 +150,7 @@ const onFinish = async () => {
        }
 };
 const onFinishFailed = (errorInfo: any) => {
-       console.log('Failed:', errorInfo);
+       console.error('Failed:', errorInfo);
        message.error(`Please fill in all the fields. Error: ${errorInfo}`);
 };
 </script>

@@ -12,7 +12,6 @@ export const useUserInformationStore = defineStore('userInformation', {
               // Initialize the observer for auth state changes
               initAuthObserver() {
                      onAuthStateChanged(auth, (firebaseUser) => {
-                            console.log('User state changed!')
                             if (firebaseUser) {
                                    const user: UserType = {
                                           id: firebaseUser.uid,

@@ -161,7 +161,6 @@ const signUp = async () => {
        // Send verification email
        await sendEmailVerification(userCredential.user)
               .then(() => {
-                     console.log("Verification email sent.");
               })
               .catch((error) => {
                      console.error("Error sending verification email:", error);
@@ -213,7 +212,6 @@ const signInWithGithub = async () => {
               const result = await signInWithPopup(auth, provider);
               const credential = GithubAuthProvider.credentialFromResult(result);
               if (credential === null) {
-                     console.log('Credential is null');
                      message.error('Credential is null');
                      throw new Error('Credential is null');
               }

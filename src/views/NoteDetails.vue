@@ -26,7 +26,7 @@ onMounted(async () => {
               if (error instanceof Error) {
                      message.error(error.message);
               }
-              console.log(error);
+              console.error(error);
        }
        finally {
               isLoading.value = false;
