@@ -4,12 +4,12 @@ import ConnectedLayout from '@/layouts/ConnectedLayout.vue';
 import NotConnectedLayout from '@/layouts/NotConnectedLayout.vue';
 import Profil from './../views/ProfilView.vue';
 import MyNotes from './../views/MyNotes.vue';
-import LoginForm from './../views/Login.vue';
+import LoginForm from '../views/LoginView.vue';
 import VerifyEmail from './../views/VerifyEmail.vue';
 import NotFound from './../views/NotFound.vue';
 import NotesByTag from './../views/NotesByTag.vue';
 import NotesByFolder from './../views/NotesByFolder.vue';
-import PinnedNotes from './../views/Pinned.vue';
+import PinnedNotes from '../views/PinnedNotes.vue';
 import { useUserInformationStore } from '@/stores/userInformationStore';
 
 const checkSignUpMethod = (user: User | null) => {
@@ -84,7 +84,7 @@ const router = createRouter({
                             {
                                    path: 'notes/:noteId',
                                    name: 'note',
-                                   component: () => import(/* webpackChunkName: "note" */ './../views/Note.vue')
+                                   component: () => import(/* webpackChunkName: "note" */ '../views/NoteDetails.vue')
                             }
                      ]
               },

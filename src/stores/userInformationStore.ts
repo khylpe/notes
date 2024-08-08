@@ -1,6 +1,6 @@
 // tagsStore.ts
 import { defineStore } from 'pinia';
-import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import type { UserType } from '@/types/User';
 import auth from '@/services/FirebaseConfig';
 

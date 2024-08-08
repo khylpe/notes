@@ -36,7 +36,7 @@ import { computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
-import Note from '@/components/Note.vue';
+import Note from '@/components/NoteComponent.vue';
 import type { NoteType } from '@/types/Note';
 import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
 import { ref } from 'vue';

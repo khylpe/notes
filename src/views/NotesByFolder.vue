@@ -16,7 +16,7 @@
 import { computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useNotesStore } from '@/stores/notesStore';
-import Note from '@/components/Note.vue';
+import Note from '@/components/NoteComponent.vue';
 import type { NoteType } from '@/types/Note';
 
 const route = useRoute();

@@ -23,7 +23,7 @@ export const useNotesStore = defineStore('notes', {
                      }
 
                      const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
-                     let querySnapshot = await getDocs(notesCollectionRef);
+                     const querySnapshot = await getDocs(notesCollectionRef);
 
                      this.notes = querySnapshot.docs.map(doc => {
                             const noteData = doc.data() as Partial<NoteType>;

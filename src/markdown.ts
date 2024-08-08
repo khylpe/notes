@@ -12,20 +12,20 @@ const md = new MarkdownIt({
        typographer: true,
        breaks: true,
        highlight: function (str, lang) {
-           if (lang && hljs.getLanguage(lang)) {
-               try {
-                   return hljs.highlight(str, { language: lang }).value;
-               } catch (__) { /* empty */ }
-           }
-           return ''; // use external default escaping
+              if (lang && hljs.getLanguage(lang)) {
+                     try {
+                            return hljs.highlight(str, { language: lang }).value;
+                     } catch (__) { /* empty */ }
+              }
+              return ''; // use external default escaping
        }
-   });
-   
-   // Your other plugin configurations
-   md.use(markdownItMultiMdTable);
-   md.use(markdownItFootnote);
-   md.use(markdownItKatex);
-   md.use(markdownItDeflist);
-   md.use(markdownItMark);
+});
+
+// Your other plugin configurations
+md.use(markdownItMultiMdTable);
+md.use(markdownItFootnote);
+md.use(markdownItKatex);
+md.use(markdownItDeflist);
+md.use(markdownItMark);
 
 export default md;

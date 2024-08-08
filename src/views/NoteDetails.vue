@@ -9,7 +9,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useNotesStore } from '@/stores/notesStore';
-import Note from '@/components/Note.vue';
+import Note from '@/components/NoteComponent.vue';
 import type { NoteType } from '@/types/Note';
 import SkeletonNote from '@/components/SkeletonNote.vue';
 import { message } from 'ant-design-vue';

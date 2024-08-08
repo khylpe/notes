@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { updateProfile } from 'firebase/auth';
 import auth from '@/services/FirebaseConfig';
 import { UserOutlined } from '@ant-design/icons-vue';
@@ -54,10 +54,8 @@ import { useUserInformationStore } from '@/stores/userInformationStore';
 const userInformationStore = useUserInformationStore();
 const activeKey = ref('information');
 const username = ref<string | null>(userInformationStore.userInformation?.username ?? null);
-console.log("🚀 ~ username:", username);
 const profilPicture = ref<string | null>(userInformationStore.userInformation?.profilePictureUrl ?? null);
 const email = ref<string | null>(userInformationStore.userInformation?.email ?? null);
-const providerType = ref<string | null>(userInformationStore.userInformation?.providerType ?? null);
 
 const initialValues = ref({
        username: userInformationStore.userInformation?.username ?? null,

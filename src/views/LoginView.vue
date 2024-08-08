@@ -17,19 +17,22 @@
                                    </a-input>
                             </a-form-item>
 
-                            <a-form-item name="email" :rules="[{ required: true, message: 'Please input your email!' }]">
-                                   <a-auto-complete v-model:value="formState.email" size="large" :disabled="state.submitting"
-                                          :options="emailOptions" @search="handleEmailSearch" style="width: 100%;">
-                                          <a-input slot="input" :value="formState.email" placeholder="Mail" size="large">
-                                                 <template #prefix>
-                                                        <MailOutlined class="site-form-item-icon" />
-                                                 </template>
-                                          </a-input>
+                            <a-form-item name="email"
+                                   :rules="[{ required: true, message: 'Please input your email!' }]">
+                                   <a-auto-complete v-model:value="formState.email" size="large"
+                                          :disabled="state.submitting" :options="emailOptions"
+                                          @search="handleEmailSearch" style="width: 100%;">
+                                                 <a-input :value="formState.email" placeholder="Mail" size="large">
+                                                        <template #prefix>
+                                                               <MailOutlined class="site-form-item-icon" />
+                                                        </template>
+                                                 </a-input>
                                    </a-auto-complete>
                             </a-form-item>
 
 
-                            <a-form-item name="password" :rules="[{ required: true, message: 'Please input your password!' }]">
+                            <a-form-item name="password"
+                                   :rules="[{ required: true, message: 'Please input your password!' }]">
                                    <a-input-password v-model:value="formState.password" size="large"
                                           :disabled="state.submitting" placeholder="Password">
                                           <template #prefix>
@@ -54,11 +57,11 @@
 
                      <a-divider>Use a provider</a-divider>
 
-                     <div class="flex flex-col" style="width: 100%;">
+                     <div class="flex flex-col gap-1" style="width: 100%;">
                             <a-button @click="signInWithGoogle" style="height: fit-content;">
                                    <div class="flex items-center justify-around">
-                                          <img src="@/assets/google-color-icon.svg" alt="Google Icon" srcset="" width="25"
-                                                 height="25">
+                                          <img src="@/assets/google-color-icon.svg" alt="Google Icon" srcset=""
+                                                 width="25" height="25">
                                           <span>Log in or Sign up with Google</span>
                                    </div>
                             </a-button>
@@ -75,7 +78,7 @@
 
 <script setup lang="ts">
 import { reactive, computed, ref } from 'vue';
-import { UserOutlined, LockOutlined, GoogleOutlined, GithubOutlined, MailOutlined } from '@ant-design/icons-vue';
+import { UserOutlined, LockOutlined, GithubOutlined, MailOutlined } from '@ant-design/icons-vue';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
 import auth from "@/services/FirebaseConfig"; // Adjust the path as necessary
 import { message } from 'ant-design-vue';
@@ -201,6 +204,7 @@ const signInWithGoogle = async () => {
               await store.fetchAndStoreNotes();
               router.push('/notes');
        } catch (error) {
+              // 
        }
 };
 const signInWithGithub = async () => {

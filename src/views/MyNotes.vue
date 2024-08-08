@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import Note from '@/components/Note.vue';
+import Note from '@/components/NoteComponent.vue';
 import { useNotesStore } from '@/stores/notesStore';
 import type { NoteType } from '@/types/Note';
 

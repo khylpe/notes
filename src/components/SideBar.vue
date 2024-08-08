@@ -1,7 +1,8 @@
 <template>
        <div :class="sidebarClass">
-                <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" :class="sidebarClass" class="h-full fixed pt-3"
-                             v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
+              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" :class="sidebarClass"
+                     class="h-full fixed pt-3" v-model:selectedKeys="current" :mode="menuMode" :items="items"
+                     @click="handleMenuClick" />
        </div>
        <a-modal v-model:open="isModalVisible" title="Create New Tag" @cancel="handleCancel">
               <div class="flex flex-row">
@@ -168,8 +169,8 @@ const updateMenuItems = () => {
               menuItems.splice(1, 0, {
                      key: 'Pinned notes',
                      icon: () => h(PushpinOutlined),
-                     label: 'My pinned notes',
-                     title: 'My pinned notes',
+                     label: 'Pinned',
+                     title: 'Pinned',
                      onClick: () => router.push('/notes/pinned'),
               });
        }

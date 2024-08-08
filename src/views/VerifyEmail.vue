@@ -81,8 +81,8 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { SettingOutlined, EditOutlined, EllipsisOutlined, UserOutlined, InfoCircleOutlined, CheckOutlined, CloseOutlined, UndoOutlined } from '@ant-design/icons-vue';
-import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+import { SettingOutlined, EditOutlined, UserOutlined, InfoCircleOutlined, CheckOutlined, CloseOutlined, UndoOutlined } from '@ant-design/icons-vue';
+import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { Divider, message } from 'ant-design-vue';
 import auth from '@/services/FirebaseConfig';
 import router from '@/router';

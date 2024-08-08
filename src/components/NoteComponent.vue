@@ -229,7 +229,7 @@ import { isEqual } from 'lodash';
 import { Timestamp } from 'firebase/firestore';
 import { message } from 'ant-design-vue';
 import { ShrinkOutlined } from '@ant-design/icons-vue';
-import md from './test';
+import md from '../markdown';
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{ note: NoteType }>();
