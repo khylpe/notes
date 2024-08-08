@@ -1,6 +1,6 @@
 <template>
        <div class="flex flex-wrap justify-center mt-4">
-              <div class="notes-list flex flex-row items-start justify-center flex-wrap">
+              <div class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
                      <div class="note flex justify-center" v-for="note in notes" :key="note.id">
                             <Note :note="note" />
                      </div>
