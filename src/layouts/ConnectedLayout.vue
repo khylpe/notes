@@ -1,9 +1,9 @@
 <template>
        <a-config-provider :theme="customTheme">
-              <main class="flex flex-row content-page min-h-screen"
+              <main class="flex flex-row min-h-screen"
                      :style="{ backgroundColor: customTheme.token.colorBgBase }">
                      <SideBar />
-                     <div class="flex flex-col w-full mt-3 ml-4 sm:ml-6 md:ml-8 lg:ml-10 xl:ml-14 2xl:ml-20 mr-2 sm:mr-4 md:mr-6 lg:mr-8 xl:mr-10 2xl:mr-14">
+                     <div class="mb-20 flex flex-col w-full mt-3 ml-0 sm:ml-6 md:ml-8 lg:ml-10 xl:ml-14 2xl:ml-20 mr-2 sm:mr-4 md:mr-6 lg:mr-8 xl:mr-10 2xl:mr-14">
                             <Header/>
                             <router-view></router-view>
                      </div>
@@ -28,8 +28,7 @@ const customTheme = {
               colorTextBase: '#e0e0e0', // Softer text color
               colorWarning: '#faad14', // Softer warning color
               controlHeight: 36, // Slightly larger control height for better accessibility
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"', // Default font family
-              fontSize: 14, // Default font size
+              fontSize: 16, // Default font size
               lineType: 'solid', // Default line type
               lineWidth: 1, // Default line width
               motionBase: 0, // No motion

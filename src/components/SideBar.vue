@@ -1,7 +1,7 @@
 <template>
-       <div class="w-1/6">
-              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-full fixed w-1/6 pt-3"
-                     v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
+       <div :class="sidebarClass">
+                <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" :class="sidebarClass" class="h-full fixed pt-3"
+                             v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
        </div>
        <a-modal v-model:open="isModalVisible" title="Create New Tag" @cancel="handleCancel">
               <div class="flex flex-row">
@@ -37,13 +37,41 @@ const isAddingTag = ref(false);
 const tagsStore = useTagsStore();
 const notesStore = useNotesStore();
 const userHasPinNote = ref(false);
+const sidebarClass = ref('w-1/6');
 
 const route = useRoute();
 const router = useRouter();
 
-const handleOk = async () => {
-       // Handle adding a new tag
-};
+async function handleOk() {
+       isAddingTag.value = true;  // Start loading
+       if (!newTagName.value.trim()) {
+              message.warning('Please enter a tag name')
+              isAddingTag.value = false;
+              return;
+       }
+       const newTag: TagType = {
+              id: Date.now().toString(), // Generate a unique ID for the tag
+              name: newTagName.value.trim(),
+              color: newTagColor.value, // Use the selected color
+              createdDate: new Date(),
+              numberOfNotes: 0,
+       };
+       try {
+              await tagsStore.addTag(newTag); // Use the store action to add the tag
+              message.success('Tag added successfully');
+       } catch (error) {
+              if (error instanceof Error) {
+                     message.error(error.message);
+              } else {
+                     // Handle non-Error objects
+                     message.error('An unknown error occurred.');
+              }
+       }
+       isAddingTag.value = false;  // Stop loading
+       isModalVisible.value = false;
+       newTagName.value = '';
+       newTagColor.value = '#000000'; // Reset the color
+}
 
 const showModal = () => {
        isModalVisible.value = true;
@@ -58,17 +86,22 @@ const handleCancel = () => {
 
 const updateMenuMode = () => {
        const width = window.innerWidth;
-       menuMode.value = width < 768 ? 'vertical' : 'inline';
-       isCollapsed.value = width < 768;
+       menuMode.value = width < 992 ? 'vertical' : 'inline';
+       isCollapsed.value = width < 992;
 
        if (width < 768) {
               inLineIndentValue.value = 0;
-       } else if (width < 992) {
-              inLineIndentValue.value = 5;
+              sidebarClass.value = 'w-[10%]';
+       } else if (width < 1000) {
+              inLineIndentValue.value = 0;
+              sidebarClass.value = 'w-[10%]';
        } else if (width < 1200) {
               inLineIndentValue.value = 24;
+              sidebarClass.value = 'w-[15%]';
        } else {
               inLineIndentValue.value = 32;
+              sidebarClass.value = 'w-[15%]';
+
        }
 };
 
