@@ -67,7 +67,7 @@ body,
 
 
 /* Tables */
-table {
+.markdowndiv table {
        width: 100%;
        border-collapse: collapse;
        background-color: #1f1f1f;
@@ -78,8 +78,8 @@ table {
        /* Softer text color */
 }
 
-th,
-td {
+.markdowndiv th,
+.markdowndiv td {
        padding: 8px;
        border: 1px solid #e0e0e0;
        /* Softer text color for borders */
@@ -91,7 +91,7 @@ td {
 }
 
 /* Definition lists */
-dl dt {
+.markdowndiv dl dt {
        font-weight: bold;
        margin-top: 1em;
        color: #e0e0e0;
@@ -102,7 +102,7 @@ dl dt {
        /* Default font size */
 }
 
-dl dd {
+.markdowndiv dl dd {
        margin-left: 20px;
        margin-bottom: 1em;
        color: #e0e0e0;
@@ -114,7 +114,7 @@ dl dd {
 }
 
 /* Highlights */
-mark {
+.markdowndiv mark {
        background-color: #409eff;
        /* Softer info color */
        color: #1f1f1f;

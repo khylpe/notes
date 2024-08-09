@@ -54,7 +54,7 @@
               </div>
 
               <!-- Modal for Search Bar -->
-              <a-modal v-model:open="isSearchBarVisible" title="Search Notes" footer="" width="60%">
+              <a-modal v-model:open="isSearchBarVisible" title="Search Notes" footer="" :width="isMobile ? '95%' : '60%'">
                      <SearchBar @close="toggleSearchBar" />
               </a-modal>
 

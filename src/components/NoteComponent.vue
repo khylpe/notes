@@ -76,12 +76,12 @@
                                    </div>
                                    <div v-else>
                                           <div v-if="editableNote.content.length > 250">
-                                                 <div v-html="truncatedMarkdown" class="!text-[#dfd9d9]"></div>
+                                                 <div v-html="truncatedMarkdown" class="!text-[#dfd9d9] markdowndiv"></div>
                                                  <a v-if="!showFullContent" @click="toggleFullContent">Show More</a>
                                                  <a v-if="showFullContent" @click="toggleFullContent">Show Less</a>
                                           </div>
                                           <div v-else>
-                                                 <div class="!text-[#dfd9d9]" v-html="compiledMarkdown"></div>
+                                                 <div class="!text-[#dfd9d9] markdowndiv" v-html="compiledMarkdown"></div>
                                           </div>
                                    </div>
                             </template>
@@ -142,7 +142,7 @@
                                                         v-model:value="editableNote.content"
                                                         class="full-height-textarea !text-[#dfd9d9]" />
                                           </div>
-                                          <div v-else class="!text-[#dfd9d9]" v-html="compiledMarkdown"></div>
+                                          <div v-else class="!text-[#dfd9d9] markdowndiv" v-html="compiledMarkdown"></div>
                                    </a-tab-pane>
                                    <a-tab-pane key="Settings" tab="Settings">
                                           <div class="flex justify-center">

@@ -1,15 +1,17 @@
 <template>
        <div class="flex flex-row justify-center pb-10">
-              <div class="certain-category-search-wrapper flex flex-col" style="margin-left: auto; margin-right: auto;">
+              <div class="certain-category-search-wrapper flex flex-col gap-2"
+                     style="margin-left: auto; margin-right: auto;">
                      <div class="flex flex-row items-center w-full">
                             <!-- Tooltip element -->
                             <a-tooltip>
                                    <!-- Tooltip value -->
                                    <template #title>By default, it will search in all notes.</template>
                                    <!-- Element to hover for the tooltip -->
-                                   <a-auto-complete v-model:value="searchValue" autofocus class="certain-category-search"
+                                   <a-auto-complete v-model:value="searchValue" autofocus
+                                          class="certain-category-search"
                                           popup-class-name="certain-category-search-dropdown"
-                                          :dropdown-match-select-width="600" :options="dataSource"
+                                          :dropdown-match-select-width="isMobile ? 400 : 600" :options="dataSource"
                                           @focus="fetchNotesByFilters">
                                           <template #option="item">
                                                  <!-- Check if the item is a main category (Tags or Folders) -->
@@ -22,15 +24,13 @@
                                                                       <!-- center icons -->
                                                                       <span>{{ item.value }}</span>
                                                                       <folder-outlined class="mr-1"
-                                                                             v-if="item.value == 'Deleted' || item.value == 'Archived' || item.value == 'My notes'"
+                                                                             v-if="item.value == 'Deleted' || item.value == 'Archived' || item.value == 'My Notes'"
                                                                              style="float: right" />
-
                                                                       <pushpin-outlined
                                                                              v-else-if="item.value == 'Pinned'"
                                                                              class="mr-1" style="float: right" />
                                                                       <tags-outlined v-else class="mr-1"
                                                                              style="float: right" />
-
                                                                </div>
                                                         </template>
                                                         <!-- Handling for other items if any -->
@@ -63,7 +63,7 @@
                      </div>
                      <!-- Div containing settings such as Folder, Tags, date -->
                      <div style="max-width: 600px; margin-top: -4px;"
-                            class="flex justify-around flex-wrap pt-1 settings">
+                            class="flex justify-around flex-wrap pt-1 settings gap-2">
                             <!-- margin-top (negative) must be equal of the padding-top value -->
                             <!-- Select folder to search in -->
                             <a-select v-model:value="folderValue" mode="multiple"
@@ -101,13 +101,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { UndoOutlined, FolderOutlined, TagsOutlined, CalendarOutlined, PushpinOutlined } from '@ant-design/icons-vue';
 import dayjs, { Dayjs } from 'dayjs';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
+import { useFoldersStore } from '@/stores/foldersStore';
 import type { NoteType } from '@/types/Note';
 import { message } from 'ant-design-vue';
+const isMobile = ref(window.innerWidth < 768);
 
 type RangeValue = [Dayjs, Dayjs];
 
@@ -120,13 +122,20 @@ interface TagOption {
        label: string;
        value: string;
 }
+interface FolderOption {
+       label: string;
+       value: string | null;
+}
+
 const selectedDateRange = ref<RangeValue | null>(null);
 const notesStore = useNotesStore();
 const tagsStore = useTagsStore();
+const foldersStore = useFoldersStore();
 const searchValue = ref('');
-const tagValue = ref([]);
-const folderValue = ref([]);
+const tagValue = ref<string[]>([]);
+const folderValue = ref<string[]>([]);
 const tagOptions = ref<TagOption[]>([]);
+const folderOptions = ref<FolderOption[]>([]);
 const dataSource = ref<DataSourceItem[]>([]);
 const isSearchResultsLoading = ref(true);
 
@@ -136,81 +145,45 @@ const rangePresets = ref([
        { label: 'Last 30 Days', value: [dayjs().add(-30, 'd'), dayjs()] },
        { label: 'Last 90 Days', value: [dayjs().add(-90, 'd'), dayjs()] },
 ]);
-const folderOptions = [
-       // value should match the database values
-       { label: 'My Notes', value: null },       // Display 'My Notes', value is `null`
-       { label: 'Archived', value: 'archived' },  // Display 'Archived', value is 'archived'
-       { label: 'Deleted', value: 'deleted' },   // Display 'Deleted', value is 'deleted'
-];
+
 const disabledDate = (current: Dayjs) => {
        // Can not select days after today
        return current > dayjs().endOf('day');
 };
-const handleTagChange = (value: string) => {
-       try {
-              fetchNotesByFilters();
-       } catch (error) {
-              if (error instanceof Error) {
-                     message.error(error.message);
-              } else {
-                     // Handle non-Error objects
-                     message.error('An unknown error occurred.');
-              }
-       }
+
+const handleTagChange = (value: string[]) => {
+       fetchNotesByFilters().catch(handleError);
 };
-const handleFolderChange = (value: string) => {
-       try {
-              fetchNotesByFilters();
-       } catch (error) {
-              if (error instanceof Error) {
-                     message.error(error.message);
-              } else {
-                     // Handle non-Error objects
-                     message.error('An unknown error occurred.');
-              }
-       }
+
+const handleFolderChange = (value: string[]) => {
+       fetchNotesByFilters().catch(handleError);
 };
+
 const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
-       if (dates) {
-              selectedDateRange.value = dates;
-              try {
-                     fetchNotesByFilters();
-              } catch (error) {
-                     if (error instanceof Error) {
-                            message.error(error.message);
-                     } else {
-                            // Handle non-Error objects
-                            message.error('An unknown error occurred.');
-                     }
-              }
-       } else {
-              selectedDateRange.value = null;
-       }
+       selectedDateRange.value = dates || null;
+       fetchNotesByFilters().catch(handleError);
 };
-const getColorForTag = (tagId: string) => {
-       const tag = tagsStore.tags.find(t => t.id === tagId);
-       return tag ? tag.color : '#000'; // default color if not found
-};
+
 const updateDataSource = (filteredNotes: NoteType[]) => {
        isSearchResultsLoading.value = true;
        const tagsMap = new Map<string, { notes: NoteType[], color: string }>();
        const foldersMap = new Map<string, NoteType[]>();
 
        filteredNotes.forEach(note => {
-              // Handle tags only if the note has a tag
-              if (note.tagId) {
-                     const tagName = tagsStore.tags.find(tag => tag.id === note.tagId)?.name;
-                     const tagColor = tagsStore.tags.find(tag => tag.id === note.tagId)?.color || '#0000';
+              // Handle tags
+              note.tagIds?.forEach(tagId => {
+                     const tagName = tagsStore.tags.find(tag => tag.id === tagId)?.name;
+                     const tagColor = tagsStore.tags.find(tag => tag.id === tagId)?.color || '#000';
                      if (tagName) {
                             if (!tagsMap.has(tagName)) {
                                    tagsMap.set(tagName, { notes: [], color: tagColor });
                             }
                             tagsMap.get(tagName)?.notes.push(note);
                      }
-              }
+              });
 
               // Handle folders
-              const folderKey = note.folderId ? note.folderId : 'My notes';
+              const folderKey = note.folderId ? note.folderId : 'My Notes';
               if (!foldersMap.has(folderKey)) {
                      foldersMap.set(folderKey, []);
               }
@@ -253,10 +226,11 @@ const updateDataSource = (filteredNotes: NoteType[]) => {
        dataSource.value = [pinnedData, ...foldersData, ...tagsData];
        isSearchResultsLoading.value = false;
 };
+
 const fetchNotesByFilters = async () => {
        isSearchResultsLoading.value = true;
        try {
-              const selectedTag = tagValue.value.length > 0 ? tagValue.value[0] : null;
+              const selectedTag = tagValue.value;
               const selectedFolders = folderValue.value;
               let dateRange: [Date, Date] | null = null;
 
@@ -273,45 +247,38 @@ const fetchNotesByFilters = async () => {
               );
               updateDataSource(filteredNotes);
        } catch (error) {
-              if (error instanceof Error) {
-                     message.error(error.message);
-              } else {
-                     // Handle non-Error objects
-                     message.error('An unknown error occurred.');
-              }
-       }
-       finally {
+              handleError(error);
+       } finally {
               isSearchResultsLoading.value = false;
        }
 };
+
 const resetFilters = () => {
        searchValue.value = '';
        tagValue.value = [];
        folderValue.value = [];
        selectedDateRange.value = null;
-       try {
-              fetchNotesByFilters();
-       } catch (error) {
-              if (error instanceof Error) {
-                     message.error(error.message);
-              } else {
-                     // Handle non-Error objects
-                     message.error('An unknown error occurred.');
-              }
+       fetchNotesByFilters().catch(handleError);
+};
+
+const getColorForTag = (tagId: string) => {
+       const tag = tagsStore.tags.find(t => t.id === tagId);
+       return tag ? tag.color : '#000'; // default color if not found
+};
+
+const handleError = (error: unknown) => {
+       if (error instanceof Error) {
+              message.error(error.message);
+       } else {
+              message.error('An unknown error occurred.');
        }
 };
+
+// Watchers
 watch(searchValue, () => {
-       try {
-              fetchNotesByFilters();
-       } catch (error) {
-              if (error instanceof Error) {
-                     message.error(error.message);
-              } else {
-                     // Handle non-Error objects
-                     message.error('An unknown error occurred.');
-              }
-       }
+       fetchNotesByFilters().catch(handleError);
 });
+
 watch(() => tagsStore.tags, (newTags) => {
        const fetchedTags = newTags.map(tag => ({
               label: tag.name,
@@ -320,10 +287,33 @@ watch(() => tagsStore.tags, (newTags) => {
        }));
        tagOptions.value = fetchedTags;
 }, { deep: true });
+
+watch(() => foldersStore.folders, (newFolders) => {
+       const fetchedFolders = newFolders.map(folder => ({
+              label: folder.name,
+              value: folder.id,
+       }));
+       // Add default folders at the start
+       folderOptions.value = [
+              { label: 'My Notes', value: null },
+              { label: 'Archived', value: 'archived' },
+              { label: 'Deleted', value: 'deleted' },
+              ...fetchedFolders
+       ];
+}, { deep: true });
+
 watch(() => notesStore.notes, (newNotes) => {
        updateDataSource(newNotes);
 }, { deep: true });
+
+// Initial fetching
+onMounted(async () => {
+       await foldersStore.fetchFolders();
+       await tagsStore.fetchTags();
+       await notesStore.fetchAndStoreNotes();
+});
 </script>
+
 <style scoped>
 @media (max-width: 1000px) {
        .settings {

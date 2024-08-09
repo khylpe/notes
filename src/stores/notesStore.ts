@@ -194,34 +194,51 @@ export const useNotesStore = defineStore('notes', {
                             console.error('Error deleting note:', error);
                      }
               },
-              async fetchFilteredNotes(titleOrContentValue: string | null, tagId: string | null, folderIds: (string | null)[], dateRange: [Date, Date] | null) {
+              async fetchFilteredNotes(
+                     titleOrContentValue: string | null,
+                     tagIds: (string | null)[],
+                     folderIds: (string | null)[],
+                     dateRange: [Date, Date] | null
+              ) {
+                     console.log(tagIds);
+                     console.log(folderIds);
+
+                     // Ensure notes are loaded
                      if (this.notes.length === 0) {
                             await this.fetchAndStoreNotes();
                      }
 
+                     // Filter notes based on the provided criteria
                      return this.notes.filter(note => {
-                            const matchesTag = tagId ? note.tagId === tagId : true;
-                            const matchesFolder = folderIds.length === 0 ? true :
-                                   (folderIds.includes(null) && note.folderId === null) || folderIds.includes(note.folderId);
-                            const matchesTitleOrContent = !titleOrContentValue ? true :
-                                   note.title.toLowerCase().includes(titleOrContentValue.toLowerCase()) ||
-                                   note.content.toLowerCase().includes(titleOrContentValue.toLowerCase());
+                            // Filter by title or content
+                            const matchesTitleOrContent = titleOrContentValue
+                                   ? note.title.toLowerCase().includes(titleOrContentValue.toLowerCase()) ||
+                                   note.content.toLowerCase().includes(titleOrContentValue.toLowerCase())
+                                   : true;
 
+                            // Filter by tags
+                            const matchesTags = tagIds.length > 0
+                                   ? tagIds.some(tagId => note.tagIds?.includes(tagId ?? ''))
+                                   : true;
+
+                            // Filter by folders
+                            const matchesFolders = folderIds.length > 0
+                                   ? folderIds.includes(note.folderId)
+                                   : true;
+
+                            // Filter by date range
                             let matchesDateRange = true;
                             if (dateRange) {
                                    const [startDate, endDate] = dateRange;
                                    const noteDate = new Date(note.createdDate);
 
-                                   if (startDate.toDateString() === endDate.toDateString()) {
-                                          matchesDateRange = noteDate.toDateString() === startDate.toDateString();
-                                   } else {
-                                          matchesDateRange = noteDate >= startDate && noteDate <= endDate;
-                                   }
+                                   matchesDateRange = noteDate >= startDate && noteDate <= endDate;
                             }
 
-                            return matchesTag && matchesFolder && matchesTitleOrContent && matchesDateRange;
+                            return matchesTitleOrContent && matchesTags && matchesFolders && matchesDateRange;
                      });
               },
+
               async getNoteById(noteId: string) {
                      if (this.notes.length === 0 || !this.notes.find(note => note.id === noteId)) {
                             await this.fetchAndStoreNotes();
