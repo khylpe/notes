@@ -18,11 +18,20 @@
                             </div>
                      </a-form-item>
 
-                     <a-form-item label="Tag">
-                            <a-select v-model:value="selectedTag" placeholder="Select tag" :options="tagOptions"
-                                   allowClear>
+                     <a-form-item label="Tags">
+                            <a-select v-model:value="selectedTags" placeholder="Select tags" :options="tagOptions"
+                                   mode="multiple" allowClear>
                                    <template #suffixIcon>
                                           <tags-outlined />
+                                   </template>
+                            </a-select>
+                     </a-form-item>
+
+                     <a-form-item label="Folder">
+                            <a-select v-model:value="selectedFolder" placeholder="Select folder"
+                                   :options="folderOptions" allowClear>
+                                   <template #suffixIcon>
+                                          <folder-outlined />
                                    </template>
                             </a-select>
                      </a-form-item>
@@ -41,9 +50,10 @@
 
 <script lang="ts" setup>
 import { reactive, ref, watch, onMounted, computed } from 'vue';
-import { TagsOutlined } from '@ant-design/icons-vue';
+import { TagsOutlined, FolderOutlined } from '@ant-design/icons-vue';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
+import { useFoldersStore } from '@/stores/foldersStore';
 import type { NoteType } from '@/types/Note';
 import { message } from 'ant-design-vue';
 import md from '../markdown';
@@ -52,12 +62,16 @@ const initialFormState = { title: '', description: '' };
 const formState = reactive<FormState>({ ...initialFormState });
 const noteModified = ref(false);
 const tagsStore = useTagsStore();
-const selectedTag = ref<string | null>(null);
+const foldersStore = useFoldersStore();
+const selectedTags = ref<string[]>([]);
+const selectedFolder = ref<string | null>(null);
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
+const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id })));
 const notesStore = useNotesStore();
 
 onMounted(async () => {
        await tagsStore.fetchTags();
+       await foldersStore.fetchFolders();
 });
 
 interface FormState {
@@ -65,9 +79,14 @@ interface FormState {
        description: string;
 }
 
-watch(formState, () => {
-       noteModified.value = formState.title.trim() !== '' || formState.description.trim() !== '';
-}, { deep: true });
+watch(
+       formState,
+       () => {
+              noteModified.value =
+                     formState.title.trim() !== '' || formState.description.trim() !== '';
+       },
+       { deep: true }
+);
 
 const renderedMarkdown = computed(() => {
        return md.render(formState.description);
@@ -80,8 +99,8 @@ const addNewNote = async () => {
                      title: formState.title,
                      content: formState.description,
                      createdDate: new Date(),
-                     tagId: selectedTag.value || null, // Use selected tag ID or null if none is selected
-                     folderId: null, // Set folderId as null by default
+                     tagIds: selectedTags.value, // Use selected tags array
+                     folderId: selectedFolder.value, // Use selected folder ID
                      isPinned: false,
                      updatedDate: new Date(),
                      isArchived: false,
@@ -91,6 +110,8 @@ const addNewNote = async () => {
               try {
                      await notesStore.addNoteToFirestore(newNote);
                      Object.assign(formState, initialFormState);
+                     selectedTags.value = [];
+                     selectedFolder.value = null;
                      message.success('Note added successfully');
               } catch (error) {
                      if (error instanceof Error) {
@@ -101,7 +122,6 @@ const addNewNote = async () => {
               }
 
               noteModified.value = false;
-              selectedTag.value = null;
        } else if (!formState.title.trim()) {
               message.warning('Please enter a title');
        } else if (!formState.description.trim()) {
@@ -111,7 +131,8 @@ const addNewNote = async () => {
 
 const resetForm = () => {
        Object.assign(formState, initialFormState);
-       selectedTag.value = null;
+       selectedTags.value = [];
+       selectedFolder.value = null;
        noteModified.value = false;
 };
 

@@ -1,7 +1,6 @@
-// foldersStore.ts
 import { defineStore } from 'pinia';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, query, where, writeBatch } from 'firebase/firestore';
 import type { FolderType } from '@/types/Folder';
 
 export const useFoldersStore = defineStore('folders', {
@@ -37,22 +36,54 @@ export const useFoldersStore = defineStore('folders', {
 
                      const db = getFirestore();
                      try {
-                            await setDoc(doc(db, `users/${user.uid}/folders/${newFolder.name}`), newFolder);
-                            console.log('newFolder:', newFolder);
+                            const folderRef = doc(db, `users/${user.uid}/folders/${newFolder.id}`);
+                            await setDoc(folderRef, newFolder);
                             this.folders.push(newFolder);
                      } catch (error) {
                             console.error('Error adding folder:', error);
                      }
               },
-              async deleteFolder(folderName: string) {
+              async updateFolder(updatedFolder: FolderType) {
                      const auth = getAuth();
                      const user = auth.currentUser;
                      if (!user) return;
 
                      const db = getFirestore();
                      try {
-                            await deleteDoc(doc(db, `users/${user.uid}/folders/${folderName}`));
-                            this.folders = this.folders.filter(folder => folder.name !== folderName);
+                            const folderRef = doc(db, `users/${user.uid}/folders/${updatedFolder.id}`);
+                            await setDoc(folderRef, updatedFolder);
+                            const index = this.folders.findIndex(folder => folder.id === updatedFolder.id);
+                            if (index !== -1) {
+                                   this.folders[index] = updatedFolder;
+                            }
+                     } catch (error) {
+                            console.error('Error updating folder:', error);
+                     }
+              },
+              async deleteFolder(folderId: string) {
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+                     if (!user) return;
+
+                     const db = getFirestore();
+                     try {
+                            const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
+                            const notesQuery = query(notesCollectionRef, where('folderId', '==', folderId));
+                            const notesSnapshot = await getDocs(notesQuery);
+
+                            // Initialize a batch operation
+                            const batch = writeBatch(db);
+
+                            // Update all notes in the folder to have folderId set to null
+                            notesSnapshot.forEach(noteDoc => {
+                                   const noteRef = noteDoc.ref;
+                                   batch.update(noteRef, { folderId: null });
+                            });
+                            await batch.commit();
+
+                            // Delete the folder
+                            await deleteDoc(doc(db, `users/${user.uid}/folders/${folderId}`));
+                            this.folders = this.folders.filter(folder => folder.id !== folderId);
                      } catch (error) {
                             console.error('Error deleting folder:', error);
                      }

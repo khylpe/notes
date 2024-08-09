@@ -53,7 +53,7 @@ notesStore.fetchAndStoreNotes();
 
 const filteredNotesByTag = computed<NoteType[]>(() => {
        return notesStore.notes
-              .filter(note => note.tagId === tagId.value && note.folderId === null)
+              .filter(note => note.tagIds && note.tagIds.includes(tagId.value ?? ''))
               .sort((a, b) => {
                      const dateA = a.updatedDate ? new Date(a.updatedDate).getTime() : new Date(a.createdDate).getTime();
                      const dateB = b.updatedDate ? new Date(b.updatedDate).getTime() : new Date(b.createdDate).getTime();
@@ -124,6 +124,7 @@ const updateCurrentTag = () => {
               name: newTagName.value,
               color: newTagColor.value,
               createdDate: existingTag.createdDate, // Use existing value
+              updatedDate: new Date(),
               numberOfNotes: existingTag.numberOfNotes // Use existing value
        };
 
@@ -181,4 +182,3 @@ const deleteTag = () => {
        margin-left: auto;
 }
 </style>
-```

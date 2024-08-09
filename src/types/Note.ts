@@ -6,7 +6,7 @@ export interface NoteType {
        content: string;            // Content of the note
        createdDate: Date;          // Date when the note was created
        updatedDate: Date;          // Date when the note was last updated
-       tagId: string | null;       // Tag of the note
+       tagIds: string[];       // Tags of the note
        folderId: string | null;    // Folder of the note
        isPinned: boolean;          // Is the note pinned
        isArchived: boolean;        // Is the note archived

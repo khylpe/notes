@@ -1,6 +1,6 @@
 <template>
-       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteFolderColor}` : 'none' }" :tab-list="tabList"
-              :active-tab-key="key" @tabChange="onTabChange"
+       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteFolderColor}` : 'none' }"
+              :tab-list="tabList" :active-tab-key="key" @tabChange="onTabChange"
               class="w-auto sm:w-[450px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px]"
               @mouseenter="hover = true" @mouseleave="hover = false">
               <template #customTab="item">
@@ -93,8 +93,8 @@
                      <a-card-meta style="min-height: 200px;">
                             <template #description>
                                    <div class="flex justify-center">
-                                          <a-select :allowClear="true" v-model:value="selectedTag"
-                                                 placeholder="Select tag" style="width: 150px" :options="tagOptions">
+                                          <a-select mode="multiple" :allowClear="true" v-model:value="selectedTags"
+                                                 placeholder="Select tags" style="width: 150px" :options="tagOptions">
                                                  <template #suffixIcon><tags-outlined /></template>
                                           </a-select>
                                    </div>
@@ -110,12 +110,15 @@
               </template>
               <template #extra>
                      <div class="flex items-center">
-                            <a-tag class="mr-3" v-if="selectedTag" :color="getTagColor(selectedTag)"
-                                   :style="{ color: getContrastColor(getTagColor(selectedTag)) }"
-                                   @click="redirectToTag">
-                                   {{ getTagName(selectedTag) }}
+                            <a-tag v-for="tagId in selectedTags" :key="tagId" class="mr-3" :color="getTagColor(tagId)"
+                                   :style="{ color: getContrastColor(getTagColor(tagId)) }"
+                                   @click="redirectToTag(tagId)">
+                                   {{ getTagName(tagId) }}
                             </a-tag>
-                            <a-tooltip :title="datesTooltipTitle">
+                            <a-tooltip>
+                                   <template #title>
+                                          <span v-html="datesTooltipTitle"></span>
+                                   </template>
                                    <calendar-outlined />
                             </a-tooltip>
                      </div>
@@ -143,9 +146,9 @@
                                    </a-tab-pane>
                                    <a-tab-pane key="Settings" tab="Settings">
                                           <div class="flex justify-center">
-                                                 <a-select :allowClear="true" v-model:value="selectedTag"
-                                                        placeholder="Select tag" style="width: 150px"
-                                                        :options="tagOptions">
+                                                 <a-select mode="multiple" :allowClear="true"
+                                                        v-model:value="selectedTags" placeholder="Select tags"
+                                                        style="width: 150px" :options="tagOptions">
                                                         <template #suffixIcon><tags-outlined /></template>
                                                  </a-select>
                                           </div>
@@ -214,6 +217,7 @@
        </div>
 </template>
 
+
 <script lang="ts" setup>
 import { CheckOutlined, SettingOutlined, CalendarOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
 import { ref, computed, watch } from 'vue';
@@ -240,7 +244,7 @@ const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label
 const key = ref('Note');
 const hover = ref(false);
 const isEditMode = ref(false);
-const selectedTag = ref<string | null>(props.note.tagId || null);
+const selectedTags = ref<string[]>(props.note.tagIds || []); // Multiple tagIds
 const selectedFolder = ref<string | null>(props.note.folderId || null); // Selected folder state
 const noteModified = ref(false);
 const editableNote = ref({ ...props.note });
@@ -263,8 +267,8 @@ const tabList = [
 const toggleEditMode = () => {
        isEditMode.value = !isEditMode.value;
 };
-const redirectToTag = () => {
-       const tagName = getTagName(selectedTag.value as string);
+const redirectToTag = (tagId: string) => {
+       const tagName = getTagName(tagId);
        if (tagName) {
               router.push(`/notes/tag/${tagName}`);
        }
@@ -315,7 +319,7 @@ const checkAndUpdateNote = async () => {
        }
 };
 const noteTagColor = computed(() => {
-       const tag = tagsStore.tags.find(tag => tag.id === selectedTag.value);
+       const tag = tagsStore.tags.find(tag => tag.id === selectedTags.value[0]);
        return tag ? tag.color : '#000000';
 });
 
@@ -480,10 +484,11 @@ const formattedUpdatedDate = computed(() => {
 const datesTooltipTitle = computed(() => {
        let title = `Created: ${formattedCreationDate.value}`;
        if (formattedUpdatedDate.value) {
-              title += `\nModified: ${formattedUpdatedDate.value}`;
+              title += `<br>Modified: ${formattedUpdatedDate.value}`;
        }
        return title;
 });
+
 const truncatedMarkdown = computed(() => {
        if (showFullContent.value || !editableNote.value.content) {
               return compiledMarkdown.value;
@@ -499,15 +504,15 @@ const compiledMarkdown = computed(() => {
 
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };
-       selectedTag.value = newNote.tagId || null;
+       selectedTags.value = newNote.tagIds || []; // Update multiple tags
        selectedFolder.value = newNote.folderId || null; // Update selected folder state
 }, { deep: true });
 watch(editableNote, () => {
        noteModified.value = !isEqual(notesStore.notes.find(n => n.id === editableNote.value.id), editableNote.value);
 }, { deep: true });
-watch(selectedTag, (newTagId) => {
-       if (newTagId !== editableNote.value.tagId && editableNote.value.id) {
-              editableNote.value.tagId = newTagId || null;
+watch(selectedTags, (newTagIds) => {
+       if (!isEqual(newTagIds, editableNote.value.tagIds) && editableNote.value.id) {
+              editableNote.value.tagIds = newTagIds;
        }
 });
 watch(selectedFolder, (newFolderId) => {
@@ -516,6 +521,7 @@ watch(selectedFolder, (newFolderId) => {
        }
 });
 </script>
+
 
 <style lang="less">
 .full-modal {

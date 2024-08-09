@@ -1,7 +1,6 @@
-// tagsStore.ts
 import { defineStore } from 'pinia';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, writeBatch } from 'firebase/firestore';
 import type { TagType } from '@/types/Tag';
 
 export const useTagsStore = defineStore('tags', {
@@ -46,17 +45,23 @@ export const useTagsStore = defineStore('tags', {
 
                      const db = getFirestore();
                      try {
-                            // Fetch all notes
+                            // Fetch all notes containing the tagId
                             const notesCollectionRef = collection(db, `users/${user.uid}/notes`);
                             const notesSnapshot = await getDocs(notesCollectionRef);
-                            const notes = notesSnapshot.docs.map(doc => ({ ...doc.data() }));
+                            const batch = writeBatch(db);
 
-                            // Update notes with the deleted tag
-                            const notesToUpdate = notes.filter(note => note.tagId === tagId);
-                            for (const note of notesToUpdate) {
-                                   const noteDocRef = doc(db, `users/${user.uid}/notes/${note.id}`);
-                                   await setDoc(noteDocRef, { ...note, tagId: null }, { merge: true });
-                            }
+                            notesSnapshot.docs.forEach(noteDoc => {
+                                   const noteData = noteDoc.data();
+                                   if (noteData.tagIds && noteData.tagIds.includes(tagId)) {
+                                          // Remove the tagId from the tagIds array
+                                          const updatedtagIds = noteData.tagIds.filter((id: string) => id !== tagId);
+                                          const noteRef = noteDoc.ref;
+                                          batch.update(noteRef, { tagIds: updatedtagIds });
+                                   }
+                            });
+
+                            // Commit the batch operation
+                            await batch.commit();
 
                             // Delete the tag
                             await deleteDoc(doc(db, `users/${user.uid}/tags/${tagId}`));
@@ -64,7 +69,8 @@ export const useTagsStore = defineStore('tags', {
                      } catch (error) {
                             console.error('Error deleting tag:', error);
                      }
-              }, async updateTag(updatedTag: TagType) {
+              },
+              async updateTag(updatedTag: TagType) {
                      const auth = getAuth();
                      const user = auth.currentUser;
                      if (!user) return;

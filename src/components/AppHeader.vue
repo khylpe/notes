@@ -59,11 +59,13 @@
               </a-modal>
 
               <!-- Modal for New Note -->
-              <a-modal v-model:open="isNewNoteVisible" title="New Note" :width="isMobile ? '95%' : '60%'" footer="">
+              <a-modal v-model:open="isNewNoteVisible" title="New Note" :width="isMobile ? '95%' : '60%'" footer=""
+                     wrapClassName="new-note-modal" :style="{ top: isMobile ? '10px' : '50px' }">
                      <NewNote @close="toggleNewNote" />
               </a-modal>
        </header>
 </template>
+
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
@@ -130,9 +132,9 @@ const updatePageName = () => {
               const tagName = route.path.split('/notes/folder/')[1];
               pageName.value = tagName.charAt(0).toUpperCase() + tagName.slice(1);
        }
-       else if(route.path === "/notes/deleted") {
+       else if (route.path === "/notes/deleted") {
               pageName.value = "Deleted Notes";
-       } else if(route.path === "/notes/archived") {
+       } else if (route.path === "/notes/archived") {
               pageName.value = "Archived Notes";
        }
        else {

@@ -80,7 +80,7 @@ const router = createRouter({
                                    component: NotesByTag,
                             },
                             {
-                                   path: 'notes/folder/:tagName',
+                                   path: 'notes/folder/:folderName',
                                    name: 'notesByFolder',
                                    component: NotesByFolder,
                             },
