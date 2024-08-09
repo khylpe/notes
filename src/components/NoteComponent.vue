@@ -64,7 +64,7 @@
 
               <template #title>
                      <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
-                            v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote" :maxlength="20" />
+                            v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote" :maxlength="100" />
               </template>
               <template v-if="key === 'Note'">
                      <a-card-meta style="min-height: 200px;">
@@ -131,7 +131,7 @@
                      <template #title>
                             <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
                                    class="p-0 m-0" v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote"
-                                   :maxlength="20" />
+                                   :maxlength="100" />
                      </template>
                      <div class="full-screen-modal-content">
                             <a-tabs v-model:activeKey="key" @change="onTabChange">

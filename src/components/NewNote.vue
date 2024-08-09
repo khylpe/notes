@@ -2,7 +2,7 @@
        <div class="new-note-container">
               <a-form layout="vertical" @submit.prevent="addNewNote">
                      <a-form-item label="Title" required>
-                            <a-input v-model:value="formState.title" placeholder="Your title" :maxlength="50"
+                            <a-input v-model:value="formState.title" placeholder="Your title" :maxlength="100"
                                    @keypress="handleKeyPress($event, 'title')" />
                      </a-form-item>
 
