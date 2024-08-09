@@ -166,7 +166,6 @@ export const useNotesStore = defineStore('notes', {
                      const fullNewNote: NoteType = {
                             ...newNote,
                             id: '',
-                            folderId: null,
                             isPinned: false,
                             isDeleted: false,
                             isArchived: false,
