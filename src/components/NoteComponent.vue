@@ -1,6 +1,6 @@
 <template>
-       <a-card hoverable :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteFolderColor}` : 'none' }"
-              :tab-list="tabList" :active-tab-key="key" @tabChange="onTabChange"
+       <a-card :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteFolderColor}` : 'none' }" :tab-list="tabList"
+              :active-tab-key="key" @tabChange="onTabChange"
               class="w-auto sm:w-[450px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px]"
               @mouseenter="hover = true" @mouseleave="hover = false">
               <template #customTab="item">
@@ -76,12 +76,14 @@
                                    </div>
                                    <div v-else>
                                           <div v-if="editableNote.content.length > 250">
-                                                 <div v-html="truncatedMarkdown" class="!text-[#dfd9d9] markdowndiv"></div>
+                                                 <div v-html="truncatedMarkdown" class="!text-[#dfd9d9] markdowndiv">
+                                                 </div>
                                                  <a v-if="!showFullContent" @click="toggleFullContent">Show More</a>
                                                  <a v-if="showFullContent" @click="toggleFullContent">Show Less</a>
                                           </div>
                                           <div v-else>
-                                                 <div class="!text-[#dfd9d9] markdowndiv" v-html="compiledMarkdown"></div>
+                                                 <div class="!text-[#dfd9d9] markdowndiv" v-html="compiledMarkdown">
+                                                 </div>
                                           </div>
                                    </div>
                             </template>
@@ -110,12 +112,30 @@
               </template>
               <template #extra>
                      <div class="flex items-center">
-                            <a-tag v-for="tagId in selectedTags" :key="tagId" class="mr-3" :color="getTagColor(tagId)"
-                                   :style="{ color: getContrastColor(getTagColor(tagId)) }"
-                                   @click="redirectToTag(tagId)">
-                                   {{ getTagName(tagId) }}
-                            </a-tag>
-                            <a-tooltip>
+                            <div class="flex items-center">
+                                   <a-tag v-for="(tagId) in visibleTags" :key="tagId" class="hover:cursor-pointer"
+                                          :color="getTagColor(tagId)"
+                                          :style="{ color: getContrastColor(getTagColor(tagId)) }"
+                                          @click="redirectToTag(tagId)">
+                                          {{ getTagName(tagId) }}
+                                   </a-tag>
+                                   <a-tooltip v-if="hiddenTags.length > 0" placement="top" trigger="hover">
+                                          <template #title>
+                                                 <div class="flex flex-wrap">
+                                                        <a-tag v-for="tagId in hiddenTags" :key="tagId"
+                                                               class="mr-1 mb-1 hover:cursor-pointer"
+                                                               :color="getTagColor(tagId)"
+                                                               :style="{ color: getContrastColor(getTagColor(tagId)) }"
+                                                               @click="redirectToTag(tagId)">
+                                                               {{ getTagName(tagId) }}
+                                                        </a-tag>
+                                                 </div>
+                                          </template>
+                                          <span class="cursor-pointer">{{ isMobile ? hiddenTags.length + ' tags' : '+' +
+                                                 hiddenTags.length + ' more' }}</span>
+                                   </a-tooltip>
+                            </div>
+                            <a-tooltip class="ml-2">
                                    <template #title>
                                           <span v-html="datesTooltipTitle"></span>
                                    </template>
@@ -142,7 +162,8 @@
                                                         v-model:value="editableNote.content"
                                                         class="full-height-textarea !text-[#dfd9d9]" />
                                           </div>
-                                          <div v-else class="!text-[#dfd9d9] markdowndiv" v-html="compiledMarkdown"></div>
+                                          <div v-else class="!text-[#dfd9d9] markdowndiv" v-html="compiledMarkdown">
+                                          </div>
                                    </a-tab-pane>
                                    <a-tab-pane key="Settings" tab="Settings">
                                           <div class="flex justify-center">
@@ -220,7 +241,7 @@
 
 <script lang="ts" setup>
 import { CheckOutlined, SettingOutlined, CalendarOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons-vue';
 
 import type { NoteType } from '@/types/Note';
@@ -252,6 +273,31 @@ const pinIconColor = ref('currentColor');
 const showFullContent = ref(false);
 const isFullScreenModalVisible = ref(false);
 const router = useRouter();
+
+const isMobile = ref(window.innerWidth < 768);
+
+const handleResize = () => {
+       // Update the isMobile ref based on the current window width
+       isMobile.value = window.innerWidth < 768;
+};
+
+onMounted(() => {
+       window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+       window.removeEventListener('resize', handleResize);
+});
+
+const visibleTags = computed(() => {
+       // Limit the number of tags displayed
+       return isMobile.value ? [] : selectedTags.value.slice(0, 3);
+});
+
+const hiddenTags = computed(() => {
+       // Tags that are not displayed initially
+       return isMobile.value ? selectedTags.value.slice(0) : selectedTags.value.slice(3);
+})
 
 const tabList = [
        {
@@ -318,10 +364,6 @@ const checkAndUpdateNote = async () => {
               message.warning('Please modify your note');
        }
 };
-const noteTagColor = computed(() => {
-       const tag = tagsStore.tags.find(tag => tag.id === selectedTags.value[0]);
-       return tag ? tag.color : '#000000';
-});
 
 const noteFolderColor = computed(() => {
        const folder = foldersStore.folders.find(folder => folder.id === selectedFolder.value);
@@ -453,7 +495,7 @@ const getContrastColor = (bgColor: string) => {
        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
 
        // Return black or white depending on the luminance
-       return luminance > 186 ? '#000000' : '#FFFFFF';
+       return luminance > 150 ? '#000000' : '#FFFFFF';
 };
 
 
