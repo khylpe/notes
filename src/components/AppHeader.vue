@@ -3,10 +3,12 @@
               <div class="flex flex-row items-center justify-between">
                      <!-- Plus Icon for New Note -->
                      <a-tooltip>
-                            <template #title>New Note</template>
+                            <template v-if="!isMobile" #title>New Note (Ctrl + M)</template>
+                            <template v-else #title>New Note</template>
+
                             <a-button type="text" @click="toggleNewNote" class="flex items-center mx-2">
                                    <PlusOutlined style="font-size: 24px; color: #7a7878" />
-                                   <Text class="ml-2 shortcut-indicator" code type="secondary">Ctrl + M</Text>
+                                   <Text v-if="!isMobile" class="ml-2 shortcut-indicator" code type="secondary">Ctrl + M</Text>
                             </a-button>
                      </a-tooltip>
 
@@ -20,10 +22,12 @@
                             <!-- Search Icon -->
                             <!-- Search Icon with Shortcut Indicator -->
                             <a-tooltip>
-                                   <template #title>Search (Ctrl + K)</template>
+                                   <template v-if="!isMobile" #title>Search (Ctrl + K)</template>
+                                   <template v-else #title>Search</template>
+
                                    <a-button type="text" @click="toggleSearchBar" class="flex items-center mr-2">
                                           <SearchOutlined style="font-size: 24px; color: #7a7878" />
-                                          <Text class="ml-2 shortcut-indicator" code type="secondary">Ctrl + K</Text>
+                                          <Text v-if="!isMobile" class="ml-2 shortcut-indicator" code type="secondary">Ctrl + K</Text>
                                    </a-button>
                             </a-tooltip>
 
