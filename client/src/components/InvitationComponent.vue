@@ -5,6 +5,11 @@
                             <CheckOutlined @click="acceptInvitation(invitation.noteId)"
                                    style="color: green; cursor: pointer;" />
                      </a-tooltip>
+
+                     <a-tooltip title="Refuse Invitation">
+                            <CloseCircleOutlined @click="refuseInvitation(invitation.noteId)"
+                                   style="color: red; cursor: pointer;" />
+                     </a-tooltip>
               </template>
 
               <template #title>
@@ -56,7 +61,7 @@ import { getAuth } from 'firebase/auth';
 import axios from 'axios'; // Import axios to make HTTP requests
 import type { Invitation } from '@/types/Invitation';
 import md from '@/markdown';
-import { InfoCircleOutlined } from '@ant-design/icons-vue';
+import { InfoCircleOutlined, CloseCircleOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps<{ note: Invitation }>();
 const invitation = ref({ ...props.note });
@@ -99,6 +104,40 @@ const acceptInvitation = async (noteId: string) => {
               message.error('An error occurred while accepting the invitation.');
        }
 };
+
+const refuseInvitation = async (noteId: string) => {
+       const auth = getAuth();
+       const user = auth.currentUser;
+
+       if (!user) {
+              message.error('You must be logged in to refuse an invitation.');
+              return;
+       }
+
+       try {
+              // Get the ID token of the current user
+              const idToken = await user.getIdToken();
+
+              // Make the API call to accept the invitation
+              const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/refuse-invitation`, { noteId }, {
+                     headers: {
+                            Authorization: `Bearer ${idToken}`,
+                     },
+              });
+
+              if (response.status === 200) {
+                     message.success('Invitation refuse successfully!');
+                     // Optionally, you can remove the accepted invitation from the local state
+                     sharedNotesStore.fetchInitialInvitations(); // Refresh the invitations list
+              } else {
+                     message.error('Failed to refuse the invitation.');
+              }
+       } catch (error) {
+              console.error('Error refusing invitation:', error);
+              message.error('An error occurred while refusing the invitation.');
+       }
+};
+
 
 const truncatedMarkdown = computed(() => {
        console.log('Rendering truncated markdown:', invitation.value.noteDescription);

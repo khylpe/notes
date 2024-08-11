@@ -115,7 +115,8 @@
                                    <div class="mt-5">
                                           <a-list :dataSource="usersArray">
                                                  <template #renderItem="{ item: user }">
-                                                        <a-list-item class="flex flex-col md:flex-row gap-5 items-start">
+                                                        <a-list-item
+                                                               class="flex flex-col md:flex-row gap-5 items-start">
                                                                <div class="flex flex-row w-full">
                                                                       <a-avatar
                                                                              :src="user.imageUrl || 'https://via.placeholder.com/50'" />
@@ -123,7 +124,7 @@
                                                                              <a-typography-text
                                                                                     :ellipsis="{ rows: 1 }">{{
                                                                                            user.username ||
-                                                                                    'Unknown User'
+                                                                                           'Unknown User'
                                                                                     }}</a-typography-text>
                                                                              <span class="user-email">{{ user.email ||
                                                                                     'No Email Provided' }}</span>
@@ -132,9 +133,13 @@
 
                                                                <div class="flex flex-row">
                                                                       <a-tooltip v-if="user.uuid !== note.owner"
-                                                                             :title="getInviteTooltip(user)">
+                                                                             :title="undefined">
+                                                                             <template #title>
+                                                                                    <span
+                                                                                           v-html="getInviteTooltip(user)"></span>
+                                                                             </template>
                                                                              <a-tag
-                                                                                    :color="user.inviteStatus === 'accepted' ? 'green' : 'blue'">
+                                                                                    :color="user.inviteStatus === 'accepted' ? 'green' : (user.inviteStatus === 'pending' ? 'blue' : 'red')">
                                                                                     {{ user.inviteStatus }}
                                                                              </a-tag>
                                                                       </a-tooltip>
@@ -148,6 +153,7 @@
                                                                              checkedChildren="Write"
                                                                              unCheckedChildren="Read" />
                                                                </div>
+
                                                         </a-list-item>
                                                  </template>
                                           </a-list>
@@ -267,45 +273,52 @@
                                           </div>
 
                                           <div class="mt-5">
-                                          <a-list :dataSource="usersArray">
-                                                 <template #renderItem="{ item: user }">
-                                                        <a-list-item class="flex flex-col md:flex-row gap-5 items-start">
-                                                               <div class="flex flex-row w-full">
-                                                                      <a-avatar
-                                                                             :src="user.imageUrl || 'https://via.placeholder.com/50'" />
-                                                                      <div class="ml-3 w-4/5 flex flex-col">
-                                                                             <a-typography-text
-                                                                                    :ellipsis="{ rows: 1 }">{{
-                                                                                           user.username ||
-                                                                                    'Unknown User'
-                                                                                    }}</a-typography-text>
-                                                                             <span class="user-email">{{ user.email ||
-                                                                                    'No Email Provided' }}</span>
+                                                 <a-list :dataSource="usersArray">
+                                                        <template #renderItem="{ item: user }">
+                                                               <a-list-item
+                                                                      class="flex flex-col md:flex-row gap-5 items-start">
+                                                                      <div class="flex flex-row w-full">
+                                                                             <a-avatar
+                                                                                    :src="user.imageUrl || 'https://via.placeholder.com/50'" />
+                                                                             <div class="ml-3 w-4/5 flex flex-col">
+                                                                                    <a-typography-text
+                                                                                           :ellipsis="{ rows: 1 }">{{
+                                                                                                  user.username ||
+                                                                                                  'Unknown User'
+                                                                                           }}</a-typography-text>
+                                                                                    <span class="user-email">{{
+                                                                                           user.email ||
+                                                                                           'No Email Provided' }}</span>
+                                                                             </div>
                                                                       </div>
-                                                               </div>
 
-                                                               <div class="flex flex-row">
-                                                                      <a-tooltip v-if="user.uuid !== note.owner"
-                                                                             :title="getInviteTooltip(user)">
-                                                                             <a-tag
-                                                                                    :color="user.inviteStatus === 'accepted' ? 'green' : 'blue'">
-                                                                                    {{ user.inviteStatus }}
-                                                                             </a-tag>
-                                                                      </a-tooltip>
+                                                                      <div class="flex flex-row">
+                                                                             <a-tooltip v-if="user.uuid !== note.owner"
+                                                                                    :title="undefined">
+                                                                                    <template #title>
+                                                                                           <span
+                                                                                                  v-html="getInviteTooltip(user)"></span>
+                                                                                    </template>
+                                                                                    <a-tag
+                                                                                           :color="user.inviteStatus === 'accepted' ? 'green' : (user.inviteStatus === 'pending' ? 'blue' : 'red')">
+                                                                                           {{ user.inviteStatus }}
+                                                                                    </a-tag>
+                                                                             </a-tooltip>
 
-                                                                      <!-- Add toggle for write permissions -->
-                                                                      <a-switch
-                                                                             v-if="user.uuid !== note.owner && userId === note.owner"
-                                                                             class="ml-0"
-                                                                             :checked="user.rule === 'write'"
-                                                                             @change="(checked: boolean) => updateWritePermission(user.uuid, checked)"
-                                                                             checkedChildren="Write"
-                                                                             unCheckedChildren="Read" />
-                                                               </div>
-                                                        </a-list-item>
-                                                 </template>
-                                          </a-list>
-                                   </div>
+                                                                             <!-- Add toggle for write permissions -->
+                                                                             <a-switch
+                                                                                    v-if="user.uuid !== note.owner && userId === note.owner"
+                                                                                    class="ml-0"
+                                                                                    :checked="user.rule === 'write'"
+                                                                                    @change="(checked: boolean) => updateWritePermission(user.uuid, checked)"
+                                                                                    checkedChildren="Write"
+                                                                                    unCheckedChildren="Read" />
+                                                                      </div>
+
+                                                               </a-list-item>
+                                                        </template>
+                                                 </a-list>
+                                          </div>
                                    </a-tab-pane>
                             </a-tabs>
                      </div>
@@ -683,18 +696,25 @@ interface User {
        inviteStatus: string;
        inviteDate: string;
        inviteAcceptedDate?: string;
+       inviteRefusedDate?: string;
 }
 
 const getInviteTooltip = (user: User): string => {
        if (user.inviteStatus === 'accepted') {
               const inviteDate = new Date(user.inviteDate).toLocaleDateString();
               const inviteAcceptedDate = new Date(user.inviteAcceptedDate!).toLocaleDateString();
-              return `Invited on: ${inviteDate}\nAccepted on: ${inviteAcceptedDate}`;
+              return `Invited on: ${inviteDate}<br/>Accepted on: ${inviteAcceptedDate}`;
+       } else if (user.inviteStatus === 'refused') {
+              const inviteDate = new Date(user.inviteDate).toLocaleDateString();
+              const inviteRefusedDate = new Date(user.inviteRefusedDate!).toLocaleDateString();
+              return `Invited on: ${inviteDate}<br/>Refused on: ${inviteRefusedDate}`;
        } else {
               const inviteDate = new Date(user.inviteDate).toLocaleDateString();
-              return `Invited on: ${inviteDate}`;
+              return `Invited on: ${inviteDate}<br/>Status: Pending`;
        }
 };
+
+
 
 watch(() => props.note, (newNote) => {
        console.log('Note content changed LOL:', newNote);

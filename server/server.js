@@ -194,8 +194,6 @@ app.post('/create-note', authenticate, async (req, res) => {
        }
 });
 
-
-
 app.post('/accept-invitation', authenticate, async (req, res) => {
        const { noteId } = req.body;
        const userId = req.user.uid;
@@ -257,7 +255,6 @@ app.post('/accept-invitation', authenticate, async (req, res) => {
               res.status(500).send('Internal server error');
        }
 });
-
 
 app.post('/delete-note', authenticate, async (req, res) => {
        console.log('Received request to /delete-note with data:', req.body);
@@ -339,6 +336,47 @@ app.post('/delete-note', authenticate, async (req, res) => {
               res.status(500).send('Internal server error');
        }
 });
+
+app.post('/refuse-invitation', authenticate, async (req, res) => {
+       const { noteId } = req.body;
+       const userId = req.user.uid;
+
+       if (!noteId) {
+              console.error('Note ID is missing:', req.body);
+              return res.status(400).send('Note ID is required');
+       }
+
+       try {
+              const db = admin.database();
+
+              // Reference to the user in the note's users array
+              const userNoteRef = db.ref(`notes/${noteId}/users/${userId}`);
+              const userSnapshot = await userNoteRef.once('value');
+
+              if (!userSnapshot.exists()) {
+                     console.error(`User ${userId} does not exist in note ${noteId}`);
+                     return res.status(404).send('User not found in the note');
+              }
+
+              // Update inviteStatus to 'refused'
+              await userNoteRef.update({
+                     inviteStatus: 'refused',
+                     inviteRefusedDate: Date.now(),
+              });
+              console.log(`User ${userId} refused the invitation for note ${noteId}`);
+
+              // Remove the invitation
+              const invitationRef = db.ref(`invitations/${userId}/${noteId}`);
+              await invitationRef.remove();
+              console.log(`Invitation for note ${noteId} removed for user ${userId}`);
+
+              res.status(200).send('Invitation refused successfully');
+       } catch (error) {
+              console.error('Error refusing invitation:', error);
+              res.status(500).send('Internal server error');
+       }
+});
+
 
 async function getUserRecordByEmail(email) {
        try {

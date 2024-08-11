@@ -11,7 +11,8 @@ export interface SharedNoteType {
                      email: string;        // Email of the user
                      inviteDate: Date;     // Date the user was invited to the note
                      inviteAcceptedDate?: Date | null; // Date the user accepted the invitation
-                     inviteStatus: "accepted" | "pending"; // Status of the user's invitation
+                     inviteRefusedDate?: Date | null;  // Date the user refused the invitation
+                     inviteStatus: "accepted" | "pending" | "refused"; // Status of the user's invitation
                      isArchived: boolean;   // Whether the note is archived for this user
                      isDeleted: boolean;    // Whether the note is deleted for this user
                      isPinned: boolean;     // Whether the note is pinned for this user
