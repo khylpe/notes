@@ -402,6 +402,7 @@ const foldersStore = useFoldersStore(); // Use the folders store
 const selectedFolder = ref<string | null>(userId && props.note.users[userId] ? props.note.users[userId].folderId : null); const hover = ref(false);
 const isEditMode = ref(false);
 const sharedNotesStore = useSharedNotesStore();
+const isDeletingNote = ref(false);
 
 const tabList = [
        {
@@ -651,6 +652,7 @@ const handleTagChange = async (newTags: string[]) => {
 
 const deleteNote = async () => {
        if (!userId || !editableNote.value.id) return;
+       isDeletingNote.value = true; // Set the flag to indicate note deletion is in progress
 
        try {
               const auth = getAuth();
@@ -778,13 +780,13 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-       if (userId) {
+       if (!isDeletingNote.value && userId) {
               sharedNotesStore.updateWatchingStatus(editableNote.value.id, userId, false);
               sharedNotesStore.updateWritingStatus(editableNote.value.id, userId, false);
        }
 
        window.removeEventListener('beforeunload', () => {
-              if (userId) {
+              if (userId && !isDeletingNote.value) {
                      sharedNotesStore.updateWatchingStatus(editableNote.value.id, userId, false);
                      sharedNotesStore.updateWritingStatus(editableNote.value.id, userId, false);
               }
