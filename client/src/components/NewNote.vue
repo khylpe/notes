@@ -166,6 +166,7 @@ const addNewNote = async () => {
                             selectedTags.value = [];
                             selectedFolder.value = null;
                             message.success('Note added successfully');
+                            emit('close');
                      } catch (error) {
                             if (error instanceof Error) {
                                    message.error(error.message);
