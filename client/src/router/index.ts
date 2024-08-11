@@ -13,7 +13,10 @@ import PinnedNotes from '../views/PinnedNotes.vue';
 import ArchivedNotes from './../views/ArchivedNotes.vue'; // Import the ArchivedNotes component
 import DeletedNotes from './../views/DeletedNotes.vue'; // Import the DeletedNotes component
 import NotesInvitation from '@/views/NotesInvitation.vue';
-import SharedNotes from '@/views/SharedNotes.vue';
+import PrivateNotes from '@/views/PrivateNotes.vue';
+import AllSharedNotes from '@/views/AllSharedNotes.vue';
+import MySharedNotes from '@/views/MySharedNotes.vue';
+import NotesSharedWithMe from '@/views/NotesSharedWithMe.vue';
 import { useUserInformationStore } from '@/stores/userInformationStore';
 
 const checkSignUpMethod = (user: User | null) => {
@@ -72,6 +75,11 @@ const router = createRouter({
                                    component: MyNotes
                             },
                             {
+                                   path: 'notes/private',
+                                   name: 'private',
+                                   component: PrivateNotes
+                            },
+                            {
                                    path: 'notes/pinned',
                                    name: 'pinned',
                                    component: PinnedNotes
@@ -102,10 +110,21 @@ const router = createRouter({
                                    component: NotesInvitation
                             },
                             {
-                                   path: 'notes/shared',
-                                   name: 'sharedNotes',
-                                   component: SharedNotes
-                            }
+                                   path: 'notes/all-shared-notes',
+                                   name: 'all-shared-notes',
+                                   component: AllSharedNotes
+                            },
+                            {
+                                   path: 'notes/my-shared-notes',
+                                   name: 'my-shared-notes',
+                                   component: MySharedNotes
+                            },
+                            {
+                                   path: 'notes/notes-shared-with-me',
+                                   name: 'notes-shared-with-me',
+                                   component: NotesSharedWithMe
+                            },
+
                      ]
               },
               { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },

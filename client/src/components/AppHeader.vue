@@ -122,7 +122,6 @@ const routeNameToTitle = [
        { path: 'profil', title: 'Profile' },
        { path: 'notes', title: 'All Notes' },
        { path: 'pinned', title: 'Pinned Notes' },
-       { path: 'note', title: 'Note Details' },
        { path: 'NotFound', title: 'Not Found' },
 ];
 
@@ -152,7 +151,16 @@ const updatePageName = () => {
               pageName.value = 'Archived Notes';
        } else if (route.path === '/notes/invitations') {
               pageName.value = 'Invitations';
-       } else {
+       } else if (route.path === '/notes/private') {
+              pageName.value = 'Private Notes';
+       } else if (route.path === '/notes/my-shared-notes') {
+              pageName.value = 'My Shared Notes';
+       } else if (route.path === '/notes/all-shared-notes') {
+              pageName.value = 'All Shared Notes';
+       } else if (route.path === '/notes/notes-shared-with-me') {
+              pageName.value = 'Shared With Me';
+       }
+       else {
               pageName.value = routeNameToTitle.find((r) => r.path === route.name)?.title || '';
        }
 };

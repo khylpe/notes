@@ -30,7 +30,7 @@
 
 <script lang="ts" setup>
 import { h, ref, onMounted, onUnmounted, watch, watchEffect } from 'vue';
-import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons-vue';
+import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, DeleteOutlined, InboxOutlined, LockOutlined, ShareAltOutlined, MailOutlined, CrownOutlined, LoginOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
 import { message } from 'ant-design-vue';
 import type { TagType } from '@/types/Tag';
@@ -203,6 +203,46 @@ const updateMenuItems = () => {
                      title: 'All notes',
                      onClick: () => router.push('/notes'),
               },
+              {
+                     key: 'Private',
+                     icon: () => h(LockOutlined),
+                     label: 'Private notes',
+                     title: 'Private notes',
+                     onClick: () => router.push('/notes/private'),
+              },
+              { type: 'divider' } as any,  // Divider between Tags and Archived
+              {
+                     key: 'Shared',
+                     icon: () => h(ShareAltOutlined),
+                     label: 'Shared Notes',
+                     title: 'Shared Notes',
+                     children: [
+                            {
+                                   label: 'All shared notes',
+                                   key: 'All shared notes',
+                                   icon: () => h(UnorderedListOutlined),
+                                   onClick: () => router.push('/notes/all-shared-notes'),
+                            },
+                            {
+                                   label: 'My shared notes',
+                                   key: 'My shared notes',
+                                   icon: () => h(CrownOutlined),
+                                   onClick: () => router.push('/notes/my-shared-notes'),
+                            },
+                            {
+                                   label: 'Notes shared with me',
+                                   key: 'Notes shared with me',
+                                   icon: () => h(LoginOutlined),
+                                   onClick: () => router.push('/notes/notes-shared-with-me'),
+                            },
+                            {
+                                   label: 'Invitations',
+                                   key: 'Invitations',
+                                   icon: () => h(MailOutlined),
+                                   onClick: () => router.push('/notes/invitations'),
+                            },
+                     ],
+              },
               { type: 'divider' } as any,  // Divider between Tags and Archived
 
               {
@@ -284,7 +324,19 @@ const updateSelectedKeys = (path: string) => {
               current.value = ['Archived'];
        } else if (decodedPath.includes('/notes/deleted')) {
               current.value = ['Deleted'];
-       } else {
+       } else if (decodedPath.includes('/notes/private')) {
+              current.value = ['Private'];
+       } else if (decodedPath.includes('/notes/all-shared-notes')) {
+              current.value = ['Shared', 'All shared notes'];
+       } else if (decodedPath.includes('/notes/invitations')) {
+              current.value = ['Shared', 'Invitations'];
+       } else if (decodedPath.includes('/notes/my-shared-notes')) {
+              current.value = ['Shared', 'My shared notes'];
+       } else if (decodedPath.includes('/notes/notes-shared-with-me')) {
+              current.value = ['Shared', 'Notes shared with me'];
+       }
+
+       else {
               current.value = [decodedPath.replace('/notes', 'notes')];
        }
 };
