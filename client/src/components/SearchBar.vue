@@ -51,38 +51,31 @@
                                           <a-input-search placeholder="Input Here" size="large"></a-input-search>
                                    </a-auto-complete>
                             </a-tooltip>
-                            <a-tooltip>
-                                   <!-- Tooltip value -->
+                            <!-- <a-tooltip>
                                    <template #title>Reset search settings</template>
-                                   <!-- Element to hover for tooltip -->
                                    <a-button @click="resetFilters" type="text" class="ml-2">
                                           <UndoOutlined class="flex-col"
                                                  style="font-size: 24px; display: flex; color: #7a7878" />
                                    </a-button>
-                            </a-tooltip>
+                            </a-tooltip> -->
                      </div>
                      <!-- Div containing settings such as Folder, Tags, date -->
-                     <div style="max-width: 600px; margin-top: -4px;"
+                     <!-- <div style="max-width: 600px; margin-top: -4px;"
                             class="flex justify-around flex-wrap pt-1 settings gap-2">
-                            <!-- margin-top (negative) must be equal of the padding-top value -->
-                            <!-- Select folder to search in -->
                             <a-select v-model:value="folderValue" mode="multiple"
                                    style="width: fit-content; min-width: 120px;" :options="folderOptions" size="large"
                                    :dropdown-match-select-width="200" :max-tag-count="3" placeholder="Folder"
                                    @change="handleFolderChange" class="setting flex-child">
                             </a-select>
-                            <!-- Filter by tags -->
                             <a-select v-model:value="tagValue" mode="multiple"
                                    style="width: fit-content ; min-width: 120px;" :options="tagOptions" size="large"
                                    :dropdown-match-select-width="200" :max-tag-count="3" placeholder="Tags"
                                    @change="handleTagChange" class="setting flex-child">
                                    <template v-slot:option="option">
-                                          <!-- Custom rendering of each option -->
                                           <div :style="{ color: option.color }">{{ option.label }}</div>
                                    </template>
                             </a-select>
 
-                            <!-- Filter by creation date -->
                             <a-space direction="vertical" :size="12" class="setting flex-child">
                                    <a-range-picker :presets="rangePresets" :disabled-date="disabledDate"
                                           format="DD/MM/YYYY" @change="onRangeChange" :value="selectedDateRange"
@@ -95,7 +88,7 @@
                                           </template>
                                    </a-range-picker>
                             </a-space>
-                     </div>
+                     </div> -->
               </div>
        </div>
 </template>
@@ -107,8 +100,11 @@ import dayjs, { Dayjs } from 'dayjs';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
 import { useFoldersStore } from '@/stores/foldersStore';
+import { useSharedNotesStore } from '@/stores/sharedNotesStore'; // Import shared notes store
 import type { NoteType } from '@/types/Note';
 import { message } from 'ant-design-vue';
+import type { SharedNoteType } from '@/types/SharedNote';
+import { getAuth } from 'firebase/auth';
 const isMobile = ref(window.innerWidth < 768);
 
 type RangeValue = [Dayjs, Dayjs];
@@ -116,7 +112,7 @@ type RangeValue = [Dayjs, Dayjs];
 interface DataSourceItem {
        value: string;
        count: number;
-       options: { title: string; date: string; }[];
+       options: { title: string; date: string; noteId: string; color?: string }[];
 }
 interface TagOption {
        label: string;
@@ -131,6 +127,7 @@ const selectedDateRange = ref<RangeValue | null>(null);
 const notesStore = useNotesStore();
 const tagsStore = useTagsStore();
 const foldersStore = useFoldersStore();
+const sharedNotesStore = useSharedNotesStore(); // Use shared notes store
 const searchValue = ref('');
 const tagValue = ref<string[]>([]);
 const folderValue = ref<string[]>([]);
@@ -163,31 +160,60 @@ const onRangeChange = (dates: RangeValue, dateStrings: string[]) => {
        selectedDateRange.value = dates || null;
        fetchNotesByFilters().catch(handleError);
 };
-
-const updateDataSource = (filteredNotes: NoteType[]) => {
+const updateDataSource = (filteredNotes: (NoteType | SharedNoteType)[]) => {
        isSearchResultsLoading.value = true;
-       const tagsMap = new Map<string, { notes: NoteType[], color: string }>();
-       const foldersMap = new Map<string, NoteType[]>();
+       const tagsMap = new Map<string, { notes: (NoteType | SharedNoteType)[], color: string }>();
+       const foldersMap = new Map<string, { notes: (NoteType | SharedNoteType)[], color: string }>();
 
        filteredNotes.forEach(note => {
-              // Handle tags
-              note.tagIds?.forEach(tagId => {
-                     const tagName = tagsStore.tags.find(tag => tag.id === tagId)?.name;
-                     const tagColor = tagsStore.tags.find(tag => tag.id === tagId)?.color || '#000';
-                     if (tagName) {
-                            if (!tagsMap.has(tagName)) {
-                                   tagsMap.set(tagName, { notes: [], color: tagColor });
+              if ('tagIds' in note && Array.isArray(note.tagIds)) {
+                     // Handle tags for NoteType
+                     note.tagIds.forEach(tagId => {
+                            const tagName = tagsStore.tags.find(tag => tag.id === tagId)?.name;
+                            const tagColor = tagsStore.tags.find(tag => tag.id === tagId)?.color || '#000';
+                            if (tagName) {
+                                   if (!tagsMap.has(tagName)) {
+                                          tagsMap.set(tagName, { notes: [], color: tagColor });
+                                   }
+                                   tagsMap.get(tagName)?.notes.push(note);
                             }
-                            tagsMap.get(tagName)?.notes.push(note);
-                     }
-              });
+                     });
 
-              // Handle folders
-              const folderKey = note.folderId ? note.folderId : 'All Notes';
-              if (!foldersMap.has(folderKey)) {
-                     foldersMap.set(folderKey, []);
+                     // Handle folders for NoteType
+                     const folder = note.folderId ? foldersStore.folders.find(folder => folder.id === note.folderId) : null;
+                     const folderName = folder ? folder.name : 'All Notes';
+                     const folderColor = folder ? folder.color : '#000';
+
+                     if (!foldersMap.has(folderName)) {
+                            foldersMap.set(folderName, { notes: [], color: folderColor });
+                     }
+                     foldersMap.get(folderName)?.notes.push(note);
+              } else if ('users' in note) {
+                     // Handle tags and folders for SharedNoteType
+                     const userId = getAuth().currentUser?.uid ?? '';
+
+                     if (userId && note.users[userId]?.tags && Array.isArray(note.users[userId].tags)) {
+                            note.users[userId].tags.forEach(tagId => {
+                                   const tagName = tagsStore.tags.find(tag => tag.id === tagId)?.name;
+                                   const tagColor = tagsStore.tags.find(tag => tag.id === tagId)?.color || '#000';
+                                   if (tagName) {
+                                          if (!tagsMap.has(tagName)) {
+                                                 tagsMap.set(tagName, { notes: [], color: tagColor });
+                                          }
+                                          tagsMap.get(tagName)?.notes.push(note);
+                                   }
+                            });
+
+                            const folder = note.users[userId].folderId ? foldersStore.folders.find(folder => folder.id === note.users[userId].folderId) : null;
+                            const folderName = folder ? folder.name : 'All Notes';
+                            const folderColor = folder ? folder.color : '#000';
+
+                            if (!foldersMap.has(folderName)) {
+                                   foldersMap.set(folderName, { notes: [], color: folderColor });
+                            }
+                            foldersMap.get(folderName)?.notes.push(note);
+                     }
               }
-              foldersMap.get(folderKey)?.push(note);
        });
 
        // Convert the maps to the dataSource format
@@ -202,17 +228,27 @@ const updateDataSource = (filteredNotes: NoteType[]) => {
               }))
        }));
 
-       const foldersData = Array.from(foldersMap, ([key, notes]) => ({
+       const foldersData = Array.from(foldersMap, ([key, { notes, color }]) => ({
               value: key.charAt(0).toUpperCase() + key.slice(1),
               count: notes.length,
               options: notes.map(note => ({
                      title: note.title,
                      date: Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(note.createdDate),
-                     noteId: note.id
+                     noteId: note.id,
+                     color: color, // Include the color here
               }))
        }));
 
-       const pinnedNotes = filteredNotes.filter(note => note.isPinned);
+       const pinnedNotes = filteredNotes.filter(note => {
+              if ('isPinned' in note) {
+                     return note.isPinned;
+              } else if ('users' in note) {
+                     const userId = getAuth().currentUser?.uid ?? '';
+                     return userId && note.users[userId]?.isPinned;
+              }
+              return false;
+       });
+
        const pinnedData = {
               value: 'Pinned',
               count: pinnedNotes.length,
@@ -227,6 +263,10 @@ const updateDataSource = (filteredNotes: NoteType[]) => {
        isSearchResultsLoading.value = false;
 };
 
+
+
+
+
 const fetchNotesByFilters = async () => {
        isSearchResultsLoading.value = true;
        try {
@@ -239,12 +279,21 @@ const fetchNotesByFilters = async () => {
                      dateRange = [selectedDateRange.value[0].toDate(), selectedDateRange.value[1].toDate()] as [Date, Date];
               }
 
-              const filteredNotes = await notesStore.fetchFilteredNotes(
+              const filteredOwnedNotes = await notesStore.fetchFilteredNotes(
                      searchValue.value,
                      selectedTag,
                      selectedFolders,
                      dateRange
               );
+
+              const filteredSharedNotes = await sharedNotesStore.fetchFilteredSharedNotes(
+                     searchValue.value,
+                     selectedTag,
+                     selectedFolders,
+                     dateRange
+              );
+
+              const filteredNotes = [...filteredOwnedNotes, ...filteredSharedNotes];
               updateDataSource(filteredNotes);
        } catch (error) {
               handleError(error);
@@ -311,6 +360,7 @@ onMounted(async () => {
        await foldersStore.fetchFolders();
        await tagsStore.fetchTags();
        await notesStore.fetchAndStoreNotes();
+       await sharedNotesStore.fetchAllNotes(); // Fetch shared notes
 });
 </script>
 

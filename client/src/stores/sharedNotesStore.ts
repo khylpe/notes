@@ -593,5 +593,50 @@ export const useSharedNotesStore = defineStore('sharedNotes', {
                      const userNoteRef = ref(db, `notes/${noteId}/users/${userId}`);
                      await update(userNoteRef, { notificationSent: true });
               },
+
+              async fetchFilteredSharedNotes(
+                     titleOrContentValue: string | null,
+                     tagIds: (string | null)[],
+                     folderIds: (string | null)[],
+                     dateRange: [Date, Date] | null
+              ) {
+                     console.log('Filtering shared notes based on search criteria');
+
+                     // Ensure notes are loaded
+                     if (this.allNotes.length === 0) {
+                            await this.fetchAllNotes();
+                     }
+
+                     // Filter notes based on the provided criteria
+                     return this.allNotes.filter(note => {
+                            // Filter by title or content
+                            const matchesTitleOrContent = titleOrContentValue
+                                   ? note.title.toLowerCase().includes(titleOrContentValue.toLowerCase()) ||
+                                   note.content.toLowerCase().includes(titleOrContentValue.toLowerCase())
+                                   : true;
+
+                            // Filter by tags
+                            const matchesTags = tagIds.length > 0
+                                   ? tagIds.some(tagId => note.users[getAuth().currentUser?.uid ?? ''].tags?.includes(tagId ?? ''))
+                                   : true;
+
+                            // Filter by folders
+                            const matchesFolders = folderIds.length > 0
+                                   ? folderIds.includes(note.users[getAuth().currentUser?.uid ?? ''].folderId)
+                                   : true;
+
+                            // Filter by date range
+                            let matchesDateRange = true;
+                            if (dateRange) {
+                                   const [startDate, endDate] = dateRange;
+                                   const noteDate = new Date(note.createdDate);
+
+                                   matchesDateRange = noteDate >= startDate && noteDate <= endDate;
+                            }
+
+                            return matchesTitleOrContent && matchesTags && matchesFolders && matchesDateRange;
+                     });
+              }
+
        },
 });
