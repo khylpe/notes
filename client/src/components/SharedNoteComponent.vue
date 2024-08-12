@@ -106,7 +106,8 @@
                                    <div class="flex justify-center mt-3">
                                           <a-select mode="multiple" :allowClear="true" v-model:value="selectedTags"
                                                  placeholder="Select tags" style="width: 150px" :options="tagOptions"
-                                                 @change="handleTagChange">
+                                                 @change="handleTagChange"
+                                                 :filterOption="filterTagOption" @search="handleTagSearch">
                                                  <template #suffixIcon><tags-outlined /></template>
                                           </a-select>
                                    </div>
@@ -266,6 +267,7 @@
                                           <div class="flex justify-center mt-3">
                                                  <a-select mode="multiple" :allowClear="true"
                                                         v-model:value="selectedTags" placeholder="Select tags"
+                                                        :filterOption="filterTagOption" @search="handleTagSearch"
                                                         style="width: 150px" :options="tagOptions"
                                                         @change="handleTagChange">
                                                         <template #suffixIcon><tags-outlined /></template>
@@ -395,6 +397,7 @@ import { message } from 'ant-design-vue';
 import { watch } from 'vue';
 import { debounce } from 'lodash'; // Import debounce function from lodash
 
+const searchTagText = ref(''); // Track the search text for tags
 const router = useRouter();
 const userId = getAuth().currentUser?.uid; // Get the current user's UID
 const props = defineProps<{ note: SharedNoteType }>();
@@ -765,6 +768,14 @@ const watchingUsers = computed(() => {
 const writingUsers = computed(() => {
        return Object.values(editableNote.value.users).filter(user => user.isWriting && user.uuid !== userId);
 });
+
+const filterTagOption = (input: string, option: any) => {
+       return option?.label?.toLowerCase().includes(input.toLowerCase());
+};
+
+const handleTagSearch = (value: string) => {
+       searchTagText.value = value;
+};
 
 onMounted(() => {
        if (userId) {

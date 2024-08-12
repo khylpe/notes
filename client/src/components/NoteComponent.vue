@@ -105,9 +105,11 @@
                                    </div>
                                    <div class="flex justify-center mt-3">
                                           <a-select mode="multiple" :allowClear="true" v-model:value="selectedTags"
-                                                 placeholder="Select tags" style="width: 150px" :options="tagOptions">
+                                                 placeholder="Select tags" style="width: 150px" :options="tagOptions"
+                                                 :filterOption="filterTagOption" @search="handleTagSearch">
                                                  <template #suffixIcon><tags-outlined /></template>
                                           </a-select>
+
                                    </div>
                             </template>
                      </a-card-meta>
@@ -178,7 +180,9 @@
                                           <div class="flex justify-center mt-3">
                                                  <a-select mode="multiple" :allowClear="true"
                                                         v-model:value="selectedTags" placeholder="Select tags"
-                                                        style="width: 150px" :options="tagOptions">
+                                                        style="width: 150px" :options="tagOptions"
+                                                        :filterOption="filterTagOption" @search="handleTagSearch"
+                                                        >
                                                         <template #suffixIcon><tags-outlined /></template>
                                                  </a-select>
                                           </div>
@@ -264,6 +268,7 @@ const foldersStore = useFoldersStore(); // Use the folders store
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
 const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id }))); // Folder options for select
 
+const searchTagText = ref(''); // Track the search text for tags
 const key = ref('Note');
 const hover = ref(false);
 const isEditMode = ref(false);
@@ -545,6 +550,14 @@ const truncatedMarkdown = computed(() => {
 const compiledMarkdown = computed(() => {
        return md.render(editableNote.value.content || '');
 });
+
+const filterTagOption = (input: string, option: any) => {
+       return option?.label?.toLowerCase().includes(input.toLowerCase());
+};
+
+const handleTagSearch = (value: string) => {
+       searchTagText.value = value;
+};
 
 watch(() => props.note, (newNote) => {
        editableNote.value = { ...newNote };

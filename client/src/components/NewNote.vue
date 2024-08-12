@@ -18,20 +18,20 @@
                             </div>
                      </a-form-item>
 
-                     <a-form-item label="Tags">
-                            <a-select v-model:value="selectedTags" placeholder="Select tags" :options="tagOptions"
-                                   mode="multiple" allowClear>
-                                   <template #suffixIcon>
-                                          <tags-outlined />
-                                   </template>
-                            </a-select>
-                     </a-form-item>
-
                      <a-form-item label="Folder">
                             <a-select v-model:value="selectedFolder" placeholder="Select folder"
                                    :options="folderOptions" allowClear>
                                    <template #suffixIcon>
                                           <folder-outlined />
+                                   </template>
+                            </a-select>
+                     </a-form-item>
+
+                     <a-form-item label="Tags">
+                            <a-select v-model:value="selectedTags" placeholder="Select tags" mode="multiple" allowClear
+                                   :options="tagOptions" :filterOption="filterTagOption" @search="handleTagSearch">
+                                   <template #suffixIcon>
+                                          <tags-outlined />
                                    </template>
                             </a-select>
                      </a-form-item>
@@ -61,7 +61,6 @@
                             </div>
                      </a-form-item>
 
-
                      <div class="note-actions">
                             <a-popconfirm title="Clear ? (In case your double clicked on your tag like a guignol)"
                                    ok-text="Yes" cancel-text="No" @confirm="resetForm">
@@ -83,15 +82,13 @@ import { TagsOutlined, FolderOutlined } from '@ant-design/icons-vue';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
 import { useFoldersStore } from '@/stores/foldersStore';
-import type { NoteType } from '@/types/Note';
 import { message } from 'ant-design-vue';
 import md from '../markdown';
-import type { SharedNoteType } from '@/types/SharedNote';
-import { getAuth } from 'firebase/auth';
 import { defineEmits } from 'vue';
+import { getAuth } from 'firebase/auth';
+import type { NoteType } from '@/types/Note';
 
 const emit = defineEmits(['close']);
-
 const initialFormState = { title: '', description: '' };
 const formState = reactive<FormState>({ ...initialFormState });
 const noteModified = ref(false);
@@ -102,10 +99,11 @@ const selectedFolder = ref<string | null>(null);
 const isShared = ref(false);
 const newEmail = ref('');
 const sharedEmails = ref<string[]>([]);
-let sharedEmailsAccess = reactive<Record<string, string>>({}); // Changed to let
+let sharedEmailsAccess = reactive<Record<string, string>>({});
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
 const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id })));
 const notesStore = useNotesStore();
+const searchTagText = ref(''); // Track the search text for tags
 
 const accessOptions = ref([
        { label: 'Read', value: 'read' },
@@ -133,7 +131,6 @@ watch(
 const renderedMarkdown = computed(() => {
        return md.render(formState.description);
 });
-
 const addNewNote = async () => {
        if (formState.title.trim() && formState.description.trim()) {
               const auth = getAuth();
@@ -245,14 +242,12 @@ const addNewNote = async () => {
        }
 };
 
-
-
 const resetForm = () => {
        Object.assign(formState, initialFormState);
        selectedTags.value = [];
        selectedFolder.value = null;
        sharedEmails.value = [];
-       sharedEmailsAccess = reactive({}); // Clear access levels properly
+       sharedEmailsAccess = reactive({});
        isShared.value = false;
        noteModified.value = false;
        newEmail.value = '';
@@ -267,30 +262,34 @@ const handleKeyPress = (event: KeyboardEvent, field: 'title' | 'description') =>
        }
 };
 
+const handleTagSearch = (value: string) => {
+       searchTagText.value = value;
+};
+
+const filterTagOption = (input: string, option: any) => {
+       return option?.label?.toLowerCase().includes(input.toLowerCase());
+};
+
 const addEmail = () => {
        if (newEmail.value.trim() && validateEmail(newEmail.value)) {
-              sharedEmails.value.push(newEmail.value.trim()); // Store the email as-is
-              sharedEmailsAccess[newEmail.value.trim()] = 'read'; // Store access level
-              newEmail.value = ''; // Reset input
+              sharedEmails.value.push(newEmail.value.trim());
+              sharedEmailsAccess[newEmail.value.trim()] = 'read';
+              newEmail.value = '';
        } else {
               message.warning('Please enter a valid email address');
        }
 };
 
-
 const removeEmail = (index: number) => {
        const email = sharedEmails.value[index];
-       const safeEmailKey = email.replace(/\./g, ',');
        sharedEmails.value.splice(index, 1);
-       delete sharedEmailsAccess[safeEmailKey];
+       delete sharedEmailsAccess[email];
 };
 
 const validateEmail = (email: string) => {
        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@"]+\.)+[^<>()[\]\\.,;:\s@"]{2,})$/i;
        return re.test(String(email).toLowerCase());
 };
-
-
 </script>
 
 <style scoped>
