@@ -6,7 +6,16 @@
        </div>
 
        <div class="flex flex-wrap justify-center mt-4">
-              <div v-if="filteredNotesByTag.length > 0 || sharedNotesByTag.length > 0"
+              <!-- Skeleton loading state -->
+              <div v-if="loading"
+                     class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
+                     <div v-for="index in 3" :key="index" class="note flex justify-center">
+                            <SkeletonNote />
+                     </div>
+              </div>
+
+              <!-- Display notes when not loading -->
+              <div v-else-if="filteredNotesByTag.length > 0 || sharedNotesByTag.length > 0"
                      class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
                      <div class="note flex justify-center" v-for="note in filteredNotesByTag" :key="note.id">
                             <Note :note="note" />
@@ -17,6 +26,7 @@
                      </div>
               </div>
 
+              <!-- Display message if no notes are available -->
               <a-result v-else status="info" :title="`Add your first note to the ${tagName} tag`"
                      sub-title="You currently have no notes in this tag. Create a new note and add it to this tag to get started!">
               </a-result>
@@ -36,41 +46,46 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useNotesStore } from '@/stores/notesStore';
 import { useTagsStore } from '@/stores/tagsStore';
-import Note from '@/components/NoteComponent.vue';
-import type { NoteType } from '@/types/Note';
-import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
-import { ref } from 'vue';
-import { Modal as AModal, message } from 'ant-design-vue'; // Import Modal
-import type { TagType } from '@/types/Tag';
-import router from '@/router';
 import { useSharedNotesStore } from '@/stores/sharedNotesStore';
-import type { SharedNoteType } from '@/types/SharedNote';
 import { getAuth } from 'firebase/auth';
+import Note from '@/components/NoteComponent.vue';
 import SharedNote from '@/components/SharedNoteComponent.vue';
+import SkeletonNote from '@/components/SkeletonNote.vue';
+import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import type { NoteType } from '@/types/Note';
+import type { SharedNoteType } from '@/types/SharedNote';
+import type { TagType } from '@/types/Tag';
+import { message } from 'ant-design-vue';
+import router from '@/router';
 
 const route = useRoute();
 const tagName = computed(() => route.params.tagName as string);
-console.log("🚀 ~ tagName:", tagName.value);
-const sharedNotesStore = useSharedNotesStore();
-       
 const notesStore = useNotesStore();
 const tagsStore = useTagsStore();
-notesStore.fetchAndStoreNotes();
+const sharedNotesStore = useSharedNotesStore();
 
+const loading = ref(true); // Loading state
 const auth = getAuth();
 const currentUserId = auth.currentUser?.uid;
 
-onMounted(() => {
-       sharedNotesStore.fetchAllNotes(); // Fetch notes shared with the user
+onMounted(async () => {
+       loading.value = true;
+       try {
+              await notesStore.fetchAndStoreNotes();
+              await sharedNotesStore.fetchAllNotes(); // Fetch notes shared with the user
+              await tagsStore.fetchTags(); // Fetch tags
+       } finally {
+              loading.value = false;
+       }
 });
 
 const filteredNotesByTag = computed<NoteType[]>(() => {
        return notesStore.notes
-              .filter(note => note.tagIds && note.tagIds.includes(tagId.value ?? '') && !note.isDeleted && !note.isArchived) 
+              .filter(note => note.tagIds && note.tagIds.includes(tagId.value ?? '') && !note.isDeleted && !note.isArchived)
               .sort((a, b) => {
                      const dateA = a.updatedDate ? new Date(a.updatedDate).getTime() : new Date(a.createdDate).getTime();
                      const dateB = b.updatedDate ? new Date(b.updatedDate).getTime() : new Date(b.createdDate).getTime();
@@ -89,9 +104,6 @@ const sharedNotesByTag = computed<SharedNoteType[]>(() => {
               });
 });
 
-
-tagsStore.fetchTags();
-
 const tagColor = computed(() => {
        const tag = tagsStore.tags.find(t => t.name === tagName.value);
        return tag ? tag.color : null;
@@ -99,7 +111,6 @@ const tagColor = computed(() => {
 
 const newTagColor = ref(tagColor.value); // Default color
 const isModalVisible = ref(false);
-
 const newTagName = ref(tagName.value);
 const isModifyingTagLoading = ref(false);
 

@@ -772,7 +772,7 @@ onMounted(() => {
        }
 
        window.addEventListener('beforeunload', () => {
-              if (userId) {
+              if (userId && !isDeletingNote.value) {
                      sharedNotesStore.updateWatchingStatus(editableNote.value.id, userId, false);
                      sharedNotesStore.updateWritingStatus(editableNote.value.id, userId, false);
               }

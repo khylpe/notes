@@ -299,10 +299,11 @@ app.post('/delete-note', authenticate, async (req, res) => {
                      const invitationsRef = db.ref('invitations');
                      const invitationsSnapshot = await invitationsRef.once('value');
                      invitationsSnapshot.forEach((childSnapshot) => {
-                            const invitation = childSnapshot.val();
-                            if (invitation.noteId === noteId) {
+                            const invitationData = childSnapshot.val();
+                            // If invitation data contains the noteId, remove the child
+                            if (invitationData[noteId]) {
                                    childSnapshot.ref.remove();
-                                   console.log(`Invitation for note ${noteId} removed`);
+                                   console.log(`Invitation for note ${noteId} removed for user ${childSnapshot.key}`);
                             }
                      });
 
@@ -336,6 +337,7 @@ app.post('/delete-note', authenticate, async (req, res) => {
               res.status(500).send('Internal server error');
        }
 });
+
 
 app.post('/refuse-invitation', authenticate, async (req, res) => {
        const { noteId } = req.body;

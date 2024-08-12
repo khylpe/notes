@@ -6,7 +6,16 @@
        </div>
 
        <div class="flex flex-wrap justify-center mt-4">
-              <div v-if="filteredNotesByFolder.length > 0 || sharedNotesByFolder.length > 0"
+              <!-- Skeleton loading state -->
+              <div v-if="loading"
+                     class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
+                     <div v-for="index in 3" :key="index" class="note flex justify-center">
+                            <SkeletonNote />
+                     </div>
+              </div>
+
+              <!-- Display notes when not loading -->
+              <div v-else-if="filteredNotesByFolder.length > 0 || sharedNotesByFolder.length > 0"
                      class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
                      <div class="note flex justify-center" v-for="note in filteredNotesByFolder" :key="note.id">
                             <Note :note="note" />
@@ -17,6 +26,7 @@
                      </div>
               </div>
 
+              <!-- Display message if no notes are available -->
               <a-result v-else status="info" :title="`Add your first note to the ${folderName} folder`"
                      sub-title="You currently have no notes in this folder. Create a new note and add it to this folder to get started!">
               </a-result>
@@ -35,41 +45,50 @@
        </a-modal>
 </template>
 
-
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useNotesStore } from '@/stores/notesStore';
 import { useFoldersStore } from '@/stores/foldersStore';
-import Note from '@/components/NoteComponent.vue';
-import type { NoteType } from '@/types/Note';
-import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
-import { ref } from 'vue';
-import { message } from 'ant-design-vue';
-import type { FolderType } from '@/types/Folder';
-import router from '@/router';
 import { useSharedNotesStore } from '@/stores/sharedNotesStore';
-import type { SharedNoteType } from '@/types/SharedNote';
 import { getAuth } from 'firebase/auth';
+import Note from '@/components/NoteComponent.vue';
 import SharedNote from '@/components/SharedNoteComponent.vue';
+import SkeletonNote from '@/components/SkeletonNote.vue';
+import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import type { NoteType } from '@/types/Note';
+import type { SharedNoteType } from '@/types/SharedNote';
+import type { FolderType } from '@/types/Folder';
+import { message } from 'ant-design-vue';
+import router from '@/router';
 
 const route = useRoute();
 const notesStore = useNotesStore();
 const foldersStore = useFoldersStore();
 const sharedNotesStore = useSharedNotesStore();
 
-notesStore.fetchAndStoreNotes();
-foldersStore.fetchFolders();
+const loading = ref(true);
 
 const auth = getAuth();
 const currentUserId = auth.currentUser?.uid;
 
-onMounted(() => {
-       sharedNotesStore.fetchAllNotes(); // Fetch notes shared with the user
+onMounted(async () => {
+       loading.value = true;
+       try {
+              await notesStore.fetchAndStoreNotes();
+              await foldersStore.fetchFolders();
+              await sharedNotesStore.fetchAllNotes(); // Fetch notes shared with the user
+       } finally {
+              loading.value = false;
+       }
 });
 
-
 const folderName = computed(() => route.params.folderName as string);
+
+const folderId = computed(() => {
+       const folder = foldersStore.folders.find(f => f.name === folderName.value);
+       return folder ? folder.id : null;
+});
 
 const filteredNotesByFolder = computed<NoteType[]>(() => {
        return notesStore.notes
@@ -105,14 +124,6 @@ const isModifyingFolderLoading = ref(false);
 const openModal = () => {
        isModalVisible.value = true;
 };
-
-const folderId = computed(() => {
-       console.log(folderName.value)
-       console.log(foldersStore.folders)
-       const folder = foldersStore.folders.find(f => f.name === folderName.value);
-       console.log("🚀 ~ folderId ~ folder:", folder);
-       return folder ? folder.id : null;
-});
 
 watch(route, () => {
        notesStore.fetchAndStoreNotes();

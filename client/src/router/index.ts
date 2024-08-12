@@ -3,10 +3,9 @@ import { getAuth, onAuthStateChanged, reload, type User } from 'firebase/auth';
 import ConnectedLayout from '@/layouts/ConnectedLayout.vue';
 import NotConnectedLayout from '@/layouts/NotConnectedLayout.vue';
 import Profil from './../views/ProfilView.vue';
-import MyNotes from './../views/MyNotes.vue';
+import AllNotes from '../views/AllNotes.vue';
 import LoginForm from '../views/LoginView.vue';
 import VerifyEmail from './../views/VerifyEmail.vue';
-import NotFound from './../views/NotFound.vue';
 import NotesByTag from './../views/NotesByTag.vue';
 import NotesByFolder from './../views/NotesByFolder.vue';
 import PinnedNotes from '../views/PinnedNotes.vue';
@@ -72,7 +71,7 @@ const router = createRouter({
                             {
                                    path: 'notes',
                                    name: 'notes',
-                                   component: MyNotes
+                                   component: AllNotes
                             },
                             {
                                    path: 'notes/private',
@@ -124,10 +123,9 @@ const router = createRouter({
                                    name: 'notes-shared-with-me',
                                    component: NotesSharedWithMe
                             },
-
                      ]
               },
-              { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
+              { path: '/:pathMatch(.*)*', name: 'NotFound', component: AllNotes },
        ]
 });
 

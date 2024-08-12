@@ -1,6 +1,16 @@
 <template>
        <div class="flex flex-wrap justify-center mt-4">
-              <div v-if="ownedNotes.length > 0 || sharedNotes.length > 0"
+              <!-- Skeleton loading state -->
+              <div v-if="loading"
+                     class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
+                     <!-- Display multiple skeleton components to represent the loading state -->
+                     <div v-for="index in 3" :key="index" class="note flex justify-center">
+                            <SkeletonNote />
+                     </div>
+              </div>
+
+              <!-- Actual notes when loaded -->
+              <div v-else-if="ownedNotes.length > 0 || sharedNotes.length > 0"
                      class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
 
                      <!-- Owned Notes -->
@@ -14,14 +24,15 @@
                      </div>
               </div>
 
-              <a-result v-else status="info" title="Create or access your notes"
-                     sub-title="You currently have no notes. Create a new note or accept an invitation to access shared notes.">
+              <!-- No notes available -->
+              <a-result v-else status="info" title="Create your first note"
+                     sub-title="You currently have no notes. Create a new note now !">
               </a-result>
        </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import Note from '@/components/NoteComponent.vue';
 import SharedNote from '@/components/SharedNoteComponent.vue';
 import { useNotesStore } from '@/stores/notesStore';
@@ -29,14 +40,21 @@ import { useSharedNotesStore } from '@/stores/sharedNotesStore';
 import type { NoteType } from '@/types/Note';
 import type { SharedNoteType } from '@/types/SharedNote';
 import { getAuth } from 'firebase/auth';
+import SkeletonNote from '@/components/SkeletonNote.vue';
 
 const notesStore = useNotesStore();
 const sharedNotesStore = useSharedNotesStore();
+const loading = ref(true);
 
-onMounted(() => {
-       notesStore.fetchAndStoreNotes();  // Fetch owned notes
-       sharedNotesStore.fetchAllNotes(); // Fetch shared notes
-       sharedNotesStore.listenForUserNotes(); // Listen for real-time updates on shared notes
+onMounted(async () => {
+       try {
+              loading.value = true;
+              await notesStore.fetchAndStoreNotes();  // Fetch owned notes
+              await sharedNotesStore.fetchAllNotes(); // Fetch shared notes
+              sharedNotesStore.listenForUserNotes();  // Listen for real-time updates on shared notes
+       } finally {
+              loading.value = false;
+       }
 });
 
 const auth = getAuth();

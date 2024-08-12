@@ -474,9 +474,17 @@ export const useSharedNotesStore = defineStore('sharedNotes', {
               async updateWatchingStatus(noteId: string, userId: string, isWatching: boolean) {
                      console.log(`Updating watching status for user ${userId} on note ${noteId} to ${isWatching}`);
                      const db = getDatabase();
-                     const userNoteRef = ref(db, `notes/${noteId}/users/${userId}`);
+                     const noteRef = ref(db, `notes/${noteId}`);
 
                      try {
+                            // Check if the note exists
+                            const noteSnapshot = await get(noteRef);
+                            if (!noteSnapshot.exists()) {
+                                   console.error(`Note ${noteId} does not exist, cannot update watching status.`);
+                                   return;
+                            }
+
+                            const userNoteRef = ref(db, `notes/${noteId}/users/${userId}`);
                             await update(userNoteRef, { isWatching: isWatching });
                             console.log(`Watching status updated successfully for user ${userId} on note ${noteId}`);
 
@@ -492,12 +500,21 @@ export const useSharedNotesStore = defineStore('sharedNotes', {
                             console.error('Error updating watching status:', error);
                      }
               },
+
               async updateWritingStatus(noteId: string, userId: string, isWriting: boolean) {
                      console.log(`Updating writing status for user ${userId} on note ${noteId} to ${isWriting}`);
                      const db = getDatabase();
-                     const userNoteRef = ref(db, `notes/${noteId}/users/${userId}`);
+                     const noteRef = ref(db, `notes/${noteId}`);
 
                      try {
+                            // Check if the note exists
+                            const noteSnapshot = await get(noteRef);
+                            if (!noteSnapshot.exists()) {
+                                   console.error(`Note ${noteId} does not exist, cannot update writing status.`);
+                                   return;
+                            }
+
+                            const userNoteRef = ref(db, `notes/${noteId}/users/${userId}`);
                             await update(userNoteRef, { isWriting: isWriting });
                             console.log(`Writing status updated successfully for user ${userId} on note ${noteId}`);
 
