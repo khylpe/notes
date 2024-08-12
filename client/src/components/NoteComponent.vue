@@ -95,24 +95,42 @@
                      <!-- Settings content here -->
                      <a-card-meta style="min-height: 200px;">
                             <template #description>
-                                   <div class="flex justify-center">
-                                          <a-select :allowClear="true" v-model:value="selectedFolder"
-                                                 placeholder="Select folder" style="width: 150px"
-                                                 :options="folderOptions">
-                                                 <template #suffixIcon><folder-outlined /></template>
-                                          </a-select>
+                                   <div class="flex flex-row justify-center items-stretch relative">
+                                          <div class="flex flex-col justify-center">
+                                                 <div class="flex justify-center">
+                                                        <a-select :allowClear="true" v-model:value="selectedFolder"
+                                                               placeholder="Select folder" style="width: 150px"
+                                                               :options="folderOptions">
+                                                               <template #suffixIcon><folder-outlined /></template>
+                                                        </a-select>
+                                                 </div>
+                                                 <div class="flex justify-center mt-3">
+                                                        <a-select mode="multiple" :allowClear="true"
+                                                               v-model:value="selectedTags" placeholder="Select tags"
+                                                               style="width: 150px" :options="tagOptions"
+                                                               :filterOption="filterTagOption"
+                                                               @search="handleTagSearch">
+                                                               <template #suffixIcon><tags-outlined /></template>
+                                                        </a-select>
+                                                 </div>
+                                          </div>
 
-                                   </div>
-                                   <div class="flex justify-center mt-3">
-                                          <a-select mode="multiple" :allowClear="true" v-model:value="selectedTags"
-                                                 placeholder="Select tags" style="width: 150px" :options="tagOptions"
-                                                 :filterOption="filterTagOption" @search="handleTagSearch">
-                                                 <template #suffixIcon><tags-outlined /></template>
-                                          </a-select>
+                                          <!-- Divider with absolute positioning and full height -->
+                                          <a-divider type="vertical"
+                                                 class="absolute left-1/2 transform -translate-x-1/2 h-full" />
 
+                                          <div class="flex items-center ml-10">
+                                                 <a-popconfirm title="Are you sure you want to share this note ?"
+                                                        ok-text="Yes" cancel-text="No" @confirm="shareNote">
+                                                        <a-button>Share this note</a-button>
+                                                 </a-popconfirm>
+                                          </div>
                                    </div>
                             </template>
                      </a-card-meta>
+
+
+
               </template>
               <template #extra>
                      <div class="flex items-center">
@@ -181,8 +199,7 @@
                                                  <a-select mode="multiple" :allowClear="true"
                                                         v-model:value="selectedTags" placeholder="Select tags"
                                                         style="width: 150px" :options="tagOptions"
-                                                        :filterOption="filterTagOption" @search="handleTagSearch"
-                                                        >
+                                                        :filterOption="filterTagOption" @search="handleTagSearch">
                                                         <template #suffixIcon><tags-outlined /></template>
                                                  </a-select>
                                           </div>
@@ -247,7 +264,7 @@
 
 <script lang="ts" setup>
 import { CheckOutlined, SettingOutlined, CalendarOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, reactive } from 'vue';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons-vue';
 
 import type { NoteType } from '@/types/Note';
@@ -260,6 +277,8 @@ import { message } from 'ant-design-vue';
 import { ShrinkOutlined } from '@ant-design/icons-vue';
 import md from '../markdown';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
 const props = defineProps<{ note: NoteType }>();
 const notesStore = useNotesStore();
@@ -280,8 +299,43 @@ const pinIconColor = ref('currentColor');
 const showFullContent = ref(false);
 const isFullScreenModalVisible = ref(false);
 const router = useRouter();
-
 const isMobile = ref(window.innerWidth < 768);
+
+const shareNote = async () => {
+       if (!editableNote.value.id) {
+              message.error("No note ID available for making public.");
+              return;
+       }
+
+       try {
+              const response = await axios.post('http://localhost:5000/make-note-public', {
+                     noteId: editableNote.value.id,
+              }, {
+                     headers: {
+                            Authorization: `Bearer ${await getCurrentUserToken()}`, // Replace with your method to get the current user's token
+                     }
+              });
+
+              if (response.status === 200) {
+                     message.success('Note made public successfully');
+                     // Optionally remove the note from the current store or update the UI
+              }
+       } catch (error) {
+              if (error.response && error.response.data) {
+                     message.error(error.response.data);
+              } else {
+                     message.error('An error occurred while making the note public.');
+              }
+       }
+};
+
+const getCurrentUserToken = async () => {
+       const user = getAuth().currentUser;
+       if (user) {
+              return await user.getIdToken();
+       }
+       return null;
+};
 
 const handleResize = () => {
        // Update the isMobile ref based on the current window width

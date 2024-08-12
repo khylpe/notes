@@ -198,7 +198,6 @@ app.post('/create-note', authenticate, async (req, res) => {
        }
 });
 
-
 app.post('/accept-invitation', authenticate, async (req, res) => {
        const { noteId } = req.body;
        const userId = req.user.uid;
@@ -455,6 +454,138 @@ app.post('/resend-invite', authenticate, async (req, res) => {
        }
 });
 
+app.post('/make-note-public', authenticate, async (req, res) => {
+       const { noteId } = req.body;
+       const userId = req.user.uid;
+
+       if (!noteId) {
+              return res.status(400).send('Note ID is required');
+       }
+
+       try {
+              const firestore = admin.firestore();
+              const noteRef = firestore.collection(`users/${userId}/notes`).doc(noteId);
+              const noteSnapshot = await noteRef.get();
+
+              if (!noteSnapshot.exists) {
+                     return res.status(404).send('Note not found');
+              }
+
+              const noteData = noteSnapshot.data();
+
+
+              // Fetch owner information
+              const ownerRecord = await admin.auth().getUser(userId);
+              const ownerUsername = await getUsernameFromFirestore(ownerRecord.uid);
+              let ownerEmail = ownerRecord.email || '';
+
+              if (!ownerEmail) {
+                     const githubProvider = ownerRecord.providerData.find(provider => provider.providerId === 'github.com');
+                     if (githubProvider) {
+                            ownerEmail = githubProvider.email || '';
+                     }
+              }
+
+              const ownerInfo = {
+                     username: ownerUsername || ownerRecord.displayName || '',
+                     email: ownerEmail,
+                     uuid: ownerRecord.uid,
+                     imageUrl: ownerRecord.photoURL || '',
+              };
+
+              console.log('folder id ', noteData.folderId)
+              console.log('tag ids ', noteData.tagIds)
+
+              const usersWithMetadata = {
+                     [userId]: {
+                            email: ownerInfo.email,
+                            inviteDate: Date.now(),
+                            inviteAcceptedDate: null,
+                            inviteStatus: 'accepted',
+                            isArchived: noteData.isArchived || false,
+                            isDeleted: noteData.isDeleted || false,
+                            isPinned: noteData.isPinned || false,
+                            isWatching: false,
+                            isWriting: false,
+                            rule: 'write',
+                            username: ownerInfo.username,
+                            tags: noteData.tagIds || [],
+                            folderId: noteData.folderId || null,
+                            uuid: ownerInfo.uuid,
+                            imageUrl: ownerInfo.imageUrl,
+                            notificationSent: true,
+                     },
+              };
+
+              delete noteData.folderId;
+              delete noteData.isArchived;
+              delete noteData.isDeleted;
+              delete noteData.isPinned;
+              delete noteData.tagIds;
+
+              const noteToSave = {
+                     ...noteData,
+                     id: noteId,
+                     users: usersWithMetadata,
+                     createdDate: convertToTimestamp(noteData.createdDate),
+                     owner: userId,
+                     updatedDate: Date.now(),
+                     notFoundUsers: [], // Empty since no new users are invited
+              };
+
+              // Helper function to convert Firestore Timestamps or date strings to a timestamp
+              function convertToTimestamp(date) {
+                     if (date instanceof admin.firestore.Timestamp) {
+                            return date.toMillis(); // Convert Firestore Timestamp to milliseconds
+                     } else if (typeof date === 'string' || date instanceof Date) {
+                            return new Date(date).getTime(); // Convert date string or Date object to milliseconds
+                     } else {
+                            return Date.now(); // Fallback to current timestamp
+                     }
+              }
+
+              // Remove the note from Firestore
+              await noteRef.delete();
+
+              // Save the note to Realtime Database
+              const db = admin.database();
+              const notesRef = db.ref('notes');
+              const newNoteRef = notesRef.child(noteId);
+
+              await newNoteRef.set(noteToSave);
+
+              // Update the owner's note list in /userNotes/uuid
+              const userNotesRef = db.ref(`userNotes/${userId}`);
+              await userNotesRef.transaction(currentNotes => {
+                     if (currentNotes) {
+                            return [...currentNotes, noteId];
+                     } else {
+                            return [noteId];
+                     }
+              });
+
+              res.status(200).send('Note moved to public successfully');
+       } catch (error) {
+              console.error('Error making note public:', error);
+              res.status(500).send('Internal server error');
+       }
+});
+
+async function getUsernameFromFirestore(uid) {
+       const firestore = admin.firestore();
+       try {
+              const userDoc = await firestore.collection('users').doc(uid).get();
+              if (userDoc.exists) {
+                     const userData = userDoc.data();
+                     return userData?.username || null;
+              } else {
+                     return null;
+              }
+       } catch (error) {
+              console.error(`Error fetching username from Firestore for UID: ${uid}`, error);
+              return null;
+       }
+}
 
 
 async function getUserRecordByEmail(email) {
