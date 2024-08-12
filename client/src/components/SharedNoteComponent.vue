@@ -106,8 +106,8 @@
                                    <div class="flex justify-center mt-3">
                                           <a-select mode="multiple" :allowClear="true" v-model:value="selectedTags"
                                                  placeholder="Select tags" style="width: 150px" :options="tagOptions"
-                                                 @change="handleTagChange"
-                                                 :filterOption="filterTagOption" @search="handleTagSearch">
+                                                 @change="handleTagChange" :filterOption="filterTagOption"
+                                                 @search="handleTagSearch">
                                                  <template #suffixIcon><tags-outlined /></template>
                                           </a-select>
                                    </div>
@@ -155,6 +155,43 @@
                                                                              unCheckedChildren="Read" />
                                                                </div>
 
+                                                        </a-list-item>
+                                                 </template>
+                                          </a-list>
+                                   </div>
+
+                                   <div class="mt-5" v-if="notFoundUsersArray">
+                                          <a-list :dataSource="notFoundUsersArray">
+                                                 <template #renderItem="{ item: user }">
+                                                        <a-list-item
+                                                               class="flex flex-col md:flex-row gap-5 items-start">
+                                                               <div class="flex flex-row w-full">
+                                                                      <div class="ml-3 w-4/5 flex flex-col">
+                                                                             <span class="user-email">{{ user.email
+                                                                                    }}</span>
+                                                                      </div>
+                                                               </div>
+
+                                                               <div class="flex flex-row items-center gap-3">
+                                                                      <a-tooltip :title="undefined">
+                                                                             <template #title>
+                                                                                    <span
+                                                                                           v-html="getInviteTooltip(user)"></span>
+                                                                             </template>
+                                                                             <a-tag>
+                                                                                    User not found
+                                                                             </a-tag>
+                                                                      </a-tooltip>
+
+                                                                      <a-tooltip :title="undefined">
+                                                                             <template #title>
+                                                                                    <span>Resend invite</span>
+                                                                             </template>
+                                                                             <a-button
+                                                                                    @click="resendInvite(user.email, note.id)">
+                                                                                    <redo-outlined /></a-button>
+                                                                      </a-tooltip>
+                                                               </div>
                                                         </a-list-item>
                                                  </template>
                                           </a-list>
@@ -321,6 +358,43 @@
                                                         </template>
                                                  </a-list>
                                           </div>
+
+                                          <div class="mt-5" v-if="notFoundUsersArray">
+                                          <a-list :dataSource="notFoundUsersArray">
+                                                 <template #renderItem="{ item: user }">
+                                                        <a-list-item
+                                                               class="flex flex-col md:flex-row gap-5 items-start">
+                                                               <div class="flex flex-row w-full">
+                                                                      <div class="ml-3 w-4/5 flex flex-col">
+                                                                             <span class="user-email">{{ user.email
+                                                                                    }}</span>
+                                                                      </div>
+                                                               </div>
+
+                                                               <div class="flex flex-row items-center gap-3">
+                                                                      <a-tooltip :title="undefined">
+                                                                             <template #title>
+                                                                                    <span
+                                                                                           v-html="getInviteTooltip(user)"></span>
+                                                                             </template>
+                                                                             <a-tag>
+                                                                                    User not found
+                                                                             </a-tag>
+                                                                      </a-tooltip>
+
+                                                                      <a-tooltip :title="undefined">
+                                                                             <template #title>
+                                                                                    <span>Resend invite</span>
+                                                                             </template>
+                                                                             <a-button
+                                                                                    @click="resendInvite(user.email, note.id)">
+                                                                                    <redo-outlined /></a-button>
+                                                                      </a-tooltip>
+                                                               </div>
+                                                        </a-list-item>
+                                                 </template>
+                                          </a-list>
+                                   </div>
                                    </a-tab-pane>
                             </a-tabs>
                      </div>
@@ -381,7 +455,7 @@
 
 <script lang="ts" setup>
 import { SettingOutlined } from '@ant-design/icons-vue';
-import { ShrinkOutlined, CalendarOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
+import { ShrinkOutlined, CalendarOutlined, RedoOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons-vue';
 
 import type { SharedNoteType } from '@/types/SharedNote';
@@ -406,6 +480,8 @@ const selectedFolder = ref<string | null>(userId && props.note.users[userId] ? p
 const isEditMode = ref(false);
 const sharedNotesStore = useSharedNotesStore();
 const isDeletingNote = ref(false);
+const lastResendTime = ref<number | null>(null);
+const isResendInProgress = ref(false); // Prevents multiple concurrent resends
 
 const tabList = [
        {
@@ -428,6 +504,7 @@ const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, 
 const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id }))); // Folder options for select
 
 const isMobile = ref(window.innerWidth < 768);
+console.log(editableNote.value.notFoundUsers);
 
 // Convert the users object into an array for easier iteration in the template
 const usersArray = computed(() =>
@@ -437,6 +514,9 @@ const usersArray = computed(() =>
               return user;
        })
 );
+
+const notFoundUsersArray = computed(() => editableNote.value.notFoundUsers);
+
 const noteFolderColor = computed(() => {
        const folder = foldersStore.folders.find(folder => folder.id === selectedFolder.value);
        return folder ? folder.color : '#000000';
@@ -804,6 +884,50 @@ onBeforeUnmount(() => {
        });
 });
 
+const resendInvite = async (email: string, noteId: string) => {
+       // Check if resend is in progress
+       if (isResendInProgress.value) {
+              message.warning('Please wait before resending another invitation.');
+              return;
+       }
+
+       // Prevent spamming by enforcing a time gap between resends
+       const currentTime = Date.now();
+       if (lastResendTime.value && currentTime - lastResendTime.value < 60000) { // 60 seconds
+              message.warning('Please wait a minute before resending the invitation.');
+              return;
+       }
+
+       // Mark resend as in progress
+       isResendInProgress.value = true;
+
+       try {
+              const auth = getAuth();
+              const token = await auth.currentUser?.getIdToken();
+
+              const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/resend-invite`, {
+                     method: 'POST',
+                     headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                     },
+                     body: JSON.stringify({ email, noteId }),
+              });
+
+              if (response.ok) {
+                     message.success('Invitation resent successfully.');
+                     lastResendTime.value = currentTime; // Update the last resend time
+              } else {
+                     const errorResponse = await response.json();
+                     message.error(`Error: ${errorResponse.message}`);
+              }
+       } catch (error) {
+              console.error('Error resending invitation:', error);
+              message.error('An error occurred while resending the invitation. The user may not have an account yet. Please ask them to sign up and try again.');
+       } finally {
+              isResendInProgress.value = false; // Reset the resend flag
+       }
+};
 
 </script>
 

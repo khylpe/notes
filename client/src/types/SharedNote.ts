@@ -27,4 +27,11 @@ export interface SharedNoteType {
                      notificationSent: boolean; // Whether a notification has been sent to the user
               };
        };
+       notFoundUsers: {
+              [email: string]: {
+                     email: string;        // Email of the user
+                     inviteDate: Date;     // Date the user was invited to the note
+                     rule: "write" | "read";          // User's permission level for the note
+              }; 
+       };      
 }
