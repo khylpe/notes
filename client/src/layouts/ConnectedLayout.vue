@@ -16,14 +16,17 @@ import SideBar from '@/components/SideBar.vue';
 import { theme } from 'ant-design-vue';
 import Header from '@/components/AppHeader.vue';
 import { useInvitationStore } from '@/stores/invitationsStore';
+import { useSharedNotesStore } from '@/stores/sharedNotesStore';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
-const sharedNotesStore = useInvitationStore();
+const invitationStore = useInvitationStore();
+const sharedNotesStore = useSharedNotesStore();
 const router = useRouter();
 
 onMounted(() => {
-       sharedNotesStore.listenForUserInvitations(router); // Start listening for real-time updates
+       invitationStore.listenForUserInvitations(router); // Start listening for real-time updates
+       sharedNotesStore.listenForInvitationStatusChanges();
 });
 
 const customTheme = {

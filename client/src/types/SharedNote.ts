@@ -24,6 +24,7 @@ export interface SharedNoteType {
                      folderId: string | null; // Folder ID for organizing the note, specific to the user
                      uuid: string;          // Unique identifier for the user's note metadata
                      imageUrl: string;      // URL of the user's profile image
+                     notificationSent: boolean; // Whether a notification has been sent to the user
               };
        };
 }

@@ -117,6 +117,7 @@ app.post('/create-note', authenticate, async (req, res) => {
                             folderId: noteDetails.users[noteDetails.owner].folderId || null,
                             uuid: ownerInfo.uuid,
                             imageUrl: ownerInfo.imageUrl,
+                            notificationSent: true,
                      },
               };
 
@@ -142,6 +143,7 @@ app.post('/create-note', authenticate, async (req, res) => {
                                    isWatching: false,
                                    isWriting: false,
                                    imageUrl: userRecord.photoURL || '',
+                                   notificationSent: false,
                             };
 
                             if (userInfo.username && userInfo.email && userInfo.uuid) {

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { getAuth } from 'firebase/auth';
 import { getDatabase, ref, onValue, update, get, set, remove } from 'firebase/database';
 import type { SharedNoteType } from '@/types/SharedNote';
+import { notification } from 'ant-design-vue';
 
 export const useSharedNotesStore = defineStore('sharedNotes', {
        state: () => ({
@@ -529,6 +530,68 @@ export const useSharedNotesStore = defineStore('sharedNotes', {
                      } catch (error) {
                             console.error('Error updating writing status:', error);
                      }
+              },
+              listenForInvitationStatusChanges() {
+                     console.log('Listening for invitation status changes');
+                     const auth = getAuth();
+                     const user = auth.currentUser;
+
+                     if (!user) {
+                            console.error('User not logged in');
+                            return;
+                     }
+
+                     const db = getDatabase();
+                     const userNotesRef = ref(db, `userNotes/${user.uid}`);
+
+                     onValue(userNotesRef, (snapshot) => {
+                            if (snapshot.exists()) {
+                                   const noteIds = snapshot.val();
+
+                                   noteIds.forEach((noteId: string) => {
+                                          const noteRef = ref(db, `notes/${noteId}`);
+                                          onValue(noteRef, (noteSnapshot) => {
+                                                 if (noteSnapshot.exists()) {
+                                                        const note = noteSnapshot.val();
+                                                        const ownerId = note.owner;
+
+                                                        if (ownerId === user.uid) {
+                                                               this.checkForInvitationStatusChanges(note);
+                                                        }
+                                                 }
+                                          });
+                                   });
+                            }
+                     });
+              },
+
+              async checkForInvitationStatusChanges(note: SharedNoteType) {
+                     for (const [userId, userNoteData] of Object.entries(note.users)) {
+                            if (userNoteData.inviteStatus === 'accepted' && !userNoteData.notificationSent) {
+                                   await this.notifyInvitationStatus(note.title, userNoteData.username, 'accepted', note.id, userId);
+                            } else if (userNoteData.inviteStatus === 'refused' && !userNoteData.notificationSent) {
+                                   await this.notifyInvitationStatus(note.title, userNoteData.username, 'refused', note.id, userId);
+                            }
+                     }
+              },
+
+              async notifyInvitationStatus(noteTitle: string, username: string, status: 'accepted' | 'refused', noteId: string, userId: string) {
+                     if (status === 'accepted') {
+                            notification.success({
+                                   message: 'Invitation Accepted',
+                                   description: `${username} accepted your invitation to collaborate on "${noteTitle}".`,
+                            });
+                     } else if (status === 'refused') {
+                            notification.error({
+                                   message: 'Invitation Refused',
+                                   description: `${username} refused your invitation to collaborate on "${noteTitle}".`,
+                            });
+                     }
+
+                     // Mark the notification as sent in the database
+                     const db = getDatabase();
+                     const userNoteRef = ref(db, `notes/${noteId}/users/${userId}`);
+                     await update(userNoteRef, { notificationSent: true });
               },
        },
 });
