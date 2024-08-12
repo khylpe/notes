@@ -427,7 +427,7 @@ export const useSharedNotesStore = defineStore('sharedNotes', {
                      const noteRef = ref(db, `notes/${noteId}`);
 
                      try {
-                            await update(noteRef, { title: newTitle });
+                            await update(noteRef, { title: newTitle, updatedDate: Date.now() });
                             console.log(`Title updated successfully for note ID: ${noteId}`);
 
                             // Update the local state to reflect the title change
@@ -457,7 +457,7 @@ export const useSharedNotesStore = defineStore('sharedNotes', {
                      const noteRef = ref(db, `notes/${noteId}`);
 
                      try {
-                            await update(noteRef, { content: newContent });
+                            await update(noteRef, { content: newContent, updatedDate: Date.now() });
                             console.log(`Content updated successfully for note ID: ${noteId}`);
 
                             // Update the local state to reflect the content change

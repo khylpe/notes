@@ -9,17 +9,17 @@
               </div>
 
               <!-- Display pinned notes if available -->
-              <div v-else-if="pinnedNotes.length > 0 || sharedPinnedNotes.length > 0"
+              <div v-else-if="AllPinnedNotes.length > 0"
                      class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
 
-                     <!-- Owned Pinned Notes -->
-                     <div class="note flex justify-center" v-for="note in pinnedNotes" :key="note.id">
-                            <Note :note="note" />
-                     </div>
-
-                     <!-- Shared Pinned Notes -->
-                     <div class="note flex justify-center" v-for="note in sharedPinnedNotes" :key="note.id">
-                            <SharedNote :note="note" />
+                     <!-- Combined Pinned Notes -->
+                     <div class="note flex justify-center" v-for="note in AllPinnedNotes" :key="note.note.id">
+                            <template v-if="note.type === 'owned'">
+                                   <Note :note="note.note" />
+                            </template>
+                            <template v-else>
+                                   <SharedNote :note="note.note" />
+                            </template>
                      </div>
               </div>
 
@@ -34,7 +34,7 @@
 import { computed, onMounted, ref } from 'vue';
 import Note from '@/components/NoteComponent.vue';
 import SharedNote from '@/components/SharedNoteComponent.vue';
-import SkeletonNote from '@/components/SkeletonNote.vue'; // Assuming you have a SkeletonNote component
+import SkeletonNote from '@/components/SkeletonNote.vue';
 import { useNotesStore } from '@/stores/notesStore';
 import { useSharedNotesStore } from '@/stores/sharedNotesStore';
 import type { NoteType } from '@/types/Note';
@@ -63,7 +63,7 @@ if (!currentUserId) {
        console.error('User not authenticated');
 }
 
-// Filter and sort owned pinned notes by last modified date
+// Filter and sort owned pinned notes
 const pinnedNotes = computed<NoteType[]>(() => {
        return notesStore.notes
               .filter(note => note.isPinned)
@@ -74,7 +74,7 @@ const pinnedNotes = computed<NoteType[]>(() => {
               });
 });
 
-// Filter and sort shared pinned notes by last modified date
+// Filter and sort shared pinned notes
 const sharedPinnedNotes = computed<SharedNoteType[]>(() => {
        if (!currentUserId) return [];
        return sharedNotesStore.allNotes
@@ -84,5 +84,17 @@ const sharedPinnedNotes = computed<SharedNoteType[]>(() => {
                      const dateB = b.updatedDate ? new Date(b.updatedDate).getTime() : new Date(b.createdDate).getTime();
                      return dateB - dateA;
               });
+});
+
+// Combine owned and shared pinned notes and sort them by date
+const AllPinnedNotes = computed(() => {
+       return [
+              ...pinnedNotes.value.map(note => ({ type: 'owned' as const, note })),
+              ...sharedPinnedNotes.value.map(note => ({ type: 'shared' as const, note }))
+       ].sort((a, b) => {
+              const dateA = a.note.updatedDate ? new Date(a.note.updatedDate).getTime() : new Date(a.note.createdDate).getTime();
+              const dateB = b.note.updatedDate ? new Date(b.note.updatedDate).getTime() : new Date(b.note.createdDate).getTime();
+              return dateB - dateA;
+       });
 });
 </script>

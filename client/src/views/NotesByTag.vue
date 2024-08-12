@@ -1,7 +1,7 @@
 <template>
        <div class="flex flex-col">
               <div class="flex flex-row justify-end">
-                     <a-button type="dashed" @click="openModal"><setting-outlined></setting-outlined></a-button>
+                     <a-button type="dashed" @click="openModal"><setting-outlined /></a-button>
               </div>
        </div>
 
@@ -15,14 +15,15 @@
               </div>
 
               <!-- Display notes when not loading -->
-              <div v-else-if="filteredNotesByTag.length > 0 || sharedNotesByTag.length > 0"
+              <div v-else-if="AllNotes.length > 0"
                      class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
-                     <div class="note flex justify-center" v-for="note in filteredNotesByTag" :key="note.id">
-                            <Note :note="note" />
-                     </div>
-
-                     <div class="note flex justify-center" v-for="note in sharedNotesByTag" :key="note.id">
-                            <SharedNote :note="note" />
+                     <div class="note flex justify-center" v-for="note in AllNotes" :key="note.note.id">
+                            <template v-if="note.type === 'owned'">
+                                   <Note :note="note.note" />
+                            </template>
+                            <template v-else>
+                                   <SharedNote :note="note.note" />
+                            </template>
                      </div>
               </div>
 
@@ -39,7 +40,7 @@
 
                      <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No"
                             @confirm="deleteTag">
-                            <a-button danger type="text"><delete-outlined></delete-outlined></a-button>
+                            <a-button danger type="text"><delete-outlined /></a-button>
                      </a-popconfirm>
               </div>
        </a-modal>
@@ -83,25 +84,31 @@ onMounted(async () => {
        }
 });
 
+const tagId = computed(() => {
+       const tag = tagsStore.tags.find(t => t.name === tagName.value);
+       return tag ? tag.id : null;
+});
+
 const filteredNotesByTag = computed<NoteType[]>(() => {
        return notesStore.notes
-              .filter(note => note.tagIds && note.tagIds.includes(tagId.value ?? '') && !note.isDeleted && !note.isArchived)
-              .sort((a, b) => {
-                     const dateA = a.updatedDate ? new Date(a.updatedDate).getTime() : new Date(a.createdDate).getTime();
-                     const dateB = b.updatedDate ? new Date(b.updatedDate).getTime() : new Date(b.createdDate).getTime();
-                     return dateB - dateA;
-              });
+              .filter(note => note.tagIds && note.tagIds.includes(tagId.value ?? '') && !note.isDeleted && !note.isArchived);
 });
 
 const sharedNotesByTag = computed<SharedNoteType[]>(() => {
        if (!currentUserId) return [];
        return sharedNotesStore.allNotes
-              .filter(note => note.users[currentUserId].tags && note.users[currentUserId].tags.includes(tagId.value ?? '') && !note.users[currentUserId].isArchived && !note.users[currentUserId].isDeleted)
-              .sort((a, b) => {
-                     const dateA = a.updatedDate ? new Date(a.updatedDate).getTime() : new Date(a.createdDate).getTime();
-                     const dateB = b.updatedDate ? new Date(b.updatedDate).getTime() : new Date(b.createdDate).getTime();
-                     return dateB - dateA;
-              });
+              .filter(note => note.users[currentUserId].tags && note.users[currentUserId].tags.includes(tagId.value ?? '') && !note.users[currentUserId].isArchived && !note.users[currentUserId].isDeleted);
+});
+
+const AllNotes = computed(() => {
+       return [
+              ...filteredNotesByTag.value.map(note => ({ type: 'owned' as const, note })),
+              ...sharedNotesByTag.value.map(note => ({ type: 'shared' as const, note }))
+       ].sort((a, b) => {
+              const dateA = a.note.updatedDate ? new Date(a.note.updatedDate).getTime() : new Date(a.note.createdDate).getTime();
+              const dateB = b.note.updatedDate ? new Date(b.note.updatedDate).getTime() : new Date(b.note.createdDate).getTime();
+              return dateB - dateA;
+       });
 });
 
 const tagColor = computed(() => {
@@ -117,11 +124,6 @@ const isModifyingTagLoading = ref(false);
 const openModal = () => {
        isModalVisible.value = true;
 };
-
-const tagId = computed(() => {
-       const tag = tagsStore.tags.find(t => t.name === tagName.value);
-       return tag ? tag.id : null;
-});
 
 watch(route, () => {
        notesStore.fetchAndStoreNotes();
@@ -208,17 +210,3 @@ const deleteTag = () => {
        isModifyingTagLoading.value = false;
 };
 </script>
-
-<style scoped>
-.container {
-       display: flex;
-       justify-content: space-between;
-       /* Aligns items as requested */
-}
-
-.center-element {
-       /* This will center the element in the remaining space */
-       margin-right: auto;
-       margin-left: auto;
-}
-</style>

@@ -13,14 +13,13 @@
               <div v-else-if="ownedNotes.length > 0 || sharedNotes.length > 0"
                      class="notes-list flex flex-row items-start justify-center flex-wrap gap-4 sm:gap-3 md:gap-5 lg:gap-10 pl-3 sm:pl-0">
 
-                     <!-- Owned Notes -->
-                     <div class="note flex justify-center" v-for="note in ownedNotes" :key="note.id">
-                            <Note :note="note" />
-                     </div>
-
-                     <!-- Shared Notes -->
-                     <div class="note flex justify-center" v-for="note in sharedNotes" :key="note.id">
-                            <SharedNote :note="note" />
+                     <div class="note flex justify-center" v-for="note in AllNotes" :key="note.note.id">
+                            <template v-if="note.type === 'owned'">
+                                   <Note :note="note.note" />
+                            </template>
+                            <template v-else>
+                                   <SharedNote :note="note.note" />
+                            </template>
                      </div>
               </div>
 
@@ -30,7 +29,6 @@
               </a-result>
        </div>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import Note from '@/components/NoteComponent.vue';
@@ -41,6 +39,11 @@ import type { NoteType } from '@/types/Note';
 import type { SharedNoteType } from '@/types/SharedNote';
 import { getAuth } from 'firebase/auth';
 import SkeletonNote from '@/components/SkeletonNote.vue';
+
+// Define a union type for AllNotes
+type AllNoteType =
+       | { type: 'owned', note: NoteType }
+       | { type: 'shared', note: SharedNoteType };
 
 const notesStore = useNotesStore();
 const sharedNotesStore = useSharedNotesStore();
@@ -87,5 +90,17 @@ const sharedNotes = computed<SharedNoteType[]>(() => {
                      const dateB = b.updatedDate ? new Date(b.updatedDate).getTime() : new Date(b.createdDate).getTime();
                      return dateB - dateA;
               });
+});
+
+// Combine owned and shared notes into a single array with their type and order by last modified date
+const AllNotes = computed<AllNoteType[]>(() => {
+       return [
+              ...ownedNotes.value.map(note => ({ type: 'owned' as const, note })),
+              ...sharedNotes.value.map(note => ({ type: 'shared' as const, note }))
+       ].sort((a, b) => {
+              const dateA = a.note.updatedDate ? new Date(a.note.updatedDate).getTime() : new Date(a.note.createdDate).getTime();
+              const dateB = b.note.updatedDate ? new Date(b.note.updatedDate).getTime() : new Date(b.note.createdDate).getTime();
+              return dateB - dateA;
+       });
 });
 </script>
