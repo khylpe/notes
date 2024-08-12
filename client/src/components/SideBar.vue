@@ -41,7 +41,9 @@ import { useNotesStore } from '@/stores/notesStore';
 import { useRoute, useRouter } from 'vue-router';
 import { useSharedNotesStore } from '@/stores/sharedNotesStore';
 import { getAuth } from 'firebase/auth';
+import { useInvitationStore } from '@/stores/invitationsStore';
 
+const invitationStore = useInvitationStore();
 const sharedNotesStore = useSharedNotesStore();
 const menuMode = ref('inline');
 const isCollapsed = ref(false);
@@ -60,6 +62,12 @@ const tagsStore = useTagsStore();
 const foldersStore = useFoldersStore();
 const notesStore = useNotesStore();
 const userHasPinNote = ref(false);
+const userHasDeletedNote = ref(false);
+const userHasArchivedNote = ref(false);
+const userHasSharedNote = ref(false);
+const userHasSharedNoteWithMe = ref(false);
+const userHasInvitation = ref(false);
+const userHasMySharedNote = ref(false);
 const sidebarClass = ref('w-1/6');
 
 const route = useRoute();
@@ -168,7 +176,6 @@ const updateMenuMode = () => {
        } else {
               inLineIndentValue.value = 32;
               sidebarClass.value = 'w-[15%]';
-
        }
 };
 
@@ -177,134 +184,178 @@ const handleMenuClick = (e: any) => {
 };
 
 const updateMenuItems = () => {
-       const fetchedTags = tagsStore.tags.map(tag => ({
-              label: tag.name,
-              key: tag.id,
-              style: { color: tag.color },
-              onClick: () => {
-                     router.push(`/notes/tag/${tag.name}`);
-              },
-       }));
+    const fetchedTags = tagsStore.tags.map(tag => ({
+        label: tag.name,
+        key: tag.id,
+        style: { color: tag.color },
+        onClick: () => {
+            router.push(`/notes/tag/${tag.name}`);
+        },
+    }));
 
-       const fetchedFolders = foldersStore.folders.map(folder => ({
-              label: folder.name,
-              key: folder.name,
-              style: { color: folder.color },
-              onClick: () => {
-                     router.push(`/notes/folder/${folder.name}`);
-              },
-       }));
+    const fetchedFolders = foldersStore.folders.map(folder => ({
+        label: folder.name,
+        key: folder.name,
+        style: { color: folder.color },
+        onClick: () => {
+            router.push(`/notes/folder/${folder.name}`);
+        },
+    }));
 
-       const menuItems: MenuProps['items'] = [
-              {
-                     key: 'notes',
-                     icon: () => h(UnorderedListOutlined),
-                     label: 'All notes',
-                     title: 'All notes',
-                     onClick: () => router.push('/notes'),
-              },
-              {
-                     key: 'Private',
-                     icon: () => h(LockOutlined),
-                     label: 'Private notes',
-                     title: 'Private notes',
-                     onClick: () => router.push('/notes/private'),
-              },
-              { type: 'divider' } as any,  // Divider between Tags and Archived
-              {
-                     key: 'Shared',
-                     icon: () => h(ShareAltOutlined),
-                     label: 'Shared Notes',
-                     title: 'Shared Notes',
-                     children: [
-                            {
-                                   label: 'All shared notes',
-                                   key: 'All shared notes',
-                                   icon: () => h(UnorderedListOutlined),
-                                   onClick: () => router.push('/notes/all-shared-notes'),
-                            },
-                            {
-                                   label: 'My shared notes',
-                                   key: 'My shared notes',
-                                   icon: () => h(CrownOutlined),
-                                   onClick: () => router.push('/notes/my-shared-notes'),
-                            },
-                            {
-                                   label: 'Notes shared with me',
-                                   key: 'Notes shared with me',
-                                   icon: () => h(LoginOutlined),
-                                   onClick: () => router.push('/notes/notes-shared-with-me'),
-                            },
-                            {
-                                   label: 'Invitations',
-                                   key: 'Invitations',
-                                   icon: () => h(MailOutlined),
-                                   onClick: () => router.push('/notes/invitations'),
-                            },
-                     ],
-              },
-              { type: 'divider' } as any,  // Divider between Tags and Archived
+    const menuItems: MenuProps['items'] = [
+        {
+            key: 'notes',
+            icon: () => h(UnorderedListOutlined),
+            label: 'All notes',
+            title: 'All notes',
+            onClick: () => router.push('/notes'),
+        },
+        {
+            key: 'Private',
+            icon: () => h(LockOutlined),
+            label: 'Private notes',
+            title: 'Private notes',
+            onClick: () => router.push('/notes/private'),
+        },
+    ];
 
-              {
-                     key: 'Folders',
-                     icon: () => h(FolderOutlined),
-                     label: 'Folders',
-                     title: 'Folders',
-                     children: [
-                            ...fetchedFolders,
-                            { type: 'divider' } as any,
-                            {
-                                   label: 'Create new folder',
-                                   key: 'Create new folder',
-                                   icon: () => h(PlusCircleOutlined),
-                                   onClick: () => showFolderModal(),
-                            },
-                     ],
-              },
-              {
-                     key: 'Tags',
-                     icon: () => h(TagsOutlined),
-                     label: 'Tags',
-                     title: 'Tags',
-                     children: [
-                            ...fetchedTags,
-                            { type: 'divider' } as any,
-                            {
-                                   label: 'Create new tag',
-                                   key: 'Create new tag',
-                                   icon: () => h(PlusCircleOutlined),
-                                   onClick: () => showModal(),
-                            },
-                     ],
-              },
-              { type: 'divider' } as any,  // Divider between Tags and Archived
-              {
-                     key: 'Archived',
-                     icon: () => h(InboxOutlined),
-                     label: 'Archived',
-                     title: 'Archived',
-                     onClick: () => router.push('/notes/archived'),
-              },
-              {
-                     key: 'Deleted',
-                     icon: () => h(DeleteOutlined),
-                     label: 'Deleted',
-                     title: 'Deleted',
-                     onClick: () => router.push('/notes/deleted'),
-              },
-       ];
+    // Conditionally add Pinned Notes section
+    if (userHasPinNote.value) {
+        menuItems.push({
+            key: 'Pinned notes',
+            icon: () => h(PushpinOutlined),
+            label: 'Pinned',
+            title: 'Pinned',
+            onClick: () => router.push('/notes/pinned'),
+        });
+    }
 
-       if (userHasPinNote.value) {
-              menuItems.splice(1, 0, {
-                     key: 'Pinned notes',
-                     icon: () => h(PushpinOutlined),
-                     label: 'Pinned',
-                     title: 'Pinned',
-                     onClick: () => router.push('/notes/pinned'),
-              });
-       }
-       items.value = menuItems;
+    // Add the divider before Shared Notes section if there are any shared notes sections to display
+    if (userHasSharedNote.value || userHasMySharedNote.value || userHasSharedNoteWithMe.value || userHasInvitation.value) {
+        menuItems.push({ type: 'divider' } as any);
+
+        const sharedChildren = [];
+
+        if (userHasSharedNote.value) {
+            sharedChildren.push({
+                label: 'All shared notes',
+                key: 'All shared notes',
+                icon: () => h(UnorderedListOutlined),
+                onClick: () => router.push('/notes/all-shared-notes'),
+            });
+        }
+
+        if (userHasMySharedNote.value) {
+            sharedChildren.push({
+                label: 'My shared notes',
+                key: 'My shared notes',
+                icon: () => h(CrownOutlined),
+                onClick: () => router.push('/notes/my-shared-notes'),
+            });
+        }
+
+        if (userHasSharedNoteWithMe.value) {
+            sharedChildren.push({
+                label: 'Notes shared with me',
+                key: 'Notes shared with me',
+                icon: () => h(LoginOutlined),
+                onClick: () => router.push('/notes/notes-shared-with-me'),
+            });
+        }
+
+        if (userHasInvitation.value) {
+            sharedChildren.push({
+                label: 'Invitations',
+                key: 'Invitations',
+                icon: () => h(MailOutlined),
+                onClick: () => router.push('/notes/invitations'),
+            });
+        }
+
+        menuItems.push({
+            key: 'Shared',
+            icon: () => h(ShareAltOutlined),
+            label: 'Shared Notes',
+            title: 'Shared Notes',
+            children: sharedChildren,
+        });
+    }
+
+    // Add a divider before Folders if there are Tags, Shared Notes, or Pinned Notes sections
+    if (fetchedTags.length > 0 || menuItems.length > 2) {
+        menuItems.push({ type: 'divider' } as any);
+    }
+
+    menuItems.push({
+        key: 'Folders',
+        icon: () => h(FolderOutlined),
+        label: 'Folders',
+        title: 'Folders',
+        children: [
+            ...fetchedFolders,
+            { type: 'divider' } as any,
+            {
+                label: 'Create new folder',
+                key: 'Create new folder',
+                icon: () => h(PlusCircleOutlined),
+                onClick: () => showFolderModal(),
+            },
+        ],
+    });
+
+    // Conditionally add Tags section
+    if (fetchedTags.length > 0) {
+        menuItems.push({
+            key: 'Tags',
+            icon: () => h(TagsOutlined),
+            label: 'Tags',
+            title: 'Tags',
+            children: [
+                ...fetchedTags,
+                { type: 'divider' } as any,
+                {
+                    label: 'Create new tag',
+                    key: 'Create new tag',
+                    icon: () => h(PlusCircleOutlined),
+                    onClick: () => showModal(),
+                },
+            ],
+        });
+
+        // Add divider after Tags only if there is an item after Tags (Archived or Deleted)
+        if (userHasArchivedNote.value || userHasDeletedNote.value) {
+            menuItems.push({ type: 'divider' } as any);
+        }
+    }
+
+    // Conditionally add Archived section
+    if (userHasArchivedNote.value) {
+        menuItems.push({
+            key: 'Archived',
+            icon: () => h(InboxOutlined),
+            label: 'Archived',
+            title: 'Archived',
+            onClick: () => router.push('/notes/archived'),
+        });
+    }
+
+    // Conditionally add Deleted section without a preceding divider
+    if (userHasDeletedNote.value) {
+        menuItems.push({
+            key: 'Deleted',
+            icon: () => h(DeleteOutlined),
+            label: 'Deleted',
+            title: 'Deleted',
+            onClick: () => router.push('/notes/deleted'),
+        });
+    }
+
+    items.value = menuItems;
 };
+
+
+
+
 
 const updateSelectedKeys = (path: string) => {
        const decodedPath = decodeURIComponent(path); // Decode the path to handle spaces and special characters
@@ -334,9 +385,7 @@ const updateSelectedKeys = (path: string) => {
               current.value = ['Shared', 'My shared notes'];
        } else if (decodedPath.includes('/notes/notes-shared-with-me')) {
               current.value = ['Shared', 'Notes shared with me'];
-       }
-
-       else {
+       } else {
               current.value = [decodedPath.replace('/notes', 'notes')];
        }
 };
@@ -349,6 +398,7 @@ onMounted(async () => {
               await tagsStore.fetchTags();
               await foldersStore.fetchFolders();
               await sharedNotesStore.fetchAllNotes(); // Fetch all accessible notes
+              await invitationStore.fetchInitialInvitations(); // Fetch all invitations
        } catch (error) {
               if (error instanceof Error) {
                      message.error(error.message);
@@ -375,8 +425,21 @@ watch(() => foldersStore.folders, () => {
 }, { deep: true });
 
 watchEffect(() => {
+       if(!userId) return;
        userHasPinNote.value = notesStore.notes.some(note => note.isPinned) ||
               sharedNotesStore.allNotes.some(note => note.users && userId && note.users[userId]?.isPinned);
+
+       userHasDeletedNote.value = notesStore.notes.some(note => note.isDeleted) ||
+              sharedNotesStore.allNotes.some(note => note.users && userId && note.users[userId]?.isDeleted);
+
+       userHasArchivedNote.value = notesStore.notes.some(note => note.isArchived) ||
+              sharedNotesStore.allNotes.some(note => note.users && userId && note.users[userId]?.isArchived);
+
+       userHasSharedNote.value = sharedNotesStore.allNotes.some(note => note.users && note.users[userId] && !note.users[userId].isDeleted && !note.users[userId].isArchived);
+       userHasSharedNoteWithMe.value = sharedNotesStore.allNotes.some(note => userId !== note.owner && note.users && note.users[userId] && !note.users[userId].isDeleted && !note.users[userId].isArchived);
+       userHasMySharedNote.value = sharedNotesStore.allNotes.some(note => userId === note.owner);
+       userHasInvitation.value = invitationStore.countInvitations() > 0;
+
        updateMenuItems();
 });
 
