@@ -318,16 +318,29 @@ const shareNote = async () => {
 
               if (response.status === 200) {
                      message.success('Note made public successfully');
-                     // Optionally remove the note from the current store or update the UI
+
+                     // Remove the note from the notesStore
+                     notesStore.notes = notesStore.notes.filter(note => note.id !== editableNote.value.id);
               }
        } catch (error) {
-              if (error.response && error.response.data) {
-                     message.error(error.response.data);
+              // Check if the error is an Axios error and has a response property
+              if (axios.isAxiosError(error)) {
+                     if (error.response && error.response.data) {
+                            message.error(error.response.data);
+                     } else {
+                            message.error('An error occurred while making the note public.');
+                     }
+              } else if (error instanceof Error) {
+                     // Handle general Error objects
+                     message.error(error.message);
               } else {
-                     message.error('An error occurred while making the note public.');
+                     // Handle any other types of errors
+                     message.error('An unknown error occurred.');
               }
        }
 };
+
+
 
 const getCurrentUserToken = async () => {
        const user = getAuth().currentUser;

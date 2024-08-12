@@ -473,7 +473,6 @@ app.post('/make-note-public', authenticate, async (req, res) => {
 
               const noteData = noteSnapshot.data();
 
-
               // Fetch owner information
               const ownerRecord = await admin.auth().getUser(userId);
               const ownerUsername = await getUsernameFromFirestore(ownerRecord.uid);
@@ -492,9 +491,6 @@ app.post('/make-note-public', authenticate, async (req, res) => {
                      uuid: ownerRecord.uid,
                      imageUrl: ownerRecord.photoURL || '',
               };
-
-              console.log('folder id ', noteData.folderId)
-              console.log('tag ids ', noteData.tagIds)
 
               const usersWithMetadata = {
                      [userId]: {
@@ -517,6 +513,7 @@ app.post('/make-note-public', authenticate, async (req, res) => {
                      },
               };
 
+              // Remove fields not needed in the public note
               delete noteData.folderId;
               delete noteData.isArchived;
               delete noteData.isDeleted;
@@ -544,15 +541,15 @@ app.post('/make-note-public', authenticate, async (req, res) => {
                      }
               }
 
-              // Remove the note from Firestore
-              await noteRef.delete();
-
               // Save the note to Realtime Database
               const db = admin.database();
               const notesRef = db.ref('notes');
               const newNoteRef = notesRef.child(noteId);
 
               await newNoteRef.set(noteToSave);
+
+              // Only delete the note from Firestore after successfully storing in Realtime Database
+              await noteRef.delete();
 
               // Update the owner's note list in /userNotes/uuid
               const userNotesRef = db.ref(`userNotes/${userId}`);
@@ -570,6 +567,7 @@ app.post('/make-note-public', authenticate, async (req, res) => {
               res.status(500).send('Internal server error');
        }
 });
+
 
 async function getUsernameFromFirestore(uid) {
        const firestore = admin.firestore();
