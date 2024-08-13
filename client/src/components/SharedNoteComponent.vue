@@ -1,7 +1,7 @@
 <template>
        <a-card :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteFolderColor}` : 'none' }" :tab-list="tabList"
               :active-tab-key="key" @tabChange="onTabChange"
-              class="w-[300px] sm:w-[550px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px] p-0"
+              class="w-[415px] sm:w-[550px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px] p-0"
               @mouseenter="hover = true" @mouseleave="hover = false">
               <template #customTab="item">
                      <span v-if="item.key === 'Settings'">
@@ -136,7 +136,7 @@
                                                                       </div>
                                                                </div>
 
-                                                               <div class="flex flex-row">
+                                                               <div class="flex flex-row items-center gap-3">
                                                                       <a-tooltip v-if="user.uuid !== note.owner"
                                                                              :title="undefined">
                                                                              <template #title>
@@ -157,6 +157,17 @@
                                                                              @change="(checked: boolean) => updateWritePermission(user.uuid, checked)"
                                                                              checkedChildren="Write"
                                                                              unCheckedChildren="Read" />
+
+                                                                      <a-tooltip :title="undefined"
+                                                                             v-if="userId === note.owner && user.uuid !== note.owner">
+                                                                             <template #title>
+                                                                                    <span>Delete user from note</span>
+                                                                             </template>
+
+                                                                             <a-button danger
+                                                                                    @click="removeUserFromNote(note.id, user.email)">
+                                                                                    <delete-outlined /></a-button>
+                                                                      </a-tooltip>
                                                                </div>
 
                                                         </a-list-item>
@@ -184,7 +195,7 @@
                                           <a-list :dataSource="notFoundUsersArray">
                                                  <template #renderItem="{ item: user }">
                                                         <a-list-item
-                                                               class="flex flex-col md:flex-row gap-5 items-start">
+                                                               class="flex flex-col md:flex-row gap-5 items-start justify-center">
                                                                <div class="flex flex-row w-full">
                                                                       <div class="ml-3 w-4/5 flex flex-col">
                                                                              <span class="user-email">{{ user.email
@@ -211,6 +222,17 @@
                                                                              <a-button
                                                                                     @click="resendInvite(user.email, note.id)">
                                                                                     <redo-outlined /></a-button>
+                                                                      </a-tooltip>
+
+                                                                      <a-tooltip :title="undefined"
+                                                                             v-if="userId === note.owner && user.uuid !== note.owner">
+                                                                             <template #title>
+                                                                                    <span>Delete user from note</span>
+                                                                             </template>
+
+                                                                             <a-button danger
+                                                                                    @click="removeUserFromNote(note.id, user.email)">
+                                                                                    <delete-outlined /></a-button>
                                                                       </a-tooltip>
                                                                </div>
                                                         </a-list-item>
@@ -362,7 +384,7 @@
                                                                              </div>
                                                                       </div>
 
-                                                                      <div class="flex flex-row">
+                                                                      <div class="flex flex-row items-center gap-3">
                                                                              <a-tooltip v-if="user.uuid !== note.owner"
                                                                                     :title="undefined">
                                                                                     <template #title>
@@ -383,6 +405,18 @@
                                                                                     @change="(checked: boolean) => updateWritePermission(user.uuid, checked)"
                                                                                     checkedChildren="Write"
                                                                                     unCheckedChildren="Read" />
+
+                                                                             <a-tooltip :title="undefined"
+                                                                                    v-if="userId === note.owner && user.uuid !== note.owner">
+                                                                                    <template #title>
+                                                                                           <span>Delete user from
+                                                                                                  note</span>
+                                                                                    </template>
+
+                                                                                    <a-button danger
+                                                                                           @click="removeUserFromNote(note.id, user.email)">
+                                                                                           <delete-outlined /></a-button>
+                                                                             </a-tooltip>
                                                                       </div>
 
                                                                </a-list-item>
@@ -410,12 +444,12 @@
                                                  <a-list :dataSource="notFoundUsersArray">
                                                         <template #renderItem="{ item: user }">
                                                                <a-list-item
-                                                                      class="flex flex-col md:flex-row gap-5 items-start">
+                                                                      class="flex flex-col gap-5 items-start">
                                                                       <div class="flex flex-row w-full">
                                                                              <div class="ml-3 w-4/5 flex flex-col">
                                                                                     <span class="user-email">{{
                                                                                            user.email
-                                                                                    }}</span>
+                                                                                           }}</span>
                                                                              </div>
                                                                       </div>
 
@@ -439,6 +473,18 @@
                                                                                            @click="resendInvite(user.email, note.id)">
                                                                                            <redo-outlined /></a-button>
                                                                              </a-tooltip>
+
+                                                                             <a-tooltip :title="undefined"
+                                                                                    v-if="userId === note.owner && user.uuid !== note.owner">
+                                                                                    <template #title>
+                                                                                           <span>Delete user from
+                                                                                                  note</span>
+                                                                                    </template>
+
+                                                                                    <a-button danger
+                                                                                           @click="removeUserFromNote(note.id, user.email)">
+                                                                                           <delete-outlined /></a-button>
+                                                                             </a-tooltip>
                                                                       </div>
                                                                </a-list-item>
                                                         </template>
@@ -459,7 +505,7 @@
                                           </template>
                                    </a-tooltip>
 
-                                   <a-divider type="vertical" v-if="canEdit" />
+                                   <a-divider type="vertical" v-if="canEdit && key === 'Note'" />
 
                                    <a-tooltip title="Exit full screen">
                                           <shrink-outlined @click="closeFullScreenModal" key="shrinkIcon" />
@@ -1024,7 +1070,33 @@ const addUserToInviteList = async () => {
        }
 };
 
+const removeUserFromNote = async (noteId: string, userEmail: string) => {
+       try {
+              const auth = getAuth();
+              const token = await auth.currentUser?.getIdToken();
 
+              const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/remove-user-from-note`, {
+                     method: 'POST',
+                     headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                     },
+                     body: JSON.stringify({ noteId, userEmail }),
+              });
+
+              const data = await response.json();
+
+              if (data.success) {
+                     message.success(data.message);
+                     return data.noteData;
+              } else {
+                     message.error(data.message);
+              }
+       } catch (error) {
+              console.error('Error removing user from note:', error);
+              message.error('An error occurred while removing the user from the note.');
+       }
+};
 </script>
 
 <style scoped>

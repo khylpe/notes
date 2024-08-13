@@ -654,6 +654,89 @@ app.post('/invite-to-note', authenticate, async (req, res) => {
        }
 });
 
+app.post('/remove-user-from-note', authenticate, async (req, res) => {
+       const { noteId, userEmail } = req.body;
+       const userId = req.user.uid;
+
+       if (!noteId || !userEmail) {
+              return res.status(400).json({ success: false, message: 'Note ID and user email are required' });
+       }
+
+       try {
+              const db = admin.database();
+              const noteRef = db.ref(`notes/${noteId}`);
+              const noteSnapshot = await noteRef.once('value');
+
+              if (!noteSnapshot.exists()) {
+                     return res.status(404).json({ success: false, message: 'Note not found' });
+              }
+
+              const noteData = noteSnapshot.val();
+
+              if (noteData.owner !== userId) {
+                     return res.status(403).json({ success: false, message: 'You are not authorized to remove users from this note' });
+              }
+
+              let userRemoved = false;
+
+              // Initialize notFoundUsers array if not defined
+              noteData.notFoundUsers = noteData.notFoundUsers || [];
+
+              // Check if the user is in the `users` array
+              const userUidToRemove = Object.keys(noteData.users).find(uid => noteData.users[uid].email === userEmail);
+              if (userUidToRemove) {
+                     const userInviteStatus = noteData.users[userUidToRemove].inviteStatus;
+
+                     if (userInviteStatus === 'pending') {
+                            // Remove the invitation
+                            const invitationRef = db.ref(`invitations/${userUidToRemove}/${noteId}`);
+                            await invitationRef.remove();
+                     }
+
+                     // If the invite was accepted, remove the note from the user's note list
+                     if (userInviteStatus === 'accepted') {
+                            const userNotesRef = db.ref(`userNotes/${userUidToRemove}`);
+                            await userNotesRef.transaction(currentNotes => {
+                                   if (currentNotes) {
+                                          return currentNotes.filter(id => id !== noteId);
+                                   }
+                                   return currentNotes;
+                            });
+                     }
+
+                     // Remove the user from the `users` array
+                     delete noteData.users[userUidToRemove];
+                     userRemoved = true;
+              }
+
+              // Check if the user is in the `notFoundUsers` array
+              const notFoundUserIndex = noteData.notFoundUsers.findIndex(user => user.email === userEmail);
+              if (notFoundUserIndex !== -1) {
+                     // Remove the user from the `notFoundUsers` array
+                     noteData.notFoundUsers.splice(notFoundUserIndex, 1);
+                     userRemoved = true;
+              }
+
+              if (!userRemoved) {
+                     return res.status(404).json({ success: false, message: 'User not found in the note' });
+              }
+
+              // Save the updated note data back to the database
+              await noteRef.set(noteData);
+
+              console.log(`User ${userEmail} removed from note ${noteId}`);
+              return res.status(200).json({ success: true, message: 'User removed from note successfully', noteData });
+       } catch (error) {
+              console.error('Error removing user from note:', error);
+              return res.status(500).json({ success: false, message: 'Internal server error' });
+       }
+});
+
+
+
+
+
+
 
 
 
