@@ -387,7 +387,7 @@ app.post('/resend-invite', authenticate, async (req, res) => {
 
        if (!email || !noteId) {
               console.error('Email or note ID is missing:', req.body);
-              return res.status(400).send('Email and note ID are required');
+              return res.status(400).json({ message: 'Email and note ID are required' });
        }
 
        try {
@@ -397,7 +397,7 @@ app.post('/resend-invite', authenticate, async (req, res) => {
 
               if (!noteSnapshot.exists()) {
                      console.error('Note not found:', noteId);
-                     return res.status(404).send('Note not found');
+                     return res.status(404).json({ message: 'Note not found' });
               }
 
               const noteData = noteSnapshot.val();
@@ -406,14 +406,14 @@ app.post('/resend-invite', authenticate, async (req, res) => {
               const notFoundUser = noteData.notFoundUsers.find(user => user.email === email);
               if (!notFoundUser) {
                      console.error(`Email ${email} not found in the notFoundUsers array for note ${noteId}`);
-                     return res.status(404).send('User not found for resending invite');
+                     return res.status(404).json({ message: 'User not found for resending invite' });
               }
 
               // Attempt to find the user in Firebase Authentication
               const userRecord = await getUserRecordByEmail(email);
               if (!userRecord) {
                      console.error(`No user found with email ${email}`);
-                     return res.status(404).send('No user found with the provided email');
+                     return res.status(404).json({ message: 'No user found with the provided email' });
               }
 
               // Create invitation for the found user
@@ -447,12 +447,13 @@ app.post('/resend-invite', authenticate, async (req, res) => {
               await noteRef.set(noteData);
 
               console.log(`Invitation resent to ${email} for note ${noteId}`);
-              res.status(200).send('Invitation resent successfully');
+              res.status(200).json({ message: 'Invitation resent successfully' });
        } catch (error) {
               console.error('Error resending invitation:', error);
-              res.status(500).send('Internal server error');
+              res.status(500).json({ message: 'Internal server error' });
        }
 });
+
 
 app.post('/make-note-public', authenticate, async (req, res) => {
        const { noteId } = req.body;
@@ -567,6 +568,93 @@ app.post('/make-note-public', authenticate, async (req, res) => {
               res.status(500).send('Internal server error');
        }
 });
+
+app.post('/invite-to-note', authenticate, async (req, res) => {
+       const { noteId, invitedEmails } = req.body;
+       const userId = req.user.uid;
+
+       if (!noteId || !invitedEmails || !Array.isArray(invitedEmails) || invitedEmails.length === 0) {
+              return res.status(400).send('Note ID and a list of invited emails are required');
+       }
+
+       try {
+              const db = admin.database();
+              const noteRef = db.ref(`notes/${noteId}`);
+              const noteSnapshot = await noteRef.once('value');
+
+              if (!noteSnapshot.exists()) {
+                     return res.status(404).send('Note not found');
+              }
+
+              const noteData = noteSnapshot.val();
+
+              if (noteData.owner !== userId) {
+                     return res.status(403).send('You are not authorized to invite users to this note');
+              }
+
+              const notFoundUsers = noteData.notFoundUsers || [];
+              const alreadyInvitedUsers = [];
+              const ownerInfo = {
+                     username: noteData.users[userId].username,
+                     email: noteData.users[userId].email,
+                     uuid: noteData.owner,
+                     imageUrl: noteData.users[userId].imageUrl || '',
+              };
+
+              for (const { email, rule } of invitedEmails) {
+                     // Check if the user is already invited or in the notFoundUsers list
+                     if (noteData.users && Object.values(noteData.users).some(user => user.email === email) ||
+                            notFoundUsers.some(user => user.email === email)) {
+                            alreadyInvitedUsers.push(email);
+                            continue;
+                     }
+
+                     const userRecord = await getUserRecordByEmail(email);
+                     if (userRecord) {
+                            const username = await getUsernameFromFirestore(userRecord.uid);
+                            const userInfo = {
+                                   username: username || userRecord.displayName || userRecord.email.split('@')[0],
+                                   email: userRecord.email || '',
+                                   uuid: userRecord.uid,
+                                   rule: rule || 'read',
+                                   inviteStatus: 'pending',
+                                   inviteDate: Date.now(),
+                                   isArchived: false,
+                                   isDeleted: false,
+                                   isPinned: false,
+                                   isWatching: false,
+                                   isWriting: false,
+                                   imageUrl: userRecord.photoURL || '',
+                                   notificationSent: false,
+                            };
+
+                            noteData.users[userRecord.uid] = userInfo;
+                            await createInvitation(userRecord.uid, noteData, ownerInfo);
+
+                            console.log(`User ${userRecord.uid} invited to note ${noteId}`);
+                     } else {
+                            console.warn(`User record not found for email: ${email}`);
+                            notFoundUsers.push({ email, inviteDate: Date.now(), rule });
+                     }
+              }
+
+              // Update the note with the new users and notFoundUsers list
+              noteData.notFoundUsers = notFoundUsers;
+              await noteRef.set(noteData);
+
+              res.status(200).send({
+                     message: 'Users invited successfully',
+                     alreadyInvitedUsers, // Add this to the response
+                     notFoundUsers
+              });
+
+       } catch (error) {
+              console.error('Error inviting users to note:', error);
+              res.status(500).send('Internal server error');
+       }
+});
+
+
 
 
 async function getUsernameFromFirestore(uid) {

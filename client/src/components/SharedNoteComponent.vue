@@ -119,8 +119,12 @@
                                                         <a-list-item
                                                                class="flex flex-col md:flex-row gap-5 items-start">
                                                                <div class="flex flex-row w-full">
-                                                                      <a-avatar
-                                                                             :src="user.imageUrl || 'https://via.placeholder.com/50'" />
+                                                                      <a-avatar v-if="user.imageUrl"
+                                                                             :src="user.imageUrl" />
+                                                                      <a-avatar v-else :size="36" class="mr-2">
+                                                                             <UserOutlined width="65px" />
+                                                                      </a-avatar>
+
                                                                       <div class="ml-3 w-4/5 flex flex-col">
                                                                              <a-typography-text
                                                                                     :ellipsis="{ rows: 1 }">{{
@@ -160,6 +164,22 @@
                                           </a-list>
                                    </div>
 
+                                   <div class="mt-5" v-if="note.owner === userId">
+                                          <div class="flex justify-center">
+                                                 <a-input v-model:value="inviteEmail"
+                                                        placeholder="Enter email to invite" style="width: 250px"
+                                                        @pressEnter="addUserToInviteList" />
+
+                                                 <a-select v-model:value="accessValue" :options="accessOptions"
+                                                        placeholder="Access Level" :default-value="'read'"
+                                                        style="width: 120px; margin-left: 10px;">
+                                                 </a-select>
+
+                                                 <a-button type="primary" class="ml-2"
+                                                        @click="addUserToInviteList">Invite</a-button>
+                                          </div>
+                                   </div>
+
                                    <div class="mt-5" v-if="notFoundUsersArray">
                                           <a-list :dataSource="notFoundUsersArray">
                                                  <template #renderItem="{ item: user }">
@@ -183,7 +203,8 @@
                                                                              </a-tag>
                                                                       </a-tooltip>
 
-                                                                      <a-tooltip :title="undefined">
+                                                                      <a-tooltip :title="undefined"
+                                                                             v-if="note.owner === userId">
                                                                              <template #title>
                                                                                     <span>Resend invite</span>
                                                                              </template>
@@ -211,7 +232,10 @@
                                           <div class="flex">
                                                  <a-tooltip v-for="user in watchingUsers" :key="user.uuid"
                                                         :title="user.username || 'Unknown User'">
-                                                        <a-avatar :src="user.imageUrl" class="mr-1" />
+                                                        <a-avatar v-if="user.imageUrl" :src="user.imageUrl" />
+                                                        <a-avatar v-else :size="36" class="mr-2">
+                                                               <UserOutlined width="65px" />
+                                                        </a-avatar>
                                                  </a-tooltip>
                                           </div>
                                    </div>
@@ -224,7 +248,11 @@
                                           <div class="flex">
                                                  <a-tooltip v-for="user in writingUsers" :key="user.uuid"
                                                         :title="user.username || 'Unknown User'">
-                                                        <a-avatar :src="user.imageUrl" class="mr-1" />
+
+                                                        <a-avatar v-if="user.imageUrl" :src="user.imageUrl" />
+                                                        <a-avatar v-else :size="36" class="mr-2">
+                                                               <UserOutlined width="65px" />
+                                                        </a-avatar>
                                                  </a-tooltip>
                                           </div>
                                    </div>
@@ -317,8 +345,11 @@
                                                                <a-list-item
                                                                       class="flex flex-col md:flex-row gap-5 items-start">
                                                                       <div class="flex flex-row w-full">
-                                                                             <a-avatar
-                                                                                    :src="user.imageUrl || 'https://via.placeholder.com/50'" />
+                                                                             <a-avatar v-if="user.imageUrl"
+                                                                                    :src="user.imageUrl" />
+                                                                             <a-avatar v-else :size="36" class="mr-2">
+                                                                                    <UserOutlined width="65px" />
+                                                                             </a-avatar>
                                                                              <div class="ml-3 w-4/5 flex flex-col">
                                                                                     <a-typography-text
                                                                                            :ellipsis="{ rows: 1 }">{{
@@ -359,42 +390,60 @@
                                                  </a-list>
                                           </div>
 
+                                          <div class="mt-5" v-if="note.owner === userId">
+                                                 <div class="flex justify-center">
+                                                        <a-input v-model:value="inviteEmail"
+                                                               placeholder="Enter email to invite" style="width: 250px"
+                                                               @pressEnter="addUserToInviteList" />
+
+                                                        <a-select v-model:value="accessValue" :options="accessOptions"
+                                                               placeholder="Access Level" :default-value="'read'"
+                                                               style="width: 120px; margin-left: 10px;">
+                                                        </a-select>
+
+                                                        <a-button type="primary" class="ml-2"
+                                                               @click="addUserToInviteList">Invite</a-button>
+                                                 </div>
+                                          </div>
+
                                           <div class="mt-5" v-if="notFoundUsersArray">
-                                          <a-list :dataSource="notFoundUsersArray">
-                                                 <template #renderItem="{ item: user }">
-                                                        <a-list-item
-                                                               class="flex flex-col md:flex-row gap-5 items-start">
-                                                               <div class="flex flex-row w-full">
-                                                                      <div class="ml-3 w-4/5 flex flex-col">
-                                                                             <span class="user-email">{{ user.email
+                                                 <a-list :dataSource="notFoundUsersArray">
+                                                        <template #renderItem="{ item: user }">
+                                                               <a-list-item
+                                                                      class="flex flex-col md:flex-row gap-5 items-start">
+                                                                      <div class="flex flex-row w-full">
+                                                                             <div class="ml-3 w-4/5 flex flex-col">
+                                                                                    <span class="user-email">{{
+                                                                                           user.email
                                                                                     }}</span>
+                                                                             </div>
                                                                       </div>
-                                                               </div>
 
-                                                               <div class="flex flex-row items-center gap-3">
-                                                                      <a-tooltip :title="undefined">
-                                                                             <template #title>
-                                                                                    <span
-                                                                                           v-html="getInviteTooltip(user)"></span>
-                                                                             </template>
-                                                                             <a-tag>
-                                                                                    User not found
-                                                                             </a-tag>
-                                                                      </a-tooltip>
+                                                                      <div class="flex flex-row items-center gap-3">
+                                                                             <a-tooltip :title="undefined">
+                                                                                    <template #title>
+                                                                                           <span
+                                                                                                  v-html="getInviteTooltip(user)"></span>
+                                                                                    </template>
+                                                                                    <a-tag>
+                                                                                           User not found
+                                                                                    </a-tag>
+                                                                             </a-tooltip>
 
-                                                                      <a-tooltip :title="undefined">
-                                                                             <template #title>
-                                                                                    <span>Resend invite</span>
-                                                                             </template>
-                                                                             <a-button
-                                                                                    @click="resendInvite(user.email, note.id)">
-                                                                                    <redo-outlined /></a-button>
-                                                                      </a-tooltip>
-                                                               </div>
-                                                        </a-list-item>
-                                                 </template>
-                                          </a-list>
-                                   </div>
+                                                                             <a-tooltip :title="undefined"
+                                                                                    v-if="note.owner === userId">
+                                                                                    <template #title>
+                                                                                           <span>Resend invite</span>
+                                                                                    </template>
+                                                                                    <a-button
+                                                                                           @click="resendInvite(user.email, note.id)">
+                                                                                           <redo-outlined /></a-button>
+                                                                             </a-tooltip>
+                                                                      </div>
+                                                               </a-list-item>
+                                                        </template>
+                                                 </a-list>
+                                          </div>
                                    </a-tab-pane>
                             </a-tabs>
                      </div>
@@ -455,7 +504,7 @@
 
 <script lang="ts" setup>
 import { SettingOutlined } from '@ant-design/icons-vue';
-import { ShrinkOutlined, CalendarOutlined, RedoOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
+import { ShrinkOutlined, CalendarOutlined, RedoOutlined, TagsOutlined, DeleteOutlined, InboxOutlined, UserOutlined, UnorderedListOutlined, PushpinOutlined, ExpandAltOutlined, FolderOutlined } from '@ant-design/icons-vue';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons-vue';
 
 import type { SharedNoteType } from '@/types/SharedNote';
@@ -482,6 +531,18 @@ const sharedNotesStore = useSharedNotesStore();
 const isDeletingNote = ref(false);
 const lastResendTime = ref<number | null>(null);
 const isResendInProgress = ref(false); // Prevents multiple concurrent resends
+const inviteEmail = ref<string>('');
+const key = ref('Note');
+const isFullScreenModalVisible = ref(false);
+const editableNote = ref({ ...props.note });
+const pinIconColor = ref('currentColor');
+const showFullContent = ref(false);
+const tagsStore = useTagsStore();
+const selectedTags = ref<string[]>(userId && props.note.users[userId] ? props.note.users[userId].tags || [] : []);
+const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
+const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id }))); // Folder options for select
+const accessValue = ref('read');
+console.log("🚀 ~ accessValue:", accessValue);
 
 const tabList = [
        {
@@ -493,18 +554,13 @@ const tabList = [
               tab: 'Settings',
        },
 ];
-const key = ref('Note');
-const isFullScreenModalVisible = ref(false);
-const editableNote = ref({ ...props.note });
-const pinIconColor = ref('currentColor');
-const showFullContent = ref(false);
-const tagsStore = useTagsStore();
-const selectedTags = ref<string[]>(userId && props.note.users[userId] ? props.note.users[userId].tags || [] : []);
-const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
-const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id }))); // Folder options for select
+
+const accessOptions = ref([
+       { label: 'Read', value: 'read' },
+       { label: 'Write', value: 'write' }
+]);
 
 const isMobile = ref(window.innerWidth < 768);
-console.log(editableNote.value.notFoundUsers);
 
 // Convert the users object into an array for easier iteration in the template
 const usersArray = computed(() =>
@@ -928,6 +984,46 @@ const resendInvite = async (email: string, noteId: string) => {
               isResendInProgress.value = false; // Reset the resend flag
        }
 };
+
+
+const addUserToInviteList = async () => {
+       if (!inviteEmail.value.trim()) {
+              message.error("Please enter an email address.");
+              return;
+       }
+
+       try {
+              const auth = getAuth();
+              const token = await auth.currentUser?.getIdToken();
+              const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/invite-to-note`, {
+                     method: 'POST',
+                     headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                     },
+                     body: JSON.stringify({
+                            invitedEmails: [{ email: inviteEmail.value.trim(), rule: accessValue.value }],
+                            noteId: editableNote.value.id
+                     }),
+              });
+
+              const result = await response.json();
+
+              if (response.status === 200) {
+                     if (result.alreadyInvitedUsers && result.alreadyInvitedUsers.length > 0) {
+                            message.warning(`User(s) already invited: ${result.alreadyInvitedUsers.join(', ')}`);
+                     } else {
+                            message.success('User invited successfully');
+                            inviteEmail.value = ''; // Clear input
+                     }
+              } else {
+                     message.error(result.message || 'Failed to invite user.');
+              }
+       } catch (error) {
+              message.error('Error occurred while inviting user.');
+       }
+};
+
 
 </script>
 

@@ -188,21 +188,37 @@
                                           </div>
                                    </a-tab-pane>
                                    <a-tab-pane key="Settings" tab="Settings">
-                                          <div class="flex justify-center">
-                                                 <a-select :allowClear="true" v-model:value="selectedFolder"
-                                                        placeholder="Select folder" style="width: 150px"
-                                                        :options="folderOptions">
-                                                        <template #suffixIcon><folder-outlined /></template>
-                                                 </a-select>
+                                          <div class="flex flex-row justify-center items-stretch relative">
+                                          <div class="flex flex-col justify-center">
+                                                 <div class="flex justify-center">
+                                                        <a-select :allowClear="true" v-model:value="selectedFolder"
+                                                               placeholder="Select folder" style="width: 150px"
+                                                               :options="folderOptions">
+                                                               <template #suffixIcon><folder-outlined /></template>
+                                                        </a-select>
+                                                 </div>
+                                                 <div class="flex justify-center mt-3">
+                                                        <a-select mode="multiple" :allowClear="true"
+                                                               v-model:value="selectedTags" placeholder="Select tags"
+                                                               style="width: 150px" :options="tagOptions"
+                                                               :filterOption="filterTagOption"
+                                                               @search="handleTagSearch">
+                                                               <template #suffixIcon><tags-outlined /></template>
+                                                        </a-select>
+                                                 </div>
                                           </div>
-                                          <div class="flex justify-center mt-3">
-                                                 <a-select mode="multiple" :allowClear="true"
-                                                        v-model:value="selectedTags" placeholder="Select tags"
-                                                        style="width: 150px" :options="tagOptions"
-                                                        :filterOption="filterTagOption" @search="handleTagSearch">
-                                                        <template #suffixIcon><tags-outlined /></template>
-                                                 </a-select>
+
+                                          <!-- Divider with absolute positioning and full height -->
+                                          <a-divider type="vertical"
+                                                 class="absolute left-1/2 transform -translate-x-1/2 h-full" />
+
+                                          <div class="flex items-center ml-10">
+                                                 <a-popconfirm title="Are you sure you want to share this note ?"
+                                                        ok-text="Yes" cancel-text="No" @confirm="shareNote">
+                                                        <a-button>Share this note</a-button>
+                                                 </a-popconfirm>
                                           </div>
+                                   </div>
                                    </a-tab-pane>
                             </a-tabs>
                      </div>
@@ -308,7 +324,7 @@ const shareNote = async () => {
        }
 
        try {
-              const response = await axios.post('http://localhost:5000/make-note-public', {
+              const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/make-note-public`, {
                      noteId: editableNote.value.id,
               }, {
                      headers: {
