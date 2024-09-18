@@ -1,7 +1,7 @@
 <template>
        <a-card :style="{ boxShadow: hover ? `0px 0px 10px 0px ${noteFolderColor}` : 'none' }" :tab-list="tabList"
               :active-tab-key="key" @tabChange="onTabChange"
-              class="w-[415px] sm:w-[550px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px] p-0"
+              class="w-auto sm:w-[450px] md:w-[550px] lg:w-[750px] xl:w-[800px] 2xl:w-[1000px]"
               @mouseenter="hover = true" @mouseleave="hover = false">
               <template #customTab="item">
                      <span v-if="item.key === 'Settings'">
