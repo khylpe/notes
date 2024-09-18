@@ -16,7 +16,7 @@ admin.initializeApp({
 const app = express();
 const port = process.env.PORT;
 
-const allowedOrigins = ['notes.crahe-arthur.com', 'https://notes.crahe-arthur.com', '*.preprod.notes.crahe-arthur.com', "https://*.preprod.notes.crahe-arthur.com"]; // Array of allowed origins
+const allowedOrigins = [process.env.ALLOWED_ORIGIN]; // Array of allowed origins
 
 const corsOptions = {
        origin: function (origin, callback) {
