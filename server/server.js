@@ -1,19 +1,22 @@
+
 const express = require('express');
+require('dotenv').config();  // Load environment variables
 const cors = require('cors');
 const admin = require('firebase-admin');
 const rateLimit = require('express-rate-limit');
-const serviceAccount = require('./serviceAccountKey.json');
+const serviceAccountJson = Buffer.from(process.env.SERVICE_ACCOUNT, 'base64').toString('utf-8');
+const serviceAccount = JSON.parse(serviceAccountJson);
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
        credential: admin.credential.cert(serviceAccount),
-       databaseURL: "",
+       databaseURL: process.env.DATABASE_URL,
 });
 
 const app = express();
-const port = 0;
+const port = process.env.PORT;
 
-const allowedOrigins = ['']; // Array of allowed origins
+const allowedOrigins = ['notes.crahe-arthur.com', 'https://notes.crahe-arthur.com', '*.preprod.notes.crahe-arthur.com', "https://*.preprod.notes.crahe-arthur.com"]; // Array of allowed origins
 
 const corsOptions = {
        origin: function (origin, callback) {
