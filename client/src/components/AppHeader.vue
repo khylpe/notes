@@ -112,6 +112,11 @@ const isNewNoteVisible = ref(false);
 const isMobile = ref(window.innerWidth < 768);
 const invitationCount = computed(() => invitationStore.countInvitations());
 
+// if the route is changed, set open to false
+watch(route, () => {
+       open.value = false;
+});
+
 const open = ref<boolean>(false);
 
 const showDrawer = () => {
