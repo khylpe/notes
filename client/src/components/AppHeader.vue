@@ -1,11 +1,11 @@
 <template>
        <header class="flex flex-col pt-1">
               <div class="flex flex-row items-center justify-between">
-                     <!-- Plus Icon for New Note -->
-                     <!-- <a-button type="primary" >Open</a-button> -->
-                     <MenuOutlined v-if="isMobile" class="ml-4" style="font-size: 24px; color: #7a7878" @click="showDrawer" />
-                     <!-- <NavigationDrawer @close="handleDrawerClose" :isOpen="open"></NavigationDrawer> -->
+                     <a-button type="text" @click="showDrawer" class="flex items-center ml-2">
+                            <MenuOutlined v-if="isMobile" style="font-size: 24px; color: #7a7878" />
+                     </a-button>
 
+                     <!-- Plus Icon for New Note -->
                      <a-drawer v-model:open="open" root-class-name="root-class-name" :root-style="{ color: 'blue' }"
                             style="color: red" placement="left" :closable="false">
                             <SideBar :isNotDrawer="false"></SideBar>
@@ -43,6 +43,7 @@
 
                             <!-- Profile Avatar Dropdown -->
                             <a-popover v-if="!!userInformationStore.userInformation" placement="bottomRight"
+                            class="hover:cursor-pointer"
                                    trigger="click">
                                    <template #content>
                                           <div class="flex flex-col">
