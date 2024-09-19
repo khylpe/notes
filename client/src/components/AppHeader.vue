@@ -7,7 +7,7 @@
 
                      <!-- Plus Icon for New Note -->
                      <a-drawer v-model:open="open" root-class-name="root-class-name" :root-style="{ color: 'blue' }"
-                            style="color: red" placement="left" :closable="false">
+                            style="color: red" placement="left">
                             <SideBar :isNotDrawer="false"></SideBar>
                      </a-drawer>
                      <a-tooltip>
