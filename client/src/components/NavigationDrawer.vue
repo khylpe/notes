@@ -1,35 +1,37 @@
 <template>
-       <div :class="props.isNotDrawer ? sidebarClass : ''">
-              <a-menu :inlineCollapsed="props.isNotDrawer ? isCollapsed : false" :inlineIndent="props.isNotDrawer ? inLineIndentValue : 24" :class="props.isNotDrawer ? sidebarClass + ' h-full fixed pt-3' : 'h-full pt-3 bg-transparent !border-0'"
-                     v-model:selectedKeys="current" :mode="props.isNotDrawer ? menuMode : 'inline'" :items="items"
-                     @click="handleMenuClick" />
-       </div>
-       <a-modal v-model:open="isModalVisible" title="Create New Tag" @cancel="handleCancel">
-              <div class="flex flex-row">
-                     <a-input placeholder="Enter tag name" v-model:value="newTagName" />
-                     <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newTagColor" />
-              </div>
-              <template #footer>
-                     <a-button key="back" @click="handleCancel">Cancel</a-button>
-                     <a-button key="submit" type="primary" @click="handleOk" :loading="isAddingTag">Add</a-button>
-              </template>
-       </a-modal>
-       <!-- Modal for creating a new folder -->
-       <a-modal v-model:open="isFolderModalVisible" title="Create New Folder" @cancel="handleFolderCancel">
-              <div class="flex flex-row">
-                     <a-input placeholder="Enter folder name" v-model:value="newFolderName" />
-                     <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newFolderColor" />
-              </div>
-              <template #footer>
-                     <a-button key="back" @click="handleFolderCancel">Cancel</a-button>
-                     <a-button key="submit" type="primary" @click="handleFolderOk"
-                            :loading="isAddingFolder">Add</a-button>
-              </template>
-       </a-modal>
+       <a-drawer v-model:open="localIsOpen" root-class-name="root-class-name"
+              :root-style="{ color: 'blue' }" style="color: red" placement="left" @after-open-change="afterOpenChange" :closable="false" >
+
+              <a-menu :inlineCollapsed="isCollapsed" :inlineIndent="inLineIndentValue" class="h-full pt-3 bg-transparent !border-0"
+                     v-model:selectedKeys="current" :mode="menuMode" :items="items" @click="handleMenuClick" />
+              <a-modal v-model:open="isModalVisible" title="Create New Tag" @cancel="handleCancel">
+                     <div class="flex flex-row">
+                            <a-input placeholder="Enter tag name" v-model:value="newTagName" />
+                            <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newTagColor" />
+                     </div>
+                     <template #footer>
+                            <a-button key="back" @click="handleCancel">Cancel</a-button>
+                            <a-button key="submit" type="primary" @click="handleOk"
+                                   :loading="isAddingTag">Add</a-button>
+                     </template>
+              </a-modal>
+              <!-- Modal for creating a new folder -->
+              <a-modal v-model:open="isFolderModalVisible" title="Create New Folder" @cancel="handleFolderCancel">
+                     <div class="flex flex-row">
+                            <a-input placeholder="Enter folder name" v-model:value="newFolderName" />
+                            <a-input type="color" class="ml-2" style="width: 50px;" v-model:value="newFolderColor" />
+                     </div>
+                     <template #footer>
+                            <a-button key="back" @click="handleFolderCancel">Cancel</a-button>
+                            <a-button key="submit" type="primary" @click="handleFolderOk"
+                                   :loading="isAddingFolder">Add</a-button>
+                     </template>
+              </a-modal>
+       </a-drawer>
 </template>
 
 <script lang="ts" setup>
-import { h, ref, onMounted, onUnmounted, watch, watchEffect } from 'vue';
+import { h, ref, onMounted, watch, watchEffect } from 'vue';
 import { TagsOutlined, UnorderedListOutlined, FolderOutlined, PlusCircleOutlined, PushpinOutlined, DeleteOutlined, InboxOutlined, LockOutlined, ShareAltOutlined, MailOutlined, CrownOutlined, LoginOutlined } from '@ant-design/icons-vue';
 import type { MenuProps } from 'ant-design-vue';
 import { message } from 'ant-design-vue';
@@ -42,6 +44,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useSharedNotesStore } from '@/stores/sharedNotesStore';
 import { getAuth } from 'firebase/auth';
 import { useInvitationStore } from '@/stores/invitationsStore';
+
 const invitationStore = useInvitationStore();
 const sharedNotesStore = useSharedNotesStore();
 const menuMode = ref('inline');
@@ -68,11 +71,24 @@ const userHasSharedNoteWithMe = ref(false);
 const userHasInvitation = ref(false);
 const userHasMySharedNote = ref(false);
 const sidebarClass = ref('w-1/6');
+const props = defineProps<{ isOpen: boolean }>();
+const localIsOpen = ref(props.isOpen);
+const emit = defineEmits(['close']);
+
+watch(() => props.isOpen, (newVal) => {
+       localIsOpen.value = newVal;
+});
 
 const route = useRoute();
 const router = useRouter();
 const userId = getAuth().currentUser?.uid;
-const props = defineProps<{ isNotDrawer: boolean }>();
+
+const afterOpenChange = (bool: boolean) => {
+       if (!bool) {
+              emit('close');
+       }
+};
+
 async function handleOk() {
        isAddingTag.value = true;  // Start loading
        if (!newTagName.value.trim()) {
@@ -156,26 +172,6 @@ const handleFolderCancel = () => {
        isFolderModalVisible.value = false;
        newFolderName.value = '';
        newFolderColor.value = '#000000';
-};
-
-const updateMenuMode = () => {
-       const width = window.innerWidth;
-       menuMode.value = width < 992 ? 'vertical' : 'inline';
-       isCollapsed.value = width < 992;
-
-       if (width < 768) {
-              inLineIndentValue.value = 0;
-              sidebarClass.value = 'w-[10%] hidden';
-       } else if (width < 1000) {
-              inLineIndentValue.value = 0;
-              sidebarClass.value = 'w-[10%]';
-       } else if (width < 1200) {
-              inLineIndentValue.value = 24;
-              sidebarClass.value = 'w-[15%]';
-       } else {
-              inLineIndentValue.value = 32;
-              sidebarClass.value = 'w-[15%]';
-       }
 };
 
 const handleMenuClick = (e: any) => {
@@ -350,10 +346,6 @@ const updateMenuItems = () => {
        items.value = menuItems;
 };
 
-
-
-
-
 const updateSelectedKeys = (path: string) => {
        const decodedPath = decodeURIComponent(path); // Decode the path to handle spaces and special characters
 
@@ -388,9 +380,6 @@ const updateSelectedKeys = (path: string) => {
 };
 
 onMounted(async () => {
-       window.addEventListener('resize', updateMenuMode);
-       updateMenuMode();
-
        try {
               await tagsStore.fetchTags();
               await foldersStore.fetchFolders();
@@ -409,9 +398,6 @@ onMounted(async () => {
        }, { immediate: true });
 });
 
-onUnmounted(() => {
-       window.removeEventListener('resize', updateMenuMode);
-});
 
 watch(() => tagsStore.tags, () => {
        updateMenuItems();

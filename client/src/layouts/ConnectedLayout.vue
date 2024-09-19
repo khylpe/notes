@@ -2,7 +2,7 @@
        <a-config-provider :theme="customTheme">
               <main class="flex flex-row min-h-screen"
                      :style="{ backgroundColor: customTheme.token.colorBgBase }">
-                     <SideBar />
+                     <SideBar isNotDrawer />
                      <div class="mb-20 flex flex-col w-full mt-3 ml-0 sm:ml-6 md:ml-8 lg:ml-10 xl:ml-14 2xl:ml-20 mr-2 sm:mr-4 md:mr-6 lg:mr-8 xl:mr-10 2xl:mr-14">
                             <Header/>
                             <router-view></router-view>
