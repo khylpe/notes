@@ -2,11 +2,19 @@
        <header class="flex flex-col pt-1">
               <div class="flex flex-row items-center justify-between">
                      <!-- Plus Icon for New Note -->
+                     <!-- <a-button type="primary" >Open</a-button> -->
+                     <MenuOutlined v-if="isMobile" class="ml-4" style="font-size: 24px; color: #7a7878" @click="showDrawer" />
+                     <!-- <NavigationDrawer @close="handleDrawerClose" :isOpen="open"></NavigationDrawer> -->
+
+                     <a-drawer v-model:open="open" root-class-name="root-class-name" :root-style="{ color: 'blue' }"
+                            style="color: red" placement="left" :closable="false">
+                            <SideBar :isNotDrawer="false"></SideBar>
+                     </a-drawer>
                      <a-tooltip>
                             <template v-if="!isMobile" #title>New Note (Ctrl + M)</template>
                             <template v-else #title>New Note</template>
 
-                            <a-button type="text" @click="toggleNewNote" class="flex items-center mx-2">
+                            <a-button type="text" @click="toggleNewNote" class="flex items-center">
                                    <PlusOutlined style="font-size: 24px; color: #7a7878" />
                                    <Text v-if="!isMobile" class="ml-2 shortcut-indicator" code type="secondary">Ctrl +
                                           M</Text>
@@ -84,7 +92,7 @@
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { Divider, message, Typography } from 'ant-design-vue';
-import { PlusOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined, SearchOutlined, UserOutlined, MenuOutlined } from '@ant-design/icons-vue';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/services/FirebaseConfig';
 import router from '@/router';
@@ -92,7 +100,7 @@ import { useUserInformationStore } from '@/stores/userInformationStore';
 import SearchBar from '@/components/SearchBar.vue';
 import NewNote from '@/components/NewNote.vue';
 import { useInvitationStore } from '@/stores/invitationsStore';
-
+import SideBar from './SideBar.vue';
 const invitationStore = useInvitationStore();
 const { Text } = Typography;
 const route = useRoute();
@@ -103,9 +111,15 @@ const isNewNoteVisible = ref(false);
 const isMobile = ref(window.innerWidth < 768);
 const invitationCount = computed(() => invitationStore.countInvitations());
 
+const open = ref<boolean>(false);
+
+const showDrawer = () => {
+       open.value = true;
+};
 const handleResize = () => {
        isMobile.value = window.innerWidth < 768;
 };
+
 
 onMounted(() => {
        window.addEventListener('resize', handleResize);

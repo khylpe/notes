@@ -14,7 +14,7 @@
                                    </a-avatar>
                             </div>
                             <div class="flex flex-col md:ml-14">
-                                   <div class="flex flex-col sm:flex-row sm:items-center mt-3">
+                                   <div class="flex flex-col sm:flex-row sm:items-center mt-3 gap-2">
                                           <span>Username</span>
                                           <div class="w-fit">
                                                  <a-input class="sm:ml-3 w-full" v-model:value="username"
@@ -22,14 +22,14 @@
                                           </div>
 
                                    </div>
-                                   <div v-if="email" class="flex flex-col sm:flex-row sm:items-center mt-3">
+                                   <div v-if="email" class="flex flex-col sm:flex-row sm:items-center mt-3 gap-2">
                                           <span>Email</span>
                                           <a-input class="sm:ml-3" style="width: fit-content;" disabled
                                                  v-model:value="email" placeholder="Your email" />
                                    </div>
                             </div>
                      </div>
-                     <a-button class="mt-20" :disabled="!isProfileModified" @click="onSaveProfile" type="primary">Save
+                     <a-button class="mt-10 sm:mt-20" :disabled="!isProfileModified" @click="onSaveProfile" type="primary">Save
                             profil</a-button>
               </div>
        </div>
