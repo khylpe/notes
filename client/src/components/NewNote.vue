@@ -1,74 +1,81 @@
 <template>
        <div class="new-note-container">
-              <a-form layout="vertical" @submit.prevent="addNewNote">
+              <a-form layout="vertical" class="mr-2" @submit.prevent="addNewNote">
                      <a-form-item label="Title" required>
                             <a-input v-model:value="formState.title" placeholder="Your title" :maxlength="100"
                                    @keypress="handleKeyPress($event, 'title')" />
                      </a-form-item>
 
-                     <a-form-item label="Description" required>
+                     <a-form-item label="Description">
                             <a-textarea v-model:value="formState.description" placeholder="Content of your note!"
                                    :autoSize="{ minRows: 8, maxRows: 15 }"
                                    @keypress="handleKeyPress($event, 'description')" />
                      </a-form-item>
 
-                     <a-form-item label="Preview">
+                     <!-- <a-form-item label="Preview">
                             <div class="markdown-preview-container">
                                    <div v-html="renderedMarkdown" class="min-h-20"></div>
                             </div>
-                     </a-form-item>
+                     </a-form-item> -->
 
-                     <a-form-item label="Folder">
-                            <a-select v-model:value="selectedFolder" placeholder="Select folder"
-                                   :options="folderOptions" allowClear>
-                                   <template #suffixIcon>
-                                          <folder-outlined />
-                                   </template>
-                            </a-select>
-                     </a-form-item>
+                     <a-collapse accordion expandIconPosition="end">
+                            <a-collapse-panel key="1" header="More">
+                                   <a-form-item label="Folder">
+                                          <a-select v-model:value="selectedFolder" placeholder="Select folder"
+                                                 :options="folderOptions" allowClear>
+                                                 <template #suffixIcon>
+                                                        <folder-outlined />
+                                                 </template>
+                                          </a-select>
+                                   </a-form-item>
 
-                     <a-form-item label="Tags">
-                            <a-select v-model:value="selectedTags" placeholder="Select tags" mode="multiple" allowClear
-                                   :options="tagOptions" :filterOption="filterTagOption" @search="handleTagSearch">
-                                   <template #suffixIcon>
-                                          <tags-outlined />
-                                   </template>
-                            </a-select>
-                     </a-form-item>
+                                   <a-form-item label="Tags">
+                                          <a-select v-model:value="selectedTags" placeholder="Select tags"
+                                                 mode="multiple" allowClear :options="tagOptions"
+                                                 :filterOption="filterTagOption" @search="handleTagSearch">
+                                                 <template #suffixIcon>
+                                                        <tags-outlined />
+                                                 </template>
+                                          </a-select>
+                                   </a-form-item>
 
-                     <a-form-item label="Shared">
-                            <a-checkbox v-model:checked="isShared">Shared</a-checkbox>
-                     </a-form-item>
+                                   <a-form-item label="Shared">
+                                          <a-checkbox v-model:checked="isShared">Shared</a-checkbox>
+                                   </a-form-item>
 
-                     <a-form-item v-if="isShared" label="Share with (emails)">
-                            <div class="email-input-container flex flex-row gap-3">
-                                   <a-input v-model:value="newEmail" placeholder="Enter email" autocomplete="off"
-                                          @keyup.enter="addEmail" />
-                                   <a-button @click="addEmail" type="default" style="margin-left: 8px;">Add</a-button>
-                            </div>
-                            <div class="shared-emails-list" v-if="sharedEmails.length > 0">
-                                   <ul>
-                                          <li v-for="(email, index) in sharedEmails" :key="index">
-                                                 <span>{{ email }}</span>
-                                                 <a-select v-model:value="sharedEmailsAccess[email]"
-                                                        :options="accessOptions" placeholder="Access Level"
-                                                        :default-value="'read'"
-                                                        style="width: 120px; margin-left: 10px;">
-                                                 </a-select>
-                                                 <a-button type="text" @click="removeEmail(index)">Remove</a-button>
-                                          </li>
-                                   </ul>
-                            </div>
-                     </a-form-item>
+                                   <a-form-item v-if="isShared" label="Share with (emails)">
+                                          <div class="email-input-container flex flex-row gap-3">
+                                                 <a-input v-model:value="newEmail" placeholder="Enter email"
+                                                        autocomplete="off" @keyup.enter="addEmail" />
+                                                 <a-button @click="addEmail" type="default"
+                                                        style="margin-left: 8px;">Add</a-button>
+                                          </div>
+                                          <div class="shared-emails-list" v-if="sharedEmails.length > 0">
+                                                 <ul>
+                                                        <li v-for="(email, index) in sharedEmails" :key="index">
+                                                               <span>{{ email }}</span>
+                                                               <a-select v-model:value="sharedEmailsAccess[email]"
+                                                                      :options="accessOptions"
+                                                                      placeholder="Access Level" :default-value="'read'"
+                                                                      style="width: 120px; margin-left: 10px;">
+                                                               </a-select>
+                                                               <a-button type="text"
+                                                                      @click="removeEmail(index)">Remove</a-button>
+                                                        </li>
+                                                 </ul>
+                                          </div>
+                                   </a-form-item>
+                            </a-collapse-panel>
+                     </a-collapse>
+
+
 
                      <div class="note-actions">
                             <a-popconfirm title="Clear ? (In case your double clicked on your tag like a guignol)"
                                    ok-text="Yes" cancel-text="No" @confirm="resetForm">
                                    <a-button type="default">Clear</a-button>
                             </a-popconfirm>
-                            <a-button type="primary"
-                                   :disabled="!noteModified || !formState.title.trim() || !formState.description.trim()"
-                                   @click="addNewNote">
+                            <a-button type="primary" :disabled="!noteModified" @click="addNewNote">
                                    Save
                             </a-button>
                      </div>
@@ -132,7 +139,7 @@ const renderedMarkdown = computed(() => {
        return md.render(formState.description);
 });
 const addNewNote = async () => {
-       if (formState.title.trim() && formState.description.trim()) {
+       if (formState.title.trim() || formState.description.trim()) {
               const auth = getAuth();
               const user = auth.currentUser;
 
@@ -235,10 +242,8 @@ const addNewNote = async () => {
               }
 
 
-       } else if (!formState.title.trim()) {
-              message.warning('Please enter a title');
-       } else if (!formState.description.trim()) {
-              message.warning('Please enter a description');
+       } else if (!formState.title.trim() && !formState.description.trim()) {
+              message.warning('Please enter a title or description');
        }
 };
 

@@ -63,7 +63,7 @@
               </template>
 
               <template #title>
-                     <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large"
+                     <a-input spellcheck="false" placeholder="Your title" :bordered="false" size="large" :readonly="!isEditMode"
                             v-model:value="editableNote.title" @pressEnter="checkAndUpdateNote" :maxlength="100" />
               </template>
 
