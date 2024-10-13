@@ -588,7 +588,6 @@ const selectedTags = ref<string[]>(userId && props.note.users[userId] ? props.no
 const tagOptions = computed(() => tagsStore.tags.map(tag => ({ label: tag.name, value: tag.id })));
 const folderOptions = computed(() => foldersStore.folders.map(folder => ({ label: folder.name, value: folder.id }))); // Folder options for select
 const accessValue = ref('read');
-console.log("🚀 ~ accessValue:", accessValue);
 
 const tabList = [
        {
@@ -612,7 +611,6 @@ const isMobile = ref(window.innerWidth < 768);
 const usersArray = computed(() =>
        Object.keys(editableNote.value.users).map((userId) => {
               const user = editableNote.value.users[userId];
-              console.log(user.imageUrl);
               return user;
        })
 );
@@ -677,7 +675,6 @@ const moveToDeletedFolder = async () => {
               await sharedNotesStore.moveToDeletedFolder(editableNote.value.id);
               editableNote.value.users[userId].isDeleted = true;
               editableNote.value.users[userId].isArchived = false;
-              console.log('Note moved to deleted folder successfully');
        } catch (error) {
               console.error('Error moving note to deleted folder:', error);
               // You might want to show an error message to the user here
@@ -692,7 +689,6 @@ const moveToMyNotes = async () => {
               await sharedNotesStore.moveToMyList(editableNote.value.id);
               editableNote.value.users[userId].isArchived = false;
               editableNote.value.users[userId].isDeleted = false;
-              console.log('Note removed from archive successfully');
        } catch (error) {
               console.error('Error removing note from archive:', error);
               // You might want to show an error message to the user here
@@ -814,7 +810,6 @@ const handleFolderChange = async (newFolderId: string | null) => {
               await sharedNotesStore.updateNoteFolder(editableNote.value.id, folderIdToSet);
               selectedFolder.value = folderIdToSet;
               editableNote.value.users[userId].folderId = folderIdToSet;
-              console.log(`Folder updated successfully to: ${folderIdToSet}`);
        } catch (error) {
               console.error('Error updating folder:', error);
               // You might want to show an error message to the user here
@@ -828,7 +823,6 @@ const handleTagChange = async (newTags: string[]) => {
               await sharedNotesStore.updateNoteTags(editableNote.value.id, newTags);
               selectedTags.value = newTags;
               editableNote.value.users[userId].tags = newTags;
-              console.log(`Tags updated successfully to: ${newTags}`);
        } catch (error) {
               console.error('Error updating tags:', error);
               // You might want to show an error message to the user here
@@ -872,7 +866,6 @@ const moveToArchiveFolder = async () => {
        try {
               await sharedNotesStore.moveToArchive(editableNote.value.id);
               editableNote.value.users[userId].isArchived = true;
-              console.log('Note moved to archive successfully');
        } catch (error) {
               console.error('Error moving note to archive:', error);
               // You might want to show an error message to the user here
@@ -904,7 +897,6 @@ const getInviteTooltip = (user: User): string => {
 
 
 watch(() => props.note, (newNote) => {
-       console.log('Note content changed LOL:', newNote);
        editableNote.value = { ...newNote };
 }, { deep: true });
 

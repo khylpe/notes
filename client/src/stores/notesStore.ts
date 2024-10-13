@@ -199,9 +199,6 @@ export const useNotesStore = defineStore('notes', {
                      folderIds: (string | null)[],
                      dateRange: [Date, Date] | null
               ) {
-                     console.log(tagIds);
-                     console.log(folderIds);
-
                      // Ensure notes are loaded
                      if (this.notes.length === 0) {
                             await this.fetchAndStoreNotes();

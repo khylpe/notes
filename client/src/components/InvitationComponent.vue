@@ -140,7 +140,6 @@ const refuseInvitation = async (noteId: string) => {
 
 
 const truncatedMarkdown = computed(() => {
-       console.log('Rendering truncated markdown:', invitation.value.noteDescription);
        if (showFullContent.value || !invitation.value.noteDescription) {
               return compiledMarkdown.value;
        } else {
@@ -151,7 +150,6 @@ const truncatedMarkdown = computed(() => {
 });
 
 const compiledMarkdown = computed(() => {
-       console.log('Rendering markdown:', invitation.value.noteDescription);
        return md.render(invitation.value.noteDescription || '');
 });
 

@@ -26,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+console.log("loading")
 import { computed, onMounted, ref } from 'vue';
 import Note from '@/components/NoteComponent.vue';
 import SkeletonNote from '@/components/SkeletonNote.vue'; // Assuming you have a SkeletonNote component
