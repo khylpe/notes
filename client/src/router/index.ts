@@ -17,6 +17,7 @@ import AllSharedNotes from '@/views/AllSharedNotes.vue';
 import MySharedNotes from '@/views/MySharedNotes.vue';
 import NotesSharedWithMe from '@/views/NotesSharedWithMe.vue';
 import { useUserInformationStore } from '@/stores/userInformationStore';
+let startTime;
 
 const checkSignUpMethod = (user: User | null) => {
        if (user && user.providerData.length > 0) {
@@ -131,6 +132,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
        const userInformationStore = useUserInformationStore();
+       startTime = performance.now();
+       console.log('beforeEach', to, from);
+
        try {
               const auth = getAuth();
               const user = await new Promise<User | null>((resolve, reject) => {
@@ -163,6 +167,11 @@ router.beforeEach(async (to, from, next) => {
                             next({ name: 'verifyEmail' });
                      } else {
                             next(); // Proceed if authenticated
+                            console.log("Authenticated");
+                            const endTime = performance.now();
+                            const timeTaken = endTime - startTime;
+                            console.log(`Time taken from beforeEach to Authenticated: ${timeTaken}ms`);
+
                      }
               } else {
                      // Redirect unauthenticated users trying to access verify-email route
@@ -174,6 +183,7 @@ router.beforeEach(async (to, from, next) => {
                             next({ name: 'notes' });
                      } else {
                             next(); // Proceed for other cases
+                            console.log("Not Authenticated");
                      }
               }
        } catch (error) {

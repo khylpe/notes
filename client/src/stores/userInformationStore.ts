@@ -16,11 +16,6 @@ export const useUserInformationStore = defineStore('userInformation', {
                                    const firestore = getFirestore();
                                    const userRef = doc(firestore, 'users', firebaseUser.uid);
                                    const userDoc = await getDoc(userRef);
-                                   console.log("🚀 ~ onAuthStateChanged ~ userDoc:", userDoc);
-
-                                   // Console log to check what data is fetched
-                                   console.log('Firestore data:', userDoc.data());
-
                                    const username = userDoc.exists() ? userDoc.data()?.username : null;
 
                                    const user: UserType = {
@@ -32,7 +27,6 @@ export const useUserInformationStore = defineStore('userInformation', {
                                    };
                                    this.setUser(user);
 
-                                   console.log('Final user info set in store:', user.username);
                             } else {
                                    // User is signed out
                                    this.setUser(null);

@@ -13,7 +13,6 @@ export const useInvitationStore = defineStore('invitationStore', {
        }),
        actions: {
               async fetchInitialInvitations() {
-                     console.log('Fetching initial invitations');
                      const auth = getAuth();
                      const user = auth.currentUser;
 
@@ -29,10 +28,8 @@ export const useInvitationStore = defineStore('invitationStore', {
                                                  noteId,
                                                  ...invitationsData[noteId],
                                           }));
-                                          console.log('Initial invitations:', this.invitations);
                                    } else {
                                           this.invitations = [];
-                                          console.log('No initial invitations found for user:', user.uid);
                                    }
                             } catch (error) {
                                    console.error('Error fetching initial invitations:', error);
@@ -45,13 +42,11 @@ export const useInvitationStore = defineStore('invitationStore', {
               },
 
               listenForUserInvitations(router: any) {  // Accept router as an argument
-                     console.log('listenForUserInvitations action called');
                      const auth = getAuth();
                      auth.onAuthStateChanged((user) => {
                             if (user) {
                                    const db = getDatabase();
                                    const invitationsRef = ref(db, `invitations/${user.uid}`);
-                                   console.log('Listening for invitations at path:', `invitations/${user.uid}`);
 
                                    const seenInvitations = new Set(JSON.parse(localStorage.getItem(`seenInvitations_${user.uid}`) || '[]'));
 
@@ -93,10 +88,8 @@ export const useInvitationStore = defineStore('invitationStore', {
                                                  localStorage.setItem(`seenInvitations_${user.uid}`, JSON.stringify(Array.from(seenInvitations)));
 
                                                  this.invitations = newInvitations;
-                                                 console.log('Processed invitations:', this.invitations);
                                           } else {
                                                  this.invitations = [];
-                                                 console.log('No invitations found for user:', user.uid);
                                           }
                                    }, (error) => {
                                           console.error('Error while listening for invitations:', error);

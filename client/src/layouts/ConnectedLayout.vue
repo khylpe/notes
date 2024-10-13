@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+console.log("loading in layout")
 import SideBar from '@/components/SideBar.vue';
 import { theme } from 'ant-design-vue';
 import Header from '@/components/AppHeader.vue';
